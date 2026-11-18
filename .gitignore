@@ -1,0 +1,49 @@
+# =========================================================================
+# EL BAHLI STORE — Racine .gitignore
+# =========================================================================
+
+# Fichiers d'environnement & Secrets
+.env
+.env.*
+!.env.example
+/Backend/.env
+/Backend/.env.*
+!/Backend/.env.example
+
+# Dépendances Backend & Frontend
+/Backend/vendor/
+/Backend/node_modules/
+/Frontend/node_modules/
+
+# Stockage et caches Laravel
+/Backend/storage/*.key
+/Backend/storage/pail
+/Backend/storage/logs/*
+!/Backend/storage/logs/.gitignore
+/Backend/storage/framework/cache/*
+!/Backend/storage/framework/cache/.gitignore
+/Backend/storage/framework/sessions/*
+!/Backend/storage/framework/sessions/.gitignore
+/Backend/storage/framework/views/*
+!/Backend/storage/framework/views/.gitignore
+/Backend/storage/app/public/*
+!/Backend/storage/app/public/.gitignore
+/Backend/public/storage
+/Backend/.phpunit.result.cache
+/Backend/.phpunit.cache
+
+# Builds & Artéfacts Frontend
+/Frontend/dist/
+/Frontend/build/
+
+# Fichiers système et éditeurs
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+npm-debug.log
+yarn-error.log
+auth.json
