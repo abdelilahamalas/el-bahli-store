@@ -4,6 +4,7 @@ import { Search, ShoppingBag, ChevronDown } from "lucide-react"
 import { useCart } from "@/hooks/useCart"
 import type { Category } from "@/types/category"
 import { storeLogo, getCategoryImage } from "@/utils/categoryImages"
+import SocialLinks from "@/components/common/SocialLinks"
 import MobileMenu from "@/components/layout/MobileMenu"
 import { Button } from "@/components/ui/button"
 import {
@@ -209,8 +210,13 @@ export default function Navbar({ categories, isLoading }: NavbarProps) {
               </Link>
             </div>
 
-            {/* 3. DROITE : Recherche & Panier minimalistes */}
-            <div className="flex items-center justify-end gap-1 sm:gap-2 lg:w-1/3">
+            {/* 3. DROITE : Réseaux Sociaux + Recherche & Panier */}
+            <div className="flex items-center justify-end gap-1.5 sm:gap-3 lg:w-1/3">
+              {/* Icônes Réseaux Sociaux officiels (Desktop) */}
+              <div className="hidden lg:flex items-center border-r border-border/80 pr-3 mr-1">
+                <SocialLinks iconClassName="h-4 w-4" />
+              </div>
+
               {/* Bouton Recherche */}
               <button
                 type="button"

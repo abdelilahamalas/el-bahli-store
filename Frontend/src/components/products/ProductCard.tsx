@@ -72,6 +72,13 @@ export default function ProductCard({ product }: ProductCardProps) {
               )
             )}
           </div>
+
+          {/* Badge Paiement à la livraison comme dans l'exemple de référence */}
+          <div className="absolute bottom-2.5 left-2.5 z-10">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-white/95 backdrop-blur-md text-brand-black text-[10px] font-bold shadow-xs border border-border/40">
+              Paiement à la livraison
+            </span>
+          </div>
         </div>
 
         {/* Détails du produit */}
@@ -101,8 +108,8 @@ export default function ProductCard({ product }: ProductCardProps) {
             )}
           </div>
 
-          {/* Prix et action */}
-          <div className="pt-3 border-t border-border/60 flex items-center justify-between">
+          {/* Prix */}
+          <div className="pt-2 border-t border-border/50 flex items-center justify-between">
             <div className="flex items-baseline gap-2">
               {hasPromo ? (
                 <>
@@ -119,10 +126,14 @@ export default function ProductCard({ product }: ProductCardProps) {
                 </span>
               )}
             </div>
+          </div>
 
-            <span className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-brand-gold group-hover:text-brand-black transition-all duration-300 group-hover:scale-110 shadow-xs">
-              <ArrowRight className="h-4 w-4" />
-            </span>
+          {/* Bouton d'action Voir le produit style boutique streetwear */}
+          <div className="pt-1">
+            <div className="w-full py-2.5 px-4 rounded-xl bg-brand-black text-white text-xs font-bold text-center transition-all duration-300 group-hover:bg-brand-gold group-hover:text-brand-black group-hover:shadow-md flex items-center justify-center gap-1.5 cursor-pointer">
+              <span>Voir le produit</span>
+              <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
+            </div>
           </div>
         </div>
       </Card>
