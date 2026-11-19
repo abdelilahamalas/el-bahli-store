@@ -106,12 +106,13 @@ class ProductController extends ApiController
 
             foreach ($validated['sizes'] as $variantData) {
                 $stock = max(0, (int) $variantData['stock']);
+                $isActive = isset($variantData['is_active']) ? (bool) $variantData['is_active'] : true;
                 $variant = ProductSize::create([
                     'product_id' => $product->id,
                     'size' => trim($variantData['size']),
                     'color' => ! empty($variantData['color']) ? trim($variantData['color']) : 'Standard',
                     'stock' => $stock,
-                    'is_active' => true,
+                    'is_active' => $isActive,
                 ]);
 
                 if ($stock > 0) {
@@ -203,11 +204,12 @@ class ProductController extends ApiController
                 $color = ! empty($variantData['color']) ? trim($variantData['color']) : 'Standard';
                 $size = trim($variantData['size']);
                 $submittedStock = max(0, (int) $variantData['stock']);
+                $isActive = isset($variantData['is_active']) ? (bool) $variantData['is_active'] : true;
 
                 if ($existingVariants->has($key)) {
                     /** @var ProductSize $existing */
                     $existing = $existingVariants->get($key);
-                    $existing->update(['is_active' => true]);
+                    $existing->update(['is_active' => $isActive]);
 
                     if ($existing->stock !== $submittedStock) {
                         $before = $existing->stock;
@@ -231,7 +233,7 @@ class ProductController extends ApiController
                         'size' => $size,
                         'color' => $color,
                         'stock' => $submittedStock,
-                        'is_active' => true,
+                        'is_active' => $isActive,
                     ]);
 
                     if ($submittedStock > 0) {
@@ -299,16 +301,17 @@ class ProductController extends ApiController
     public function destroy(Product $product): JsonResponse
     {
         $hasOrders = OrderItem::where('product_id', $product->id)->exists();
+        $hasMovements = StockMovement::whereIn('product_size_id', $product->sizes()->pluck('id'))->exists();
 
-        if ($hasOrders) {
+        if ($hasOrders || $hasMovements) {
             $product->update(['is_active' => false]);
             $this->auditService->log('product.deactivated_on_delete_attempt', $product, [
-                'reason' => 'Order history exists',
+                'reason' => $hasOrders ? 'Order history exists' : 'Stock movements exist',
             ]);
 
             return $this->success(
                 (new ProductResource($product->load(['category', 'sizes', 'images'])))->resolve(),
-                'Ce produit possède un historique de commandes. Il a été désactivé au lieu d’être supprimé.'
+                'Ce produit possède un historique de commandes ou de mouvements. Il a été désactivé au lieu d’être supprimé.'
             );
         }
 
@@ -471,5 +474,68 @@ class ProductController extends ApiController
             'is_in_stock' => (int) $variant->stock > 0,
             'is_active' => (bool) $variant->is_active,
         ], "Variante {$variant->size} / {$variant->color} ajoutée avec succès au produit « {$product->name} ».");
+    }
+
+    /**
+     * Update an existing size/color variant of a product.
+     */
+    public function updateVariant(Request $request, Product $product, ProductSize $variant): JsonResponse
+    {
+        if ($variant->product_id !== $product->id) {
+            return $this->error('Cette variante n’appartient pas à ce produit.', null, 404);
+        }
+
+        $validated = $request->validate([
+            'size' => ['sometimes', 'string', 'max:20'],
+            'color' => ['nullable', 'string', 'max:50'],
+            'stock' => ['sometimes', 'integer', 'min:0', 'max:1000000'],
+            'reason' => ['required_with:stock', 'nullable', 'string', 'min:3', 'max:255'],
+            'is_active' => ['sometimes', 'boolean'],
+        ], [
+            'stock.min' => 'Le stock ne peut pas être négatif.',
+            'reason.required_with' => 'Le motif est obligatoire lors d’un changement de stock.',
+            'reason.min' => 'Le motif doit comporter au moins 3 caractères.',
+        ]);
+
+        if (isset($validated['size'])) {
+            $variant->size = trim($validated['size']);
+        }
+
+        if (array_key_exists('color', $validated)) {
+            $variant->color = ! empty($validated['color']) ? trim($validated['color']) : 'Standard';
+        }
+
+        if (isset($validated['is_active'])) {
+            $variant->is_active = (bool) $validated['is_active'];
+        }
+
+        if (isset($validated['stock']) && (int) $validated['stock'] !== (int) $variant->stock) {
+            $before = $variant->stock;
+            $newStock = (int) $validated['stock'];
+            $delta = $newStock - $before;
+            $variant->stock = $newStock;
+
+            StockMovement::create([
+                'product_size_id' => $variant->id,
+                'user_id' => $request->user()?->id,
+                'type' => StockMovement::TYPE_MANUAL_ADJUSTMENT,
+                'quantity_before' => $before,
+                'quantity_delta' => $delta,
+                'quantity_after' => $newStock,
+                'reason' => $validated['reason'] ?? 'Mise à jour directe de la variante',
+            ]);
+        }
+
+        $variant->save();
+
+        return $this->success([
+            'variant_id' => $variant->id,
+            'product_id' => $product->id,
+            'size' => $variant->size,
+            'color' => $variant->color,
+            'stock' => (int) $variant->stock,
+            'is_in_stock' => (int) $variant->stock > 0 && (bool) $variant->is_active,
+            'is_active' => (bool) $variant->is_active,
+        ], "Variante {$variant->size} / {$variant->color} mise à jour avec succès.");
     }
 }

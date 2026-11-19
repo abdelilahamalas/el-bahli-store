@@ -244,13 +244,30 @@ Toutes les routes ci-dessous exigent l'entête `Authorization: Bearer <TOKEN>` (
 * `PATCH /api/v1/admin/inventory/variants/{id}/toggle` : Activation / désactivation immédiate d'une variante individuelle taille/couleur.
 
 ### 5.5. Gestion des Produits & Galerie d'Images
-* `GET /api/v1/admin/products` : Liste des produits avec filtres.
-* `POST /api/v1/admin/products` : Création de produit avec variantes (taille + couleur) et stocks initiaux journalisés.
-* `GET /api/v1/admin/products/{id}` : Consultation détaillée.
-* `PUT /api/v1/admin/products/{id}` : Mise à jour des informations, prix et variantes.
-* `POST /api/v1/admin/products/{id}/variants` : Ajout direct d'une variante (taille, couleur, stock) à un produit existant.
-* `PATCH /api/v1/admin/products/{id}/toggle` : Activation / désactivation du produit.
-* `DELETE /api/v1/admin/products/{id}` : Suppression physique ou désactivation automatique si un historique de commande existe.
+* `GET /api/v1/admin/products` : Liste des produits avec pagination et filtres (`category_id`, `is_active`, `search`).
+* `POST /api/v1/admin/products` : Création transactionnelle complète d'un produit avec ses variantes (taille + couleur) et stocks initiaux journalisés :
+```json
+{
+  "category_id": 1,
+  "name": "Jean classique",
+  "description": "Jean classique en denim premium",
+  "price": 350.00,
+  "sale_price": null,
+  "is_active": true,
+  "variants": [
+    { "size": "S", "color": "Brut", "stock": 8, "is_active": true },
+    { "size": "M", "color": "Brut", "stock": 12, "is_active": true },
+    { "size": "L", "color": "Brut", "stock": 5, "is_active": true },
+    { "size": "XL", "color": "Brut", "stock": 0, "is_active": true }
+  ]
+}
+```
+* `GET /api/v1/admin/products/{id}` : Consultation détaillée du produit avec ses variantes actives/inactives et sa galerie.
+* `PUT /api/v1/admin/products/{id}` (ou `POST`) : Mise à jour globale des informations, prix, catégories et variantes (avec détection automatique des ajouts, modifications et désactivations sécurisées).
+* `POST /api/v1/admin/products/{id}/variants` : Ajout direct d'une nouvelle variante (taille, couleur, stock initial) à un produit existant.
+* `PATCH /api/v1/admin/products/{id}/variants/{variantId}` : Mise à jour d'une variante individuelle (taille, couleur, stock avec motif, activation).
+* `PATCH /api/v1/admin/products/{id}/toggle` : Activation / désactivation globale du produit.
+* `DELETE /api/v1/admin/products/{id}` : Suppression physique sécurisée si aucun historique n'existe, ou désactivation automatique (`is_active = false`) si des commandes ou mouvements de stock sont rattachés au produit pour sanctuariser la traçabilité.
 * `POST /api/v1/admin/products/{id}/images` : Ajout d'image avec conversion WebP automatique (900px fiche produit, 300px miniature) et compression 85%.
 * `POST /api/v1/admin/products/{id}/images/{imageId}/main` : Définition de l'image principale.
 * `POST /api/v1/admin/products/{id}/images/reorder` : Réordonnancement de la galerie.

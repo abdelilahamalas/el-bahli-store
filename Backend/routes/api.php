@@ -90,6 +90,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::patch('/products/{product}/toggle', [AdminProductController::class, 'toggle'])->name('products.toggle');
             Route::delete('/products/{product}', [AdminProductController::class, 'destroy'])->name('products.destroy');
             Route::post('/products/{product}/variants', [AdminProductController::class, 'addVariant'])->name('products.variants.store');
+            Route::patch('/products/{product}/variants/{variant}', [AdminProductController::class, 'updateVariant'])->name('products.variants.update');
 
             // Galerie d'images
             Route::post('/products/{product}/images', [AdminProductController::class, 'addImage'])->name('products.images.store');
