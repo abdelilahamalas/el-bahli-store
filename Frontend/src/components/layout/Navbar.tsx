@@ -65,10 +65,10 @@ export default function Navbar({ categories, isLoading }: NavbarProps) {
   // Catégories correspondantes en temps réel dans le modal de recherche
   const matchingCategories = searchQuery.trim()
     ? categories.filter(
-        (cat) =>
-          cat.name.toLowerCase().includes(searchQuery.toLowerCase().trim()) ||
-          cat.slug.toLowerCase().includes(searchQuery.toLowerCase().trim())
-      )
+      (cat) =>
+        cat.name.toLowerCase().includes(searchQuery.toLowerCase().trim()) ||
+        cat.slug.toLowerCase().includes(searchQuery.toLowerCase().trim())
+    )
     : []
 
   const handleCategorySelect = (slug: string) => {
@@ -201,7 +201,7 @@ export default function Navbar({ categories, isLoading }: NavbarProps) {
                 />
                 <div className="flex flex-col text-left">
                   <span className="font-extrabold text-base sm:text-xl tracking-tight text-foreground leading-none">
-                    EL BAHLI <span className="text-brand-gold">STORE</span>
+                    El Bahli <span className="text-brand-gold">Store</span>
                   </span>
                   <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mt-0.5">
                     Maroc

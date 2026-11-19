@@ -122,7 +122,7 @@ export default function HomePage() {
               <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
                 {/* Ligne discrète d'introduction type streetwear */}
                 <div className="text-xs sm:text-sm font-semibold tracking-widest uppercase text-brand-gold/90">
-                  — NÉ AU MAROC, LIVRÉ PARTOUT DANS LE ROYAUME
+                  — LIVRÉ PARTOUT DANS LE ROYAUME
                 </div>
 
                 {/* Titre percutant, grand et épuré comme le modèle "Prends ta place." */}
