@@ -201,7 +201,8 @@ Toutes les routes ci-dessous exigent l'entête `Authorization: Bearer <TOKEN>` (
 ### 5.3. Gestion des Commandes, Paiements & Workflow des Retours
 * `GET /api/v1/admin/orders` : Liste paginée avec recherche (`search`), filtres de statut (`status`), plage de dates (`date_from`, `date_to`), montants (`min_total`, `max_total`) et tri (`sort_by`, `sort_order`).
 * `GET /api/v1/admin/orders/{id}` : Détail complet de la commande avec items, snapshot des prix historiques, coordonnées, informations de paiement (`payment_method`, `payment_status`, `paid_at`), historique des statuts (`status_history`), retours éventuels (`returns`) et notes internes.
-* `PATCH /api/v1/admin/orders/{id}/transition` : Transition de statut de commande sécurisée et idempotente.
+* `PATCH /api/v1/admin/orders/{id}/transition` (alias : `PATCH /api/v1/admin/orders/{id}/status`) : Transition de statut de commande sécurisée et idempotente.
+  * Corps de requête : `{ "status": "confirmed" | "processing" | "shipped" | "delivered" | "cancelled" | "return_requested" | "return_received" | "returned" }`
   * Statuts autorisés : `pending`, `confirmed`, `processing`, `shipped`, `delivered`, `cancelled`, `return_requested`, `return_received`, `returned`.
   * Décrémentation atomique du stock à la `confirmation`.
   * Restitution atomique unique du stock à l'`annulation` (si préalablement confirmée).
@@ -219,7 +220,10 @@ Toutes les routes ci-dessous exigent l'entête `Authorization: Bearer <TOKEN>` (
 ### 5.4. Inventaire & Traçabilité des Mouvements
 * `GET /api/v1/admin/inventory` : Tableau de bord des stocks par produit et variante, avec filtres par catégorie, statut de stock (`in_stock`, `low_stock`, `out_of_stock`) et recherche.
 * `GET /api/v1/admin/inventory/movements` : Journal d'audit paginé de tous les mouvements de stock (`initial_stock`, `manual_adjustment`, `order_confirmation`, `order_cancellation`, `return_restock`) avec administrateur responsable, quantité avant, variation, quantité après et motif.
-* `PATCH /api/v1/admin/inventory/variants/{id}` : Ajustement manuel de stock avec motif obligatoire et prévention des valeurs négatives.
+* `PATCH /api/v1/admin/inventory/variants/{id}` (alias : `POST /api/v1/admin/inventory/variants/{id}/adjust`) : Ajustement manuel de stock avec motif optionnel et prévention des valeurs négatives.
+  * Corps de requête : `{ "new_stock": 25, "reason": "Réassort fournisseur" }`
+  * Validation : `new_stock` (entier >= 0 obligatoire), `reason` (texte max 255 caractères).
+  * Réponse : Contient le stock actualisé et l'objet mouvement (`quantity_before`, `quantity_delta`, `quantity_after`, `reason`).
 
 ### 5.5. Gestion des Produits & Galerie d'Images
 * `GET /api/v1/admin/products` : Liste des produits avec filtres.

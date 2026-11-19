@@ -18,7 +18,7 @@ class AdminUserSeeder extends Seeder
         $name = trim((string) env('ADMIN_INITIAL_NAME', 'Zakaria El Bahli'));
         $password = (string) env('ADMIN_INITIAL_PASSWORD', '');
 
-        // If no password is provided in env, generate a strong random temporary key
+        // Si aucun mot de passe n'est configuré, génération d'une clé aléatoire sécurisée.
         if (empty($password)) {
             $password = Str::random(24);
         }

@@ -19,7 +19,7 @@ use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 /**
- * Phase 17 — Suite de tests d'intégration fonctionnelle administrative globale.
+ * Suite de tests d'intégration fonctionnelle administrative globale.
  * Valide l'ensemble des cas d'usage décrits dans le cahier des charges d'administration.
  */
 class AdministrationGlobaleTest extends TestCase

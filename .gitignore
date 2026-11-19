@@ -36,6 +36,12 @@
 /Frontend/dist/
 /Frontend/build/
 
+# Sauvegardes locales (exclues de Git pour la confidentialité)
+/backups/
+backups/
+/Backend/backups/
+Backend/backups/
+
 # Fichiers système et éditeurs
 .DS_Store
 Thumbs.db
