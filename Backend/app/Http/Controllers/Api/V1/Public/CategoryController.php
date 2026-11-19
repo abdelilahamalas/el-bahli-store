@@ -19,13 +19,15 @@ class CategoryController extends ApiController
     public function index(): JsonResponse
     {
         $categories = Cache::rememberForever('active_categories', function () {
-            return Category::where('is_active', true)
+            $items = Category::where('is_active', true)
                 ->orderBy('sort_order', 'asc')
                 ->get();
+
+            return CategoryResource::collection($items)->resolve();
         });
 
         return $this->success(
-            CategoryResource::collection($categories)->resolve(),
+            $categories,
             'Catégories récupérées avec succès.'
         );
     }

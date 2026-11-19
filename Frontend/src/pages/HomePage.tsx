@@ -146,7 +146,7 @@ export default function HomePage() {
                         EL BAHLI STORE
                       </h2>
                       <p className="text-xs text-brand-gray">
-                        Casablanca & Livraison dans tout le Royaume
+                        Livraison dans tout le Royaume
                       </p>
                     </div>
                   </div>
