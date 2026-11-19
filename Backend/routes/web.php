@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Route;
 |
 | Les routes web sont réservées aux points d'entrée système et vérification d'état.
 | L'ensemble des fonctionnalités e-commerce est exposé sous /api/v1 (routes/api.php).
+| Les requêtes web sur /admin/* sont redirigées vers l'application frontend React.
 |
 */
 
@@ -25,3 +26,13 @@ Route::get('/', function () {
 Route::get('/dashboard', function () {
     return redirect()->route('home');
 })->name('dashboard');
+
+// Redirection vers le back-office React/Vite pour éviter les erreurs 404
+Route::get('/admin/{any?}', function (?string $any = null) {
+    $frontendUrl = rtrim((string) env('FRONTEND_URL', 'http://localhost:5173'), '/');
+    $path = $any ? "/admin/{$any}" : '/admin/login';
+    $query = request()->getQueryString();
+    $target = "{$frontendUrl}{$path}".($query ? "?{$query}" : '');
+
+    return redirect()->away($target);
+})->where('any', '.*')->name('admin.web.redirect');
