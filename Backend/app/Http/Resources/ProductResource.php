@@ -33,6 +33,7 @@ class ProductResource extends JsonResource
                 'size' => $s->size,
                 'color' => $s->color ?? 'Standard',
                 'stock' => (int) $s->stock,
+                'is_in_stock' => (int) $s->stock > 0 && (bool) ($s->is_active ?? true),
                 'is_active' => (bool) ($s->is_active ?? true),
             ])->values(),
             // Backward-compatible alias
@@ -41,6 +42,8 @@ class ProductResource extends JsonResource
                 'size' => $s->size,
                 'color' => $s->color ?? 'Standard',
                 'stock' => (int) $s->stock,
+                'is_in_stock' => (int) $s->stock > 0 && (bool) ($s->is_active ?? true),
+                'is_active' => (bool) ($s->is_active ?? true),
             ])->values(),
             'images' => $this->relationLoaded('images') ? $this->images->map(fn ($img) => [
                 'id' => $img->id,

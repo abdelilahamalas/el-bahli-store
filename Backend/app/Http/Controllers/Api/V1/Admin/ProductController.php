@@ -398,4 +398,78 @@ class ProductController extends ApiController
             'Image supprimée avec succès.'
         );
     }
+
+    /**
+     * Add a size/color variant to a product.
+     */
+    public function addVariant(Request $request, Product $product): JsonResponse
+    {
+        $validated = $request->validate([
+            'size' => ['required', 'string', 'max:20'],
+            'color' => ['nullable', 'string', 'max:50'],
+            'stock' => ['required', 'integer', 'min:0', 'max:1000000'],
+        ], [
+            'size.required' => 'La taille est obligatoire.',
+            'stock.required' => 'Le stock initial est obligatoire.',
+            'stock.min' => 'Le stock ne peut pas être négatif.',
+        ]);
+
+        $size = trim($validated['size']);
+        $color = ! empty($validated['color']) ? trim($validated['color']) : 'Standard';
+        $stock = (int) $validated['stock'];
+
+        $existing = ProductSize::where('product_id', $product->id)
+            ->where('size', $size)
+            ->where('color', $color)
+            ->first();
+
+        if ($existing) {
+            $existing->update(['is_active' => true]);
+            if ($existing->stock !== $stock) {
+                $before = $existing->stock;
+                $delta = $stock - $before;
+                $existing->update(['stock' => $stock]);
+                StockMovement::create([
+                    'product_size_id' => $existing->id,
+                    'user_id' => $request->user()?->id,
+                    'type' => StockMovement::TYPE_MANUAL_ADJUSTMENT,
+                    'quantity_before' => $before,
+                    'quantity_delta' => $delta,
+                    'quantity_after' => $stock,
+                    'reason' => 'Mise à jour et réactivation de la variante existante',
+                ]);
+            }
+            $variant = $existing;
+        } else {
+            $variant = ProductSize::create([
+                'product_id' => $product->id,
+                'size' => $size,
+                'color' => $color,
+                'stock' => $stock,
+                'is_active' => true,
+            ]);
+
+            if ($stock > 0) {
+                StockMovement::create([
+                    'product_size_id' => $variant->id,
+                    'user_id' => $request->user()?->id,
+                    'type' => StockMovement::TYPE_INITIAL_STOCK,
+                    'quantity_before' => 0,
+                    'quantity_delta' => $stock,
+                    'quantity_after' => $stock,
+                    'reason' => 'Stock initial de la nouvelle variante',
+                ]);
+            }
+        }
+
+        return $this->created([
+            'variant_id' => $variant->id,
+            'product_id' => $product->id,
+            'size' => $variant->size,
+            'color' => $variant->color,
+            'stock' => (int) $variant->stock,
+            'is_in_stock' => (int) $variant->stock > 0,
+            'is_active' => (bool) $variant->is_active,
+        ], "Variante {$variant->size} / {$variant->color} ajoutée avec succès au produit « {$product->name} ».");
+    }
 }

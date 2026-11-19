@@ -90,7 +90,7 @@ Toutes les réponses de l'API suivent une enveloppe JSON stricte et prévisible.
 
 ### 4.4. Fiche Produit Détaillée
 * **Route** : `GET /api/v1/products/{slug}`
-* **Données incluses** : Galerie d'images ordonnée (WebP), variantes actives avec stock indépendant, prix promo si applicable.
+* **Données incluses** : Galerie d'images ordonnée (WebP), liste des variantes de taille et couleur avec stock indépendant, indicateur de disponibilité (`is_in_stock: true/false`), statut actif (`is_active: true/false`), prix promotionnel si applicable.
 
 ### 4.5. Estimation du Panier (Quotation)
 * **Route** : `POST /api/v1/cart/estimate`
@@ -113,7 +113,20 @@ Toutes les réponses de l'API suivent une enveloppe JSON stricte et prévisible.
 {
   "success": true,
   "data": {
-    "items": [...],
+    "items": [
+      {
+        "product_id": 1,
+        "product_name": "Jean Slim Confort",
+        "size": "M",
+        "color": "Noir",
+        "quantity": 2,
+        "unit_price": "250.00",
+        "line_total": "500.00",
+        "available_stock": 10,
+        "is_available": true,
+        "error_message": null
+      }
+    ],
     "subtotal": "500.00",
     "delivery_fee": "0.00",
     "total": "500.00",
@@ -124,6 +137,7 @@ Toutes les réponses de l'API suivent une enveloppe JSON stricte et prévisible.
   }
 }
 ```
+* **Note** : Si une variante demandée est en rupture (`stock: 0`) ou insuffisante (`stock < quantity`), `is_valid` passe à `false`, `is_available` passe à `false` et un message explicite en français est fourni dans `error_message` pour informer immédiatement l'acheteur sans effacer le reste du panier.
 
 ### 4.6. Soumission de Commande
 * **Route** : `POST /api/v1/orders`
@@ -189,12 +203,15 @@ Toutes les routes ci-dessous exigent l'entête `Authorization: Bearer <TOKEN>` (
     * `payment_method` : `"cash_on_delivery"`.
     * `is_delivery_free` : `true`.
     * `total_products`, `active_products`, `active_categories`.
-    * `total_stock`, `out_of_stock_variants`, `low_stock_variants`, `low_stock_threshold`.
+    * `total_variants`, `available_variants`, `total_stock`, `out_of_stock_variants`, `low_stock_variants`, `low_stock_threshold`.
   * `charts` :
     * `activity_evolution` : Évolution journalière des commandes et du chiffre d'affaires.
     * `status_distribution` : Répartition par statut.
     * `top_products` : Top 5 des produits les plus vendus (quantité et CA).
     * `top_categories` : Top 5 des catégories les plus performantes.
+  * `stock_by_size` : Répartition agrégée du stock disponible par taille (ex : S, M, L, XL, XXL).
+  * `stock_by_color` : Répartition agrégée du stock par couleur.
+  * `recent_movements` : 10 derniers mouvements de stock tracés avec motif et administrateur.
   * `stock_alerts` : Liste des 10 variantes prioritaires en rupture ou stock faible.
   * `recent_orders` : 5 dernières commandes passées.
 
@@ -220,16 +237,18 @@ Toutes les routes ci-dessous exigent l'entête `Authorization: Bearer <TOKEN>` (
 ### 5.4. Inventaire & Traçabilité des Mouvements
 * `GET /api/v1/admin/inventory` : Tableau de bord des stocks par produit et variante, avec filtres par catégorie, statut de stock (`in_stock`, `low_stock`, `out_of_stock`) et recherche.
 * `GET /api/v1/admin/inventory/movements` : Journal d'audit paginé de tous les mouvements de stock (`initial_stock`, `manual_adjustment`, `order_confirmation`, `order_cancellation`, `return_restock`) avec administrateur responsable, quantité avant, variation, quantité après et motif.
-* `PATCH /api/v1/admin/inventory/variants/{id}` (alias : `POST /api/v1/admin/inventory/variants/{id}/adjust`) : Ajustement manuel de stock avec motif optionnel et prévention des valeurs négatives.
+* `PATCH /api/v1/admin/inventory/variants/{id}` (alias : `POST /api/v1/admin/inventory/variants/{id}/adjust`) : Ajustement manuel de stock avec motif obligatoire et prévention des valeurs négatives.
   * Corps de requête : `{ "new_stock": 25, "reason": "Réassort fournisseur" }`
-  * Validation : `new_stock` (entier >= 0 obligatoire), `reason` (texte max 255 caractères).
+  * Validation : `new_stock` (entier >= 0 obligatoire), `reason` (texte min 3 max 255 caractères obligatoire).
   * Réponse : Contient le stock actualisé et l'objet mouvement (`quantity_before`, `quantity_delta`, `quantity_after`, `reason`).
+* `PATCH /api/v1/admin/inventory/variants/{id}/toggle` : Activation / désactivation immédiate d'une variante individuelle taille/couleur.
 
 ### 5.5. Gestion des Produits & Galerie d'Images
 * `GET /api/v1/admin/products` : Liste des produits avec filtres.
 * `POST /api/v1/admin/products` : Création de produit avec variantes (taille + couleur) et stocks initiaux journalisés.
 * `GET /api/v1/admin/products/{id}` : Consultation détaillée.
 * `PUT /api/v1/admin/products/{id}` : Mise à jour des informations, prix et variantes.
+* `POST /api/v1/admin/products/{id}/variants` : Ajout direct d'une variante (taille, couleur, stock) à un produit existant.
 * `PATCH /api/v1/admin/products/{id}/toggle` : Activation / désactivation du produit.
 * `DELETE /api/v1/admin/products/{id}` : Suppression physique ou désactivation automatique si un historique de commande existe.
 * `POST /api/v1/admin/products/{id}/images` : Ajout d'image avec conversion WebP automatique (900px fiche produit, 300px miniature) et compression 85%.

@@ -11,6 +11,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductSize;
+use App\Models\StockMovement;
 use App\Services\InventoryService;
 use App\Services\SettingService;
 use Carbon\Carbon;
@@ -92,6 +93,8 @@ class DashboardController extends ApiController
         $totalProducts = Product::count();
         $activeProducts = Product::where('is_active', true)->count();
         $activeCategories = Category::where('is_active', true)->count();
+        $totalVariants = ProductSize::count();
+        $availableVariants = ProductSize::where('stock', '>', 0)->where('is_active', true)->count();
         $totalStock = (int) ProductSize::sum('stock');
         $outOfStockVariants = ProductSize::where('stock', 0)->count();
         $lowStockVariants = ProductSize::where('stock', '>', 0)
@@ -192,6 +195,47 @@ class DashboardController extends ApiController
 
         $inventoryStats = $this->inventoryService->getInventoryStats();
 
+        // Stock détaillé par taille
+        $stockBySize = ProductSize::select('size', DB::raw('SUM(stock) as total_stock'), DB::raw('COUNT(*) as variants_count'))
+            ->groupBy('size')
+            ->orderByDesc('total_stock')
+            ->get()
+            ->map(fn ($r) => [
+                'size' => $r->size,
+                'total_stock' => (int) $r->total_stock,
+                'variants_count' => (int) $r->variants_count,
+            ]);
+
+        // Stock détaillé par couleur
+        $stockByColor = ProductSize::select('color', DB::raw('SUM(stock) as total_stock'), DB::raw('COUNT(*) as variants_count'))
+            ->groupBy('color')
+            ->orderByDesc('total_stock')
+            ->get()
+            ->map(fn ($r) => [
+                'color' => $r->color,
+                'total_stock' => (int) $r->total_stock,
+                'variants_count' => (int) $r->variants_count,
+            ]);
+
+        // 10 derniers mouvements de stock
+        $recentMovements = StockMovement::with(['variant.product', 'user', 'order'])
+            ->latest()
+            ->take(10)
+            ->get()
+            ->map(fn ($m) => [
+                'id' => $m->id,
+                'product_name' => $m->variant?->product?->name ?? 'Produit',
+                'size' => $m->variant?->size,
+                'color' => $m->variant?->color,
+                'type' => $m->type,
+                'quantity_before' => $m->quantity_before,
+                'quantity_delta' => $m->quantity_delta,
+                'quantity_after' => $m->quantity_after,
+                'reason' => $m->reason,
+                'admin_name' => $m->user?->name,
+                'created_at' => $m->created_at?->toIso8601String(),
+            ]);
+
         // Indicateurs du paiement à la réception (COD)
         $amountToCollect = (clone $orderQuery)
             ->whereNotIn('status', [OrderStatus::CANCELLED->value, OrderStatus::RETURNED->value])
@@ -223,6 +267,8 @@ class DashboardController extends ApiController
             'total_products' => $totalProducts,
             'active_products' => $activeProducts,
             'active_categories' => $activeCategories,
+            'total_variants' => $totalVariants,
+            'available_variants' => $availableVariants,
             'total_stock' => $totalStock,
             'out_of_stock_variants' => $outOfStockVariants,
             'low_stock_variants' => $lowStockVariants,
@@ -247,6 +293,9 @@ class DashboardController extends ApiController
                 'top_categories' => $topCategories,
             ],
             'stock_alerts' => $stockAlerts,
+            'stock_by_size' => $stockBySize,
+            'stock_by_color' => $stockByColor,
+            'recent_movements' => $recentMovements,
             'recent_orders' => OrderResource::collection($recentOrders)->resolve(),
             'inventory' => $inventoryStats,
         ], 'Statistiques du tableau de bord récupérées.');

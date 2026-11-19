@@ -125,4 +125,27 @@ class InventoryController extends ApiController
             ],
         ], 'Mouvements de stock récupérés.');
     }
+
+    /**
+     * Toggle active status of a variant.
+     */
+    public function toggle(ProductSize $variant): JsonResponse
+    {
+        $variant->update([
+            'is_active' => ! $variant->is_active,
+        ]);
+
+        $variant->load('product');
+        $productName = $variant->product?->name ?? 'Produit';
+        $statusLabel = $variant->is_active ? 'activée' : 'désactivée';
+
+        return $this->success([
+            'variant_id' => $variant->id,
+            'product_id' => $variant->product_id,
+            'size' => $variant->size,
+            'color' => $variant->color,
+            'stock' => (int) $variant->stock,
+            'is_active' => (bool) $variant->is_active,
+        ], "Variante {$variant->size} / {$variant->color} de « {$productName} » {$statusLabel}.");
+    }
 }

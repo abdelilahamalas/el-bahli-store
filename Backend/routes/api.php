@@ -82,13 +82,14 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/products/import/confirm', [AdminProductImportController::class, 'confirm'])->name('products.import.confirm');
             Route::post('/products/import/cancel', [AdminProductImportController::class, 'cancel'])->name('products.import.cancel');
 
-            // Produits
+            // Produits et Variantes
             Route::get('/products', [AdminProductController::class, 'index'])->name('products.index');
             Route::post('/products', [AdminProductController::class, 'store'])->name('products.store');
             Route::get('/products/{product}', [AdminProductController::class, 'show'])->name('products.show');
             Route::match(['put', 'post'], '/products/{product}', [AdminProductController::class, 'update'])->name('products.update');
             Route::patch('/products/{product}/toggle', [AdminProductController::class, 'toggle'])->name('products.toggle');
             Route::delete('/products/{product}', [AdminProductController::class, 'destroy'])->name('products.destroy');
+            Route::post('/products/{product}/variants', [AdminProductController::class, 'addVariant'])->name('products.variants.store');
 
             // Galerie d'images
             Route::post('/products/{product}/images', [AdminProductController::class, 'addImage'])->name('products.images.store');
@@ -101,6 +102,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::get('/inventory/movements', [AdminInventoryController::class, 'movements'])->name('inventory.movements');
             Route::patch('/inventory/variants/{variant}', [AdminInventoryController::class, 'adjust'])->name('inventory.variants.adjust');
             Route::post('/inventory/variants/{variant}/adjust', [AdminInventoryController::class, 'adjust'])->name('inventory.adjust');
+            Route::patch('/inventory/variants/{variant}/toggle', [AdminInventoryController::class, 'toggle'])->name('inventory.variants.toggle');
 
             // Commandes
             Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');

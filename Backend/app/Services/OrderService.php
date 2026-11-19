@@ -74,17 +74,16 @@ class OrderService
                     ->lockForUpdate()
                     ->first();
 
-                if (! $variant) {
-                    $colorLabel = $item['color'] !== 'Standard' ? " / {$item['color']}" : '';
+                if (! $variant || ! $variant->is_active || $variant->stock <= 0) {
                     throw ValidationException::withMessages([
-                        'items' => "La variante « {$item['size']}{$colorLabel} » n'est plus disponible pour « {$product->name} ».",
+                        'items' => "La taille {$item['size']} de ce produit n'est plus disponible. Veuillez sélectionner une autre taille.",
                     ]);
                 }
 
                 if ($variant->stock < $item['quantity']) {
                     $colorLabel = $item['color'] !== 'Standard' ? " en couleur « {$item['color']} »" : '';
                     throw ValidationException::withMessages([
-                        'items' => "Stock insuffisant pour « {$product->name} » en taille « {$item['size']} »{$colorLabel} (stock restant : {$variant->stock}).",
+                        'items' => "Stock insuffisant pour « {$product->name} » en taille « {$item['size']} »{$colorLabel} (stock restant : {$variant->stock}). Quantité disponible : {$variant->stock}.",
                     ]);
                 }
 
@@ -323,10 +322,20 @@ class OrderService
             }
 
             $stockAvailable = $variant ? (int) $variant->stock : 0;
-            $isAvailable = $isProductAvailable && $variant && ($stockAvailable >= $item['quantity']);
+            $isVariantActive = $variant ? (bool) ($variant->is_active ?? true) : false;
+            $isAvailable = $isProductAvailable && $variant && $isVariantActive && ($stockAvailable >= $item['quantity']);
 
             if (! $isAvailable) {
                 $allAvailable = false;
+            }
+
+            $errorMessage = null;
+            if (! $isProductAvailable) {
+                $errorMessage = "Ce produit n'est plus disponible.";
+            } elseif (! $variant || ! $isVariantActive || $stockAvailable <= 0) {
+                $errorMessage = "La taille {$item['size']} de ce produit n'est plus disponible. Veuillez sélectionner une autre taille.";
+            } elseif ($stockAvailable < $item['quantity']) {
+                $errorMessage = "Stock insuffisant pour cette variante. Quantité disponible : {$stockAvailable}.";
             }
 
             $unitPriceCents = $product ? (int) round(((float) $product->price) * 100) : 0;
@@ -346,6 +355,7 @@ class OrderService
                 'line_total' => number_format($lineTotalCents / 100, 2, '.', ''),
                 'available_stock' => $stockAvailable,
                 'is_available' => $isAvailable,
+                'error_message' => $errorMessage,
             ];
         }
 
