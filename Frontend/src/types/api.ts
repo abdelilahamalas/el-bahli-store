@@ -19,17 +19,9 @@ export interface PaginationMeta {
   to?: number
 }
 
-export interface Category {
-  id: number
-  name: string
-  slug: string
-  description?: string | null
-  image?: string | null
-  order?: number
-  is_active: boolean
-  created_at?: string
-  updated_at?: string
-}
+import type { Category } from "./category"
+
+export type { Category }
 
 export interface ProductVariant {
   id: number
