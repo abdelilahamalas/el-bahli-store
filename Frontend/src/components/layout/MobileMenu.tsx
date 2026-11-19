@@ -45,7 +45,7 @@ export default function MobileMenu({ categories, isLoading }: MobileMenuProps) {
             <img
               src={storeLogo}
               alt="Logo El Bahli Store"
-              className="h-11 w-11 rounded-lg object-contain bg-white p-0.5 border shadow-xs"
+              className="h-11 w-11 rounded-full object-contain bg-white p-0.5 border shadow-xs"
             />
             <div>
               <SheetTitle className="text-base font-bold tracking-tight text-foreground">

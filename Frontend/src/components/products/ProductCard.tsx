@@ -36,14 +36,14 @@ export default function ProductCard({ product }: ProductCardProps) {
       to={`/products/${product.slug}`}
       className="group block focus:outline-hidden"
     >
-      <Card className="overflow-hidden border border-border bg-card transition-all duration-300 hover:border-brand-gold hover:shadow-md rounded-xl flex flex-col h-full">
+      <Card className="overflow-hidden border border-border/70 bg-card transition-all duration-300 hover:border-brand-gold hover:shadow-xl rounded-2xl flex flex-col h-full">
         {/* Conteneur d'image */}
-        <div className="relative aspect-3/4 w-full overflow-hidden bg-brand-lightGray">
+        <div className="relative aspect-[3/4] w-full overflow-hidden bg-brand-lightGray">
           {mainImage ? (
             <img
               src={mainImage}
               alt={product.name}
-              className="h-full w-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-105"
+              className="h-full w-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-106"
               loading="lazy"
             />
           ) : (
@@ -54,19 +54,19 @@ export default function ProductCard({ product }: ProductCardProps) {
           )}
 
           {/* Badges en superposition */}
-          <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5 items-start z-10">
+          <div className="absolute top-3 left-3 flex flex-col gap-1.5 items-start z-10">
             {hasPromo && (
-              <Badge variant="destructive" className="font-bold text-[10px] tracking-wider uppercase">
-                Promo -{Math.round(((numPrice - (numPromo as number)) / numPrice) * 100)}%
+              <Badge variant="destructive" className="font-bold text-[10px] tracking-wider uppercase rounded-full px-2.5 py-0.5 shadow-xs">
+                -{Math.round(((numPrice - (numPromo as number)) / numPrice) * 100)}%
               </Badge>
             )}
             {isOutOfStock ? (
-              <Badge variant="secondary" className="bg-brand-black text-white text-[10px] uppercase">
+              <Badge variant="secondary" className="bg-brand-black text-white text-[10px] uppercase rounded-full px-2.5 py-0.5">
                 Épuisé
               </Badge>
             ) : (
               product.category_name && (
-                <span className="px-2 py-0.5 rounded-full bg-brand-black/70 backdrop-blur-xs text-brand-gold text-[10px] font-semibold tracking-wider uppercase">
+                <span className="px-2.5 py-0.5 rounded-full bg-brand-black/75 backdrop-blur-md text-brand-gold text-[10px] font-bold tracking-wider uppercase border border-brand-gold/20">
                   {product.category_name}
                 </span>
               )
@@ -75,25 +75,25 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
 
         {/* Détails du produit */}
-        <div className="p-4 flex flex-col flex-1 justify-between gap-3">
-          <div className="space-y-1">
-            <h3 className="font-semibold text-sm sm:text-base text-foreground tracking-tight line-clamp-1 group-hover:text-brand-gold transition-colors">
+        <div className="p-4 sm:p-5 flex flex-col flex-1 justify-between gap-3">
+          <div className="space-y-1.5">
+            <h3 className="font-bold text-sm sm:text-base text-foreground tracking-tight line-clamp-1 group-hover:text-brand-gold transition-colors">
               {product.name}
             </h3>
 
             {/* Tailles disponibles */}
             {availableSizes.length > 0 && (
-              <div className="flex flex-wrap gap-1 pt-1">
+              <div className="flex flex-wrap gap-1 pt-0.5">
                 {availableSizes.slice(0, 4).map((size) => (
                   <span
                     key={size}
-                    className="text-[10px] px-1.5 py-0.5 bg-muted rounded text-muted-foreground font-mono"
+                    className="text-[10px] px-2 py-0.5 bg-muted rounded-full text-muted-foreground font-semibold"
                   >
                     {size}
                   </span>
                 ))}
                 {availableSizes.length > 4 && (
-                  <span className="text-[10px] text-muted-foreground self-center">
+                  <span className="text-[10px] text-muted-foreground font-semibold self-center">
                     +{availableSizes.length - 4}
                   </span>
                 )}
@@ -102,26 +102,26 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
 
           {/* Prix et action */}
-          <div className="pt-2 border-t border-border/50 flex items-center justify-between">
+          <div className="pt-3 border-t border-border/60 flex items-center justify-between">
             <div className="flex items-baseline gap-2">
               {hasPromo ? (
                 <>
-                  <span className="font-bold text-base text-brand-black">
-                    {numPromo} <span className="text-xs">MAD</span>
+                  <span className="font-extrabold text-base sm:text-lg text-brand-black">
+                    {numPromo} <span className="text-xs font-bold text-brand-gold">MAD</span>
                   </span>
                   <span className="text-xs text-muted-foreground line-through">
                     {numPrice} MAD
                   </span>
                 </>
               ) : (
-                <span className="font-bold text-base text-brand-black">
-                  {numPrice} <span className="text-xs">MAD</span>
+                <span className="font-extrabold text-base sm:text-lg text-brand-black">
+                  {numPrice} <span className="text-xs font-bold text-brand-gold">MAD</span>
                 </span>
               )}
             </div>
 
-            <span className="h-7 w-7 rounded-full bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-brand-gold group-hover:text-brand-black transition-colors">
-              <ArrowRight className="h-3.5 w-3.5" />
+            <span className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-brand-gold group-hover:text-brand-black transition-all duration-300 group-hover:scale-110 shadow-xs">
+              <ArrowRight className="h-4 w-4" />
             </span>
           </div>
         </div>

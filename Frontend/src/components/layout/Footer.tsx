@@ -50,7 +50,7 @@ export default function Footer({ categories = [] }: FooterProps) {
               <img
                 src={storeLogo}
                 alt="El Bahli Store"
-                className="h-12 w-12 rounded-lg object-contain bg-white p-0.5 border border-white/20"
+                className="h-12 w-12 rounded-full object-contain bg-white p-0.5 border border-white/20 shadow-xs"
               />
               <div>
                 <span className="font-bold text-lg tracking-tight text-white block">
