@@ -92,6 +92,15 @@ export default function HomePage() {
     requestAnimationFrame(animation)
   }
 
+  useEffect(() => {
+    if (window.location.hash === "#categories-section") {
+      const timer = setTimeout(() => {
+        scrollToCategories()
+      }, 150)
+      return () => clearTimeout(timer)
+    }
+  }, [])
+
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground antialiased selection:bg-brand-gold/30">
       {/* 1. Barre supérieure — Annonce Officielle */}

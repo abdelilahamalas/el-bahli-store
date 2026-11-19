@@ -12,6 +12,7 @@ import Navbar from "@/components/layout/Navbar"
 import Footer from "@/components/layout/Footer"
 import ProductGrid from "@/components/products/ProductGrid"
 import ProductFilters from "@/components/products/ProductFilters"
+import CategoryCard from "@/components/categories/CategoryCard"
 import { Button } from "@/components/ui/button"
 
 export default function CategoryProductsPage() {
@@ -217,10 +218,10 @@ export default function CategoryProductsPage() {
           />
 
           <div className="pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4">
-            <Link to="/products">
-              <Button variant="outline" size="sm" className="gap-2 text-xs">
+            <Link to="/#categories-section">
+              <Button variant="outline" size="sm" className="gap-2 text-xs font-bold rounded-full hover:border-brand-gold cursor-pointer">
                 <ArrowLeft className="h-3.5 w-3.5" />
-                <span>Voir toutes les autres catégories</span>
+                <span>Choisir une autre catégorie</span>
               </Button>
             </Link>
 
@@ -231,12 +232,43 @@ export default function CategoryProductsPage() {
               )}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-xs font-semibold text-brand-black hover:text-brand-gold transition-colors"
+              className="inline-flex items-center gap-2 text-xs font-bold text-brand-black hover:text-brand-gold transition-colors"
             >
               <Phone className="h-3.5 w-3.5 text-brand-gold" />
               <span>Demander des arrivages sur WhatsApp</span>
             </a>
           </div>
+
+          {/* Accès direct aux autres collections pour changer de catégorie en un clic */}
+          {categories.filter((c) => c.slug.toLowerCase() !== slug?.toLowerCase()).length > 0 && (
+            <div className="pt-12 space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b pb-4">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-brand-gold block">
+                    Catalogue Officiel El Bahli Store
+                  </span>
+                  <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-foreground">
+                    Découvrir d'autres collections
+                  </h2>
+                </div>
+                <Link
+                  to="/#categories-section"
+                  className="text-xs font-bold text-muted-foreground hover:text-brand-gold transition-colors"
+                >
+                  Voir les 12 collections sur l'accueil →
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                {categories
+                  .filter((c) => c.slug.toLowerCase() !== slug?.toLowerCase())
+                  .slice(0, 4)
+                  .map((cat) => (
+                    <CategoryCard key={cat.id} category={cat} />
+                  ))}
+              </div>
+            </div>
+          )}
         </div>
       </main>
 
