@@ -25,6 +25,8 @@ interface ProductFiltersProps {
   onFilterChange: (newFilters: Partial<ProductFilterParams>) => void
   onReset: () => void
   totalCount?: number
+  hideCategoryPills?: boolean
+  isCategoryPage?: boolean
 }
 
 export default function ProductFilters({
@@ -33,6 +35,8 @@ export default function ProductFilters({
   onFilterChange,
   onReset,
   totalCount,
+  hideCategoryPills = false,
+  isCategoryPage = false,
 }: ProductFiltersProps) {
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false)
   const [searchInput, setSearchInput] = useState(filters.search || "")
@@ -47,8 +51,9 @@ export default function ProductFilters({
     onFilterChange({ search: undefined, page: 1 })
   }
 
+  // Ne pas compter category_slug comme un filtre actif si on est sur la page dédiée à une catégorie
   const activeFiltersCount = [
-    Boolean(filters.category_slug),
+    !isCategoryPage && Boolean(filters.category_slug),
     Boolean(filters.search),
     Boolean(filters.min_price),
     Boolean(filters.max_price),
@@ -57,7 +62,7 @@ export default function ProductFilters({
 
   return (
     <div className="space-y-4 mb-8">
-      {/* Barre supérieure : Recherche + Tri + Déclencheur Mobile */}
+      {/* Barre supérieure : Recherche + Tri + Déclencheur Filtres */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         {/* Recherche par nom */}
         <form
@@ -69,13 +74,13 @@ export default function ProductFilters({
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Rechercher par nom de vêtement..."
-            className="pl-9 pr-9 h-10 text-xs sm:text-sm"
+            className="pl-9 pr-9 h-10 text-xs sm:text-sm rounded-xl"
           />
           {searchInput && (
             <button
               type="button"
               onClick={handleClearSearch}
-              className="absolute right-3 text-muted-foreground hover:text-foreground"
+              className="absolute right-3 text-muted-foreground hover:text-foreground cursor-pointer"
               aria-label="Effacer la recherche"
             >
               <X className="h-4 w-4" />
@@ -96,10 +101,10 @@ export default function ProductFilters({
                 })
               }
             >
-              <SelectTrigger className="w-[170px] h-10 text-xs font-medium">
+              <SelectTrigger className="w-[170px] h-10 text-xs font-semibold rounded-xl">
                 <SelectValue placeholder="Trier par" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-xl">
                 <SelectItem value="latest">Nouveautés</SelectItem>
                 <SelectItem value="price_asc">Prix croissant</SelectItem>
                 <SelectItem value="price_desc">Prix décroissant</SelectItem>
@@ -108,18 +113,18 @@ export default function ProductFilters({
             </Select>
           </div>
 
-          {/* Bouton Filtres Avancés (Mobile & Desktop) */}
+          {/* Bouton Filtres Avancés */}
           <Sheet open={isMobileFiltersOpen} onOpenChange={setIsMobileFiltersOpen}>
             <SheetTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
-                className="h-10 px-3.5 gap-2 text-xs font-semibold relative"
+                className="h-10 px-3.5 gap-2 text-xs font-semibold rounded-xl relative cursor-pointer"
               >
                 <SlidersHorizontal className="h-4 w-4" />
                 <span>Filtres</span>
                 {activeFiltersCount > 0 && (
-                  <span className="h-4 w-4 rounded-full bg-brand-gold text-brand-black text-[10px] font-bold flex items-center justify-center">
+                  <span className="h-4.5 w-4.5 rounded-full bg-brand-gold text-brand-black text-[10px] font-extrabold flex items-center justify-center">
                     {activeFiltersCount}
                   </span>
                 )}
@@ -128,37 +133,39 @@ export default function ProductFilters({
             <SheetContent side="right" className="w-[85vw] sm:w-[380px] p-6 space-y-6">
               <SheetHeader className="text-left pb-4 border-b">
                 <SheetTitle className="text-base font-bold">
-                  Filtrer le Catalogue
+                  Filtrer les Produits
                 </SheetTitle>
               </SheetHeader>
 
-              {/* Filtre par Catégorie */}
-              <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Catégorie
-                </label>
-                <Select
-                  value={filters.category_slug || "all"}
-                  onValueChange={(val) =>
-                    onFilterChange({
-                      category_slug: val === "all" ? undefined : val,
-                      page: 1,
-                    })
-                  }
-                >
-                  <SelectTrigger className="w-full text-xs">
-                    <SelectValue placeholder="Toutes les catégories" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Toutes les catégories</SelectItem>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.slug}>
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* Filtre par Catégorie (masqué si page dédiée) */}
+              {!isCategoryPage && (
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Catégorie
+                  </label>
+                  <Select
+                    value={filters.category_slug || "all"}
+                    onValueChange={(val) =>
+                      onFilterChange({
+                        category_slug: val === "all" ? undefined : val,
+                        page: 1,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="w-full text-xs rounded-xl">
+                      <SelectValue placeholder="Toutes les catégories" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      <SelectItem value="all">Toutes les catégories</SelectItem>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.slug}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               {/* Filtre par Prix (Min / Max) */}
               <div className="space-y-2">
@@ -176,7 +183,7 @@ export default function ProductFilters({
                         page: 1,
                       })
                     }
-                    className="h-9 text-xs"
+                    className="h-9 text-xs rounded-lg"
                   />
                   <Input
                     type="number"
@@ -188,7 +195,7 @@ export default function ProductFilters({
                         page: 1,
                       })
                     }
-                    className="h-9 text-xs"
+                    className="h-9 text-xs rounded-lg"
                   />
                 </div>
               </div>
@@ -200,9 +207,10 @@ export default function ProductFilters({
                   size="sm"
                   onClick={() => {
                     onReset()
+                    setSearchInput("")
                     setIsMobileFiltersOpen(false)
                   }}
-                  className="w-1/2 text-xs"
+                  className="w-1/2 text-xs rounded-full cursor-pointer"
                 >
                   Réinitialiser
                 </Button>
@@ -210,7 +218,7 @@ export default function ProductFilters({
                   variant="gold"
                   size="sm"
                   onClick={() => setIsMobileFiltersOpen(false)}
-                  className="w-1/2 text-xs font-bold"
+                  className="w-1/2 text-xs font-bold rounded-full cursor-pointer"
                 >
                   Appliquer
                 </Button>
@@ -220,47 +228,47 @@ export default function ProductFilters({
         </div>
       </div>
 
-      {/* Barre de pilules des catégories (défilement horizontal sur desktop & mobile) */}
-      <div className="flex items-center gap-1.5 overflow-x-auto py-1 no-scrollbar">
-        <button
-          type="button"
-          onClick={() => onFilterChange({ category_slug: undefined, page: 1 })}
-          className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
-            !filters.category_slug
-              ? "bg-brand-black text-white"
-              : "bg-brand-lightGray text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          Tous les articles
-        </button>
-
-        {categories.map((cat) => {
-          const isSelected = filters.category_slug === cat.slug
-          return (
-            <button
-              key={cat.id}
-              type="button"
-              onClick={() =>
-                onFilterChange({
-                  category_slug: isSelected ? undefined : cat.slug,
-                  page: 1,
-                })
-              }
-              className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
-                isSelected
-                  ? "bg-brand-black text-white"
-                  : "bg-brand-lightGray text-muted-foreground hover:text-foreground"
+      {/* Barre de pilules des catégories (uniquement visible sur le catalogue global, masquée sur la page dédiée) */}
+      {!hideCategoryPills && (
+        <div className="flex items-center gap-1.5 overflow-x-auto py-1 no-scrollbar">
+          <button
+            type="button"
+            onClick={() => onFilterChange({ category_slug: undefined, page: 1 })}
+            className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${!filters.category_slug
+              ? "bg-brand-black text-white shadow-xs"
+              : "bg-brand-lightGray text-muted-foreground hover:text-foreground hover:bg-muted"
               }`}
-            >
-              {cat.name}
-            </button>
-          )
-        })}
-      </div>
+          >
+            Tous les articles
+          </button>
+
+          {categories.map((cat) => {
+            const isSelected = filters.category_slug === cat.slug
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() =>
+                  onFilterChange({
+                    category_slug: isSelected ? undefined : cat.slug,
+                    page: 1,
+                  })
+                }
+                className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${isSelected
+                  ? "bg-brand-black text-white shadow-xs"
+                  : "bg-brand-lightGray text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
+              >
+                {cat.name}
+              </button>
+            )
+          })}
+        </div>
+      )}
 
       {/* Indicateur de résultats et filtres actifs */}
       <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
-        <span>
+        <span className="font-medium">
           {typeof totalCount === "number"
             ? `${totalCount} produit${totalCount > 1 ? "s" : ""}`
             : "Chargement des produits..."}
@@ -269,8 +277,11 @@ export default function ProductFilters({
         {activeFiltersCount > 0 && (
           <button
             type="button"
-            onClick={onReset}
-            className="text-brand-gold hover:underline font-medium inline-flex items-center gap-1"
+            onClick={() => {
+              setSearchInput("")
+              onReset()
+            }}
+            className="text-brand-gold hover:underline font-bold inline-flex items-center gap-1 cursor-pointer"
           >
             <span>Effacer tous les filtres ({activeFiltersCount})</span>
             <X className="h-3 w-3" />

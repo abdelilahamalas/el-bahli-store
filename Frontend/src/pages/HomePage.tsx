@@ -62,10 +62,34 @@ export default function HomePage() {
   }, [])
 
   const scrollToCategories = () => {
-    const el = document.getElementById("categories-section")
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth" })
+    const target = document.getElementById("categories-section")
+    if (!target) return
+
+    const navHeight = 75
+    const targetPosition = target.getBoundingClientRect().top + window.scrollY - navHeight
+    const startPosition = window.scrollY
+    const distance = targetPosition - startPosition
+    const duration = 600
+    let startTime: number | null = null
+
+    const easeInOutQuad = (t: number): number => {
+      return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
     }
+
+    const animation = (currentTime: number) => {
+      if (startTime === null) startTime = currentTime
+      const elapsed = currentTime - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      const ease = easeInOutQuad(progress)
+
+      window.scrollTo(0, startPosition + distance * ease)
+
+      if (elapsed < duration) {
+        requestAnimationFrame(animation)
+      }
+    }
+
+    requestAnimationFrame(animation)
   }
 
   return (

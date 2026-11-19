@@ -61,11 +61,40 @@ export default function Navbar({ categories, isLoading }: NavbarProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
 
+  // Catégories correspondantes en temps réel dans le modal de recherche
+  const matchingCategories = searchQuery.trim()
+    ? categories.filter(
+        (cat) =>
+          cat.name.toLowerCase().includes(searchQuery.toLowerCase().trim()) ||
+          cat.slug.toLowerCase().includes(searchQuery.toLowerCase().trim())
+      )
+    : []
+
+  const handleCategorySelect = (slug: string) => {
+    setIsSearchOpen(false)
+    setSearchQuery("")
+    navigate(`/categories/${slug}`)
+  }
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (searchQuery.trim()) {
-      setIsSearchOpen(false)
-      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`)
+    const query = searchQuery.trim()
+    if (!query) return
+
+    // Vérifier si la saisie correspond exactement ou étroitement à une catégorie
+    const matchedCategory = categories.find(
+      (c) =>
+        c.name.toLowerCase() === query.toLowerCase() ||
+        c.slug.toLowerCase() === query.toLowerCase()
+    )
+
+    setIsSearchOpen(false)
+    setSearchQuery("")
+
+    if (matchedCategory) {
+      navigate(`/categories/${matchedCategory.slug}`)
+    } else {
+      navigate(`/products?search=${encodeURIComponent(query)}`)
     }
   }
 
@@ -149,7 +178,7 @@ export default function Navbar({ categories, isLoading }: NavbarProps) {
 
                     <Link
                       to="/products"
-                      className="px-2.5 py-1.5 text-xs xl:text-sm font-medium text-foreground/90 hover:text-brand-gold transition-colors"
+                      className="px-2.5 py-1.5 text-xs xl:text-sm font-medium text-foreground/90 hover:text-brand-gold transition-colors cursor-pointer"
                     >
                       Tout voir
                     </Link>
@@ -211,37 +240,97 @@ export default function Navbar({ categories, isLoading }: NavbarProps) {
         </div>
       </header>
 
-      {/* Modal de recherche propre */}
+      {/* Modal de recherche intelligente avec support direct des catégories */}
       <Dialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Recherche dans la boutique</DialogTitle>
             <DialogDescription>
-              Trouvez facilement vos vêtements, costumes, vestes ou accessoires.
+              Trouvez rapidement une catégorie ou un modèle de vêtement.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSearchSubmit} className="py-4 space-y-4">
             <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
               <Input
                 placeholder="Ex : Capuche, Polo, Veste, Jeans, Chaussures..."
-                className="pl-9"
+                className="pl-9 pr-4 rounded-xl"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 autoFocus
               />
             </div>
 
-            <div className="flex justify-end gap-2 pt-2">
+            {/* Résultats de catégories en direct selon la frappe */}
+            {matchingCategories.length > 0 && (
+              <div className="space-y-2 pt-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
+                  Catégories correspondantes ({matchingCategories.length}) :
+                </span>
+                <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+                  {matchingCategories.map((cat) => {
+                    const img = getCategoryImage(cat.slug)
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => handleCategorySelect(cat.slug)}
+                        className="flex items-center gap-2.5 p-2 rounded-xl border border-border/80 hover:border-brand-gold bg-muted/30 hover:bg-muted transition-all text-left group cursor-pointer"
+                      >
+                        {img && (
+                          <img
+                            src={img}
+                            alt={cat.name}
+                            className="h-8 w-8 rounded-lg object-cover shrink-0"
+                          />
+                        )}
+                        <span className="text-xs font-semibold group-hover:text-brand-gold truncate">
+                          {cat.name}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Suggestions rapides si aucun terme n'est encore saisi */}
+            {!searchQuery.trim() && categories.length > 0 && (
+              <div className="space-y-2 pt-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
+                  Accès direct par catégorie :
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {categories.slice(0, 6).map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => handleCategorySelect(cat.slug)}
+                      className="px-3 py-1 text-xs font-semibold rounded-full bg-muted hover:bg-brand-black hover:text-white transition-all cursor-pointer"
+                    >
+                      {cat.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 pt-2 border-t">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => setIsSearchOpen(false)}
+                className="rounded-full"
               >
                 Annuler
               </Button>
-              <Button type="submit" variant="gold" size="sm" className="font-semibold">
+              <Button
+                type="submit"
+                variant="gold"
+                size="sm"
+                className="font-semibold rounded-full"
+              >
                 Rechercher
               </Button>
             </div>

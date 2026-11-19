@@ -184,8 +184,18 @@ export default function CategoryProductsPage() {
             categories={categories}
             filters={{ ...filters, category_slug: slug }}
             onFilterChange={(newF) => setFilters((prev) => ({ ...prev, ...newF }))}
-            onReset={() => setFilters({ page: 1, sort: "latest" })}
+            onReset={() =>
+              setFilters({
+                page: 1,
+                sort: "latest",
+                search: undefined,
+                min_price: undefined,
+                max_price: undefined,
+              })
+            }
             totalCount={pagination.total}
+            hideCategoryPills={true}
+            isCategoryPage={true}
           />
 
           <ProductGrid
@@ -193,9 +203,17 @@ export default function CategoryProductsPage() {
             isLoading={isLoading}
             error={error}
             onRetry={reloadCategoryProducts}
-            emptyMessage={`Aucun article disponible pour le moment dans la collection ${
-              currentCategory?.name || slug
-            }. Les nouveaux arrivages arrivent très bientôt !`}
+            onResetFilters={() =>
+              setFilters({
+                page: 1,
+                sort: "latest",
+                search: undefined,
+                min_price: undefined,
+                max_price: undefined,
+              })
+            }
+            emptyMessage={`Aucun article disponible pour le moment dans la collection ${currentCategory?.name || slug
+              }. Les nouveaux arrivages arrivent très bientôt !`}
           />
 
           <div className="pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -208,8 +226,7 @@ export default function CategoryProductsPage() {
 
             <a
               href={`${siteConfig.whatsappUrl}?text=${encodeURIComponent(
-                `Bonjour El Bahli Store, je souhaite des informations sur la catégorie ${
-                  currentCategory?.name || slug
+                `Bonjour El Bahli Store, je souhaite des informations sur la catégorie ${currentCategory?.name || slug
                 }.`
               )}`}
               target="_blank"

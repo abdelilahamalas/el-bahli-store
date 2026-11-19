@@ -32,12 +32,15 @@ class ProductController extends ApiController
             $query->whereHas('category', fn ($q) => $q->where('slug', $slug));
         }
 
-        // Search in product name or description
+        // Search in product name, description or category name
         if ($request->filled('search')) {
             $search = trim((string) $request->input('search'));
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
+                    ->orWhere('description', 'like', "%{$search}%")
+                    ->orWhereHas('category', function ($catQuery) use ($search) {
+                        $catQuery->where('name', 'like', "%{$search}%");
+                    });
             });
         }
 
