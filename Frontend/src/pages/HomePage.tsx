@@ -157,29 +157,15 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Composition visuelle officielle Hero avec logo circulaire */}
+              {/* Logo officiel circulaire Hero (sans card ni texte) */}
               <div className="lg:col-span-5 flex justify-center">
-                <div className="relative">
-                  <div className="absolute -inset-4 rounded-full bg-gradient-to-tr from-brand-gold/30 to-transparent blur-xl opacity-70" />
-                  <div className="relative p-6 sm:p-8 rounded-3xl bg-brand-black/90 border border-brand-gold/40 shadow-2xl flex flex-col items-center text-center max-w-sm backdrop-blur-xs">
-                    {/* Logo sous forme circulaire */}
-                    <img
-                      src={storeLogo}
-                      alt="Logo Officiel El Bahli Store"
-                      className="h-44 w-44 sm:h-52 sm:w-52 rounded-full object-contain bg-white p-2 border-2 border-brand-gold/40 shadow-xl transition-transform duration-500 hover:scale-105"
-                    />
-                    <div className="mt-6 space-y-1">
-                      <span className="text-brand-gold font-mono text-xs uppercase tracking-widest block font-bold">
-                        Collection Officielle
-                      </span>
-                      <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white">
-                        EL BAHLI STORE
-                      </h2>
-                      <p className="text-xs text-brand-gray font-medium">
-                        Livraison dans tout le Royaume
-                      </p>
-                    </div>
-                  </div>
+                <div className="relative flex items-center justify-center">
+                  <div className="absolute -inset-6 rounded-full bg-brand-gold/20 blur-2xl opacity-60" />
+                  <img
+                    src={storeLogo}
+                    alt="Logo Officiel El Bahli Store"
+                    className="relative h-56 w-56 sm:h-72 sm:w-72 lg:h-80 lg:w-80 rounded-full object-contain bg-brand-black p-3 border-2 border-brand-gold/50 shadow-2xl transition-transform duration-500 hover:scale-105"
+                  />
                 </div>
               </div>
             </div>
