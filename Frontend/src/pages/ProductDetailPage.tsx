@@ -11,6 +11,7 @@ import {
   Share2,
 } from "lucide-react"
 import { toast } from "sonner"
+import { useCart } from "@/hooks/useCart"
 import type { Product, ProductVariant } from "@/types/product"
 import type { Category } from "@/types/category"
 import productService from "@/services/productService"
@@ -27,6 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>()
+  const { addItem } = useCart()
 
   const [categories, setCategories] = useState<Category[]>([])
   const [product, setProduct] = useState<Product | null>(null)
@@ -106,33 +108,34 @@ export default function ProductDetailPage() {
   }
 
   const handleAddToCart = () => {
-    if (!selectedVariant || selectedVariant.stock <= 0) {
+    if (!product || !selectedVariant || selectedVariant.stock <= 0) {
       toast.error("Veuillez sélectionner une taille disponible avant d'ajouter au panier.")
       return
     }
 
-    toast.success(`${product?.name} (${selectedSize} - ${selectedColor}) ajouté au panier !`, {
-      description: "Le module de panier sera synchronisé lors de la phase dédiée.",
-    })
-  }
+    const unitPrice = product.promotional_price
+      ? parseFloat(product.promotional_price)
+      : parseFloat(product.price)
 
-  const handleWhatsAppOrder = () => {
-    if (!product) return
+    const mainImage =
+      product.images?.find((img) => img.is_main)?.image_url ||
+      product.image_url ||
+      product.images?.[0]?.image_url
 
-    const price = product.promotional_price || product.price
-    const message = `Bonjour El Bahli Store, je souhaite commander cet article :
-- Produit : ${product.name} (Réf : #${product.id})
-- Taille : ${selectedSize || "Non spécifiée"}
-- Couleur : ${selectedColor || "Standard"}
-- Quantité : ${quantity}
-- Prix unitaire : ${price} MAD
-- Livraison : Gratuite partout au Maroc
-- Paiement : À la réception
-
-Lien de l'article : ${window.location.href}`
-
-    const url = `${siteConfig.whatsappUrl}?text=${encodeURIComponent(message)}`
-    window.open(url, "_blank", "noopener,noreferrer")
+    addItem(
+      {
+        productId: product.id,
+        variantId: selectedVariant.id,
+        name: product.name,
+        slug: product.slug,
+        image: mainImage,
+        price: unitPrice,
+        size: selectedSize,
+        color: selectedColor || "Standard",
+        maxStock: selectedVariant.stock,
+      },
+      quantity
+    )
   }
 
   if (isLoading) {
@@ -349,16 +352,17 @@ Lien de l'article : ${window.location.href}`
                   </span>
                 </Button>
 
-                <Button
-                  variant="default"
-                  size="lg"
-                  disabled={!isVariantSelected || isOutOfStock}
-                  onClick={handleWhatsAppOrder}
-                  className="w-full h-12 text-sm font-bold gap-2 bg-[#25D366] hover:bg-[#20ba5a] text-white"
+                <a
+                  href={`${siteConfig.whatsappUrl}?text=${encodeURIComponent(
+                    `Bonjour El Bahli Store, j'ai une question concernant l'article ${product.name} (Réf : #${product.id}).`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 text-xs font-semibold text-muted-foreground hover:text-brand-gold py-2.5 transition-colors border border-border/60 rounded-lg hover:border-brand-gold"
                 >
-                  <Phone className="h-4 w-4" />
-                  <span>Commander directement sur WhatsApp</span>
-                </Button>
+                  <Phone className="h-3.5 w-3.5 text-brand-gold" />
+                  <span>Une question sur ce produit ? Contactez-nous sur WhatsApp</span>
+                </a>
               </div>
 
               {/* Description */}

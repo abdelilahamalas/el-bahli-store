@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { Search, ShoppingBag, ChevronDown } from "lucide-react"
+import { useCart } from "@/hooks/useCart"
 import type { Category } from "@/types/category"
 import { storeLogo, getCategoryImage } from "@/utils/categoryImages"
 import SocialLinks from "@/components/common/SocialLinks"
@@ -28,6 +29,7 @@ interface NavbarProps {
 
 export default function Navbar({ categories, isLoading }: NavbarProps) {
   const navigate = useNavigate()
+  const { totalCount, openCart } = useCart()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
 
@@ -164,19 +166,20 @@ export default function Navbar({ categories, isLoading }: NavbarProps) {
                 <Search className="h-5 w-5" />
               </Button>
 
-              {/* Panier (préparé avec compteur dynamique) */}
+              {/* Panier connecté avec compteur dynamique */}
               <Button
                 variant="outline"
                 size="sm"
+                onClick={openCart}
                 className="relative h-10 px-3.5 border-border hover:border-brand-gold flex items-center gap-2"
-                aria-label="Accéder au panier"
+                aria-label={`Accéder au panier (${totalCount} articles)`}
               >
                 <ShoppingBag className="h-4 w-4 text-brand-gold" />
                 <span className="hidden sm:inline-block text-xs font-semibold">
                   Panier
                 </span>
                 <span className="inline-flex items-center justify-center bg-brand-black text-white text-[11px] font-bold h-5 w-5 rounded-full">
-                  0
+                  {totalCount}
                 </span>
               </Button>
             </div>

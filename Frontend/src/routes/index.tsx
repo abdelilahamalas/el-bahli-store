@@ -3,6 +3,9 @@ import HomePage from "@/pages/HomePage"
 import CatalogPage from "@/pages/CatalogPage"
 import CategoryProductsPage from "@/pages/CategoryProductsPage"
 import ProductDetailPage from "@/pages/ProductDetailPage"
+import CartPage from "@/pages/CartPage"
+import CheckoutPage from "@/pages/CheckoutPage"
+import OrderSuccessPage from "@/pages/OrderSuccessPage"
 import DevCheckPage from "@/pages/DevCheckPage"
 
 export default function AppRoutes() {
@@ -12,6 +15,9 @@ export default function AppRoutes() {
       <Route path="/products" element={<CatalogPage />} />
       <Route path="/products/:slug" element={<ProductDetailPage />} />
       <Route path="/categories/:slug" element={<CategoryProductsPage />} />
+      <Route path="/cart" element={<CartPage />} />
+      <Route path="/checkout" element={<CheckoutPage />} />
+      <Route path="/order-success" element={<OrderSuccessPage />} />
       <Route path="/dev-check" element={<DevCheckPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
