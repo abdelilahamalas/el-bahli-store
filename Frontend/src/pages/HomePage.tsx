@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
 import { ArrowDown, Truck, Banknote, Phone, Sparkles } from "lucide-react"
 import type { Category } from "@/types/category"
 import categoryService from "@/services/categoryService"
@@ -248,14 +249,19 @@ export default function HomePage() {
                 par taille et couleur sera déployé dans les prochaines phases.
                 Chaque pièce est rigoureusement sélectionnée pour votre style au quotidien.
               </p>
-              <div className="pt-2">
+              <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
                 <Button
                   variant="gold"
                   onClick={scrollToCategories}
                   className="font-semibold"
                 >
-                  Découvrir les Catégories Disponibles
+                  Découvrir les Catégories
                 </Button>
+                <Link to="/products">
+                  <Button variant="outline" className="font-semibold">
+                    Voir Tout le Catalogue
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>

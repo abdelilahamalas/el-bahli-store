@@ -69,7 +69,20 @@ export default function MobileMenu({ categories, isLoading }: MobileMenuProps) {
         {/* Liste des catégories */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
           <div className="px-2 pb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Catégories de la Boutique
+            Navigation
+          </div>
+
+          <Link
+            to="/products"
+            onClick={() => setOpen(false)}
+            className="flex items-center justify-between p-2.5 rounded-lg text-sm font-bold text-foreground bg-brand-lightGray/70 hover:bg-brand-black hover:text-white transition-colors mb-2"
+          >
+            <span>Tous les vêtements (Catalogue)</span>
+            <ChevronRight className="h-4 w-4" />
+          </Link>
+
+          <div className="px-2 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Collections par Catégorie
           </div>
 
           {isLoading ? (

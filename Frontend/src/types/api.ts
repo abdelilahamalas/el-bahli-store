@@ -20,38 +20,9 @@ export interface PaginationMeta {
 }
 
 import type { Category } from "./category"
+import type { Product, ProductVariant } from "./product"
 
-export type { Category }
-
-export interface ProductVariant {
-  id: number
-  product_id: number
-  sku: string
-  size: string
-  color?: string | null
-  color_code?: string | null
-  stock: number
-  price_override?: number | null
-  is_active: boolean
-}
-
-export interface Product {
-  id: number
-  category_id: number
-  name: string
-  slug: string
-  description: string
-  price: number
-  compare_price?: number | null
-  images: string[]
-  is_active: boolean
-  featured: boolean
-  category?: Category
-  variants?: ProductVariant[]
-  total_stock?: number
-  created_at?: string
-  updated_at?: string
-}
+export type { Category, Product, ProductVariant }
 
 export interface User {
   id: number

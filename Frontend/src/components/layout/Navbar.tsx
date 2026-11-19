@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { Search, ShoppingBag, ChevronDown } from "lucide-react"
 import type { Category } from "@/types/category"
 import { storeLogo, getCategoryImage } from "@/utils/categoryImages"
@@ -27,8 +27,17 @@ interface NavbarProps {
 }
 
 export default function Navbar({ categories, isLoading }: NavbarProps) {
+  const navigate = useNavigate()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      setIsSearchOpen(false)
+      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`)
+    }
+  }
 
   // On affiche les 6 premières en raccourci direct et le reste sous le menu déroulant
   const mainCategories = categories.slice(0, 6)
@@ -82,6 +91,13 @@ export default function Navbar({ categories, isLoading }: NavbarProps) {
                 </div>
               ) : (
                 <>
+                  <Link
+                    to="/products"
+                    className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-foreground hover:text-brand-gold hover:bg-brand-lightGray rounded-md transition-colors"
+                  >
+                    Catalogue
+                  </Link>
+
                   {mainCategories.map((cat) => (
                     <Link
                       key={cat.id}
@@ -178,15 +194,23 @@ export default function Navbar({ categories, isLoading }: NavbarProps) {
                 ))}
               </div>
             ) : (
-              categories.map((cat) => (
+              <>
                 <Link
-                  key={cat.id}
-                  to={`/categories/${cat.slug}`}
-                  className="shrink-0 px-3 py-1 rounded-full text-[11px] font-medium uppercase tracking-wider bg-brand-lightGray text-foreground hover:bg-brand-black hover:text-white transition-colors"
+                  to="/products"
+                  className="shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider bg-brand-black text-white"
                 >
-                  {cat.name}
+                  Tous les articles
                 </Link>
-              ))
+                {categories.map((cat) => (
+                  <Link
+                    key={cat.id}
+                    to={`/categories/${cat.slug}`}
+                    className="shrink-0 px-3 py-1 rounded-full text-[11px] font-medium uppercase tracking-wider bg-brand-lightGray text-foreground hover:bg-brand-black hover:text-white transition-colors"
+                  >
+                    {cat.name}
+                  </Link>
+                ))}
+              </>
             )}
           </div>
         </div>
@@ -201,7 +225,7 @@ export default function Navbar({ categories, isLoading }: NavbarProps) {
               Trouvez facilement vos vêtements, costumes, vestes ou accessoires.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4 space-y-4">
+          <form onSubmit={handleSearchSubmit} className="py-4 space-y-4">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
@@ -213,12 +237,20 @@ export default function Navbar({ categories, isLoading }: NavbarProps) {
               />
             </div>
 
-            {searchQuery && (
-              <div className="p-3 bg-muted rounded-md text-xs text-muted-foreground">
-                Recherche préparée pour le catalogue de la Phase suivante.
-              </div>
-            )}
-          </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setIsSearchOpen(false)}
+              >
+                Annuler
+              </Button>
+              <Button type="submit" variant="gold" size="sm" className="font-semibold">
+                Rechercher
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
     </>
