@@ -349,7 +349,7 @@ export default function ProductDetailPage() {
                 </span>
               </div>
 
-              {/* Bouton d'Action Principal type Streetwear Minimaliste */}
+              {/* Bouton d'Action Principal — Design Professionnel El Bahli Store */}
               <div className="space-y-3 pt-2">
                 {!isVariantSelected ? (
                   <Button
@@ -357,9 +357,10 @@ export default function ProductDetailPage() {
                     variant="outline"
                     size="lg"
                     disabled
-                    className="w-full h-13 text-sm font-extrabold rounded-xl bg-brand-lightGray text-muted-foreground cursor-not-allowed"
+                    className="w-full h-12 sm:h-13 text-xs sm:text-sm font-bold rounded-xl bg-muted/60 text-muted-foreground border-border cursor-not-allowed select-none gap-2"
                   >
-                    Choisis ta taille
+                    <ShoppingBag className="h-4 w-4 text-muted-foreground/60" />
+                    <span>Sélectionnez votre taille</span>
                   </Button>
                 ) : isOutOfStock ? (
                   <Button
@@ -367,20 +368,23 @@ export default function ProductDetailPage() {
                     variant="secondary"
                     size="lg"
                     disabled
-                    className="w-full h-13 text-sm font-extrabold rounded-xl"
+                    className="w-full h-12 sm:h-13 text-xs sm:text-sm font-bold rounded-xl bg-rose-50 text-rose-700 border border-rose-200 cursor-not-allowed select-none"
                   >
-                    Rupture de Stock
+                    Victime de son succès (Rupture)
                   </Button>
                 ) : (
                   <Button
                     type="button"
-                    variant="default"
                     size="lg"
                     onClick={handleAddToCart}
-                    className="w-full h-13 text-sm font-extrabold rounded-xl bg-brand-black text-white hover:bg-brand-gold hover:text-brand-black transition-all shadow-md gap-2 cursor-pointer"
+                    className="w-full h-12 sm:h-13 text-xs sm:text-sm font-extrabold rounded-xl bg-[#111111] text-white hover:bg-[#1C1C1C] hover:border-[#C9A227] border border-[#2A2A2A] shadow-md hover:shadow-lg active:scale-[0.99] transition-all gap-2.5 cursor-pointer relative overflow-hidden group"
                   >
-                    <ShoppingBag className="h-4 w-4" />
-                    <span>Ajouter au Panier</span>
+                    <div className="w-6 h-6 rounded-lg bg-[#C9A227]/20 border border-[#C9A227]/40 flex items-center justify-center shrink-0 group-hover:bg-[#C9A227] transition-colors">
+                      <ShoppingBag className="h-3.5 w-3.5 text-[#C9A227] group-hover:text-black transition-colors" />
+                    </div>
+                    <span className="tracking-wide uppercase text-[12px] sm:text-[13px]">
+                      Ajouter au Panier
+                    </span>
                   </Button>
                 )}
 

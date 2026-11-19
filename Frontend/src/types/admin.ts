@@ -250,9 +250,12 @@ export interface AdminOrder {
   reference: string
   customer_name: string
   customer_phone: string
-  customer_city: string
-  customer_address: string
-  delivery_notes: string | null
+  city?: string
+  customer_city?: string
+  address?: string
+  customer_address?: string
+  note?: string | null
+  delivery_notes?: string | null
   admin_notes: string | null
   total: string
   subtotal: string
@@ -262,9 +265,18 @@ export interface AdminOrder {
   payment_method: string
   payment_status: PaymentStatusValue
   items_count?: number
+  confirmed_at?: string | null
+  processing_at?: string | null
+  shipped_at?: string | null
+  delivered_at?: string | null
+  cancelled_at?: string | null
+  return_requested_at?: string | null
+  return_received_at?: string | null
+  returned_at?: string | null
   created_at: string
   updated_at?: string
   items?: AdminOrderItem[]
+  status_history?: AdminOrderStatusHistory[]
   status_histories?: AdminOrderStatusHistory[]
   statusHistories?: AdminOrderStatusHistory[]
 }

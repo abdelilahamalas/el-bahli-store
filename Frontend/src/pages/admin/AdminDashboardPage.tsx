@@ -333,7 +333,7 @@ export default function AdminDashboardPage() {
                         {getOrderStatusBadge(order.status, order.status_label)}
                       </div>
                       <span className="text-xs text-muted-foreground mt-0.5 truncate">
-                        {order.customer_name} · {order.customer_city}
+                        {order.customer_name} · {order.city || order.customer_city || "Ville non précisée"}
                       </span>
                     </div>
 

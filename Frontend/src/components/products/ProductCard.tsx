@@ -130,9 +130,9 @@ export default function ProductCard({ product }: ProductCardProps) {
 
           {/* Bouton d'action Voir le produit style boutique streetwear */}
           <div className="pt-1">
-            <div className="w-full py-2.5 px-4 rounded-xl bg-brand-black text-white text-xs font-bold text-center transition-all duration-300 group-hover:bg-brand-gold group-hover:text-brand-black group-hover:shadow-md flex items-center justify-center gap-1.5 cursor-pointer">
+            <div className="w-full py-2.5 px-4 rounded-xl bg-[#111111] text-white border border-[#222222] text-xs font-bold text-center transition-all group-hover:bg-[#1C1C1C] group-hover:border-[#C9A227]/60 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs">
               <span>Voir le produit</span>
-              <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
+              <ArrowRight className="h-3.5 w-3.5 text-[#C9A227] transition-transform duration-200 group-hover:translate-x-0.5" />
             </div>
           </div>
         </div>

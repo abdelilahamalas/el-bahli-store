@@ -157,16 +157,13 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Logo officiel circulaire Hero (sans card ni texte) */}
-              <div className="lg:col-span-5 flex justify-center">
-                <div className="relative flex items-center justify-center">
-                  <div className="absolute -inset-6 rounded-full bg-brand-gold/20 blur-2xl opacity-60" />
-                  <img
-                    src={storeLogo}
-                    alt="Logo Officiel El Bahli Store"
-                    className="relative h-56 w-56 sm:h-72 sm:w-72 lg:h-80 lg:w-80 rounded-full object-contain bg-brand-black p-3 border-2 border-brand-gold/50 shadow-2xl transition-transform duration-500 hover:scale-105"
-                  />
-                </div>
+              {/* Logo officiel circulaire Hero (propre, statique, haute qualité, sans effet hover) */}
+              <div className="lg:col-span-5 flex justify-center items-center">
+                <img
+                  src={storeLogo}
+                  alt="Logo Officiel El Bahli Store"
+                  className="h-56 w-56 sm:h-72 sm:w-72 lg:h-80 lg:w-80 rounded-full object-contain bg-brand-black p-3 border-2 border-brand-gold/60 shadow-xl select-none"
+                />
               </div>
             </div>
           </div>
