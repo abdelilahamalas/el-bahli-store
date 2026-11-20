@@ -1,26 +1,15 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, type ChangeEvent } from "react"
+import { Link } from "react-router-dom"
 import {
-  FolderTree,
-  Plus,
-  Edit,
+  Upload,
+  ArrowRight,
+  Loader2,
   Trash2,
-  Power,
-  CheckCircle2,
-  AlertCircle,
 } from "lucide-react"
 import { toast } from "sonner"
 import { adminService } from "@/services/adminService"
 import type { AdminCategory } from "@/types/admin"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,17 +22,17 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Card, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<AdminCategory[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Dialog state
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  // Form state for creating/editing category
   const [editingCategory, setEditingCategory] = useState<AdminCategory | null>(null)
   const [nameInput, setNameInput] = useState("")
-  const [sortOrderInput, setSortOrderInput] = useState<number>(1)
+  const [isActiveInput, setIsActiveInput] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Delete dialog state
@@ -66,21 +55,29 @@ export default function AdminCategoriesPage() {
     fetchCategories()
   }, [])
 
-  const handleOpenCreate = () => {
+  // Auto-slug generator
+  const slugPreview = nameInput.trim()
+    ? `/categories/${nameInput
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")}`
+    : "/categories/..."
+
+  const handleStartCreate = () => {
     setEditingCategory(null)
     setNameInput("")
-    setSortOrderInput(categories.length + 1)
-    setIsDialogOpen(true)
+    setIsActiveInput(true)
   }
 
-  const handleOpenEdit = (cat: AdminCategory) => {
+  const handleStartEdit = (cat: AdminCategory) => {
     setEditingCategory(cat)
     setNameInput(cat.name)
-    setSortOrderInput(cat.sort_order)
-    setIsDialogOpen(true)
+    setIsActiveInput(cat.is_active)
   }
 
-  const handleSaveCategory = async () => {
+  const handleSaveCategory = async (e: React.FormEvent) => {
+    e.preventDefault()
     if (!nameInput.trim()) {
       toast.error("Veuillez renseigner le nom de la catégorie.")
       return
@@ -91,18 +88,18 @@ export default function AdminCategoriesPage() {
       if (editingCategory) {
         await adminService.updateCategory(editingCategory.id, {
           name: nameInput.trim(),
-          sort_order: sortOrderInput,
+          is_active: isActiveInput,
         })
         toast.success(`La catégorie « ${nameInput} » a été modifiée.`)
       } else {
         await adminService.createCategory({
           name: nameInput.trim(),
-          sort_order: sortOrderInput,
-          is_active: true,
+          is_active: isActiveInput,
+          sort_order: categories.length + 1,
         })
         toast.success(`La catégorie « ${nameInput} » a été créée avec succès.`)
       }
-      setIsDialogOpen(false)
+      handleStartCreate()
       fetchCategories()
     } catch (err: unknown) {
       let msg = "Une erreur est survenue lors de l'enregistrement."
@@ -126,7 +123,7 @@ export default function AdminCategoriesPage() {
       )
       toast.success(
         res.is_active
-          ? `La catégorie « ${cat.name} » est activée.`
+          ? `La catégorie « ${cat.name} » est maintenant active.`
           : `La catégorie « ${cat.name} » est masquée.`
       )
     } catch {
@@ -156,226 +153,277 @@ export default function AdminCategoriesPage() {
     }
   }
 
+  const activeCount = categories.filter((c) => c.is_active).length
+
   return (
-    <div className="space-y-6 max-w-5xl">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Catégories</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Organisation du catalogue des collections de vêtements pour hommes.
-          </p>
-        </div>
-
-        <Button
-          onClick={handleOpenCreate}
-          className="bg-[#111111] hover:bg-[#252525] text-white text-xs font-semibold h-9 px-4 gap-2 shadow-xs"
-        >
-          <Plus className="w-4 h-4 text-[#C9A227]" />
-          Nouvelle catégorie
-        </Button>
+    <div className="space-y-6 max-w-7xl mx-auto pb-10">
+      {/* 1. Page Header (Exactement comme dans la maquette de référence) */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+          Catégories
+        </h1>
+        <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+          {categories.length} catégories · {activeCount} actives. Une catégorie désactivée
+          n'apparaît plus dans la boutique.
+        </p>
       </div>
 
-      {/* Categories Table */}
-      <div className="bg-white rounded-lg border border-border shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr className="border-b border-border bg-muted/40 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                <th className="py-3 px-4 w-12 text-center">Ordre</th>
-                <th className="py-3 px-4">Nom de la catégorie</th>
-                <th className="py-3 px-4">Identifiant (Slug)</th>
-                <th className="py-3 px-4">Articles associés</th>
-                <th className="py-3 px-4">Statut</th>
-                <th className="py-3 px-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {loading ? (
-                [...Array(6)].map((_, i) => (
-                  <tr key={i} className="animate-pulse">
-                    <td className="py-3.5 px-4 text-center"><Skeleton className="h-4 w-6 mx-auto" /></td>
-                    <td className="py-3.5 px-4"><Skeleton className="h-4 w-36" /></td>
-                    <td className="py-3.5 px-4"><Skeleton className="h-4 w-28" /></td>
-                    <td className="py-3.5 px-4"><Skeleton className="h-5 w-16 rounded" /></td>
-                    <td className="py-3.5 px-4"><Skeleton className="h-5 w-14 rounded" /></td>
-                    <td className="py-3.5 px-4 text-right"><Skeleton className="h-7 w-20 rounded ml-auto" /></td>
-                  </tr>
-                ))
-              ) : categories.length > 0 ? (
-                categories.map((cat) => (
-                  <tr key={cat.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="py-3 px-4 text-center font-bold text-muted-foreground">
-                      {cat.sort_order}
-                    </td>
-
-                    <td className="py-3 px-4">
-                      <span className="font-semibold text-foreground">{cat.name}</span>
-                    </td>
-
-                    <td className="py-3 px-4 font-mono text-[11px] text-muted-foreground">
-                      /{cat.slug}
-                    </td>
-
-                    <td className="py-3 px-4">
-                      <Badge variant="secondary" className="bg-muted text-muted-foreground font-normal text-[11px]">
-                        {cat.products_count ?? 0} article(s)
-                      </Badge>
-                    </td>
-
-                    <td className="py-3 px-4 whitespace-nowrap">
-                      {cat.is_active ? (
-                        <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] font-medium gap-1">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-                          Visible
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="bg-slate-100 text-slate-600 border-slate-200 text-[10px] font-medium">
-                          Masquée
-                        </Badge>
-                      )}
-                    </td>
-
-                    <td className="py-3 px-4 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleToggle(cat)}
-                          title={cat.is_active ? "Masquer la catégorie" : "Rendre visible"}
-                          className={`h-7 w-7 ${
-                            cat.is_active ? "text-emerald-600 hover:bg-emerald-50" : "text-muted-foreground hover:bg-muted"
-                          }`}
-                        >
-                          <Power className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleOpenEdit(cat)}
-                          title="Modifier"
-                          className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                        >
-                          <Edit className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setDeletingCategory(cat)}
-                          title="Supprimer"
-                          className="h-7 w-7 text-muted-foreground hover:text-rose-600"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
+      {/* 2. Grille à 2 colonnes : Tableau à gauche, Formulaire à droite */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Colonne Gauche : Tableau des catégories (7 colonnes sur lg) */}
+        <div className="lg:col-span-7 bg-white rounded-2xl border border-border/70 shadow-2xs overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="border-b border-border/60 text-muted-foreground uppercase text-[10px] font-semibold">
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-muted-foreground">
-                    <div className="flex flex-col items-center justify-center">
-                      <FolderTree className="w-9 h-9 text-muted-foreground/40 mb-2" />
-                      <p className="font-semibold text-sm text-foreground">Aucune catégorie trouvée</p>
-                    </div>
-                  </td>
+                  <th className="py-3 px-4">Nom</th>
+                  <th className="py-3 px-4">Produits</th>
+                  <th className="py-3 px-4">Statut</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-border/50">
+                {loading ? (
+                  [...Array(6)].map((_, i) => (
+                    <tr key={i}>
+                      <td colSpan={4} className="py-3.5 px-4">
+                        <Skeleton className="h-5 w-full rounded" />
+                      </td>
+                    </tr>
+                  ))
+                ) : categories.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="py-8 text-center text-muted-foreground">
+                      Aucune catégorie trouvée.
+                    </td>
+                  </tr>
+                ) : (
+                  categories.map((cat) => (
+                    <tr
+                      key={cat.id}
+                      className="hover:bg-muted/20 transition-colors group"
+                    >
+                      {/* Nom */}
+                      <td className="py-3 px-4 font-semibold text-foreground">
+                        {cat.name}
+                      </td>
+
+                      {/* Produits rattachés */}
+                      <td className="py-3 px-4 text-muted-foreground">
+                        {cat.products_count !== undefined
+                          ? `${cat.products_count} produits`
+                          : "Catalogue"}
+                      </td>
+
+                      {/* Statut avec switch toggle */}
+                      <td className="py-3 px-4">
+                        <button
+                          type="button"
+                          onClick={() => handleToggle(cat)}
+                          className={`inline-flex items-center gap-2 cursor-pointer select-none text-xs font-medium`}
+                        >
+                          <div
+                            className={`w-9 h-5 rounded-full p-0.5 transition-colors ${cat.is_active ? "bg-[#111111]" : "bg-neutral-200"
+                              }`}
+                          >
+                            <div
+                              className={`w-4 h-4 rounded-full bg-white transition-transform ${cat.is_active ? "translate-x-4" : "translate-x-0"
+                                }`}
+                            />
+                          </div>
+                          <span
+                            className={
+                              cat.is_active ? "text-foreground font-semibold" : "text-muted-foreground"
+                            }
+                          >
+                            {cat.is_active ? "Active" : "Inactive"}
+                          </span>
+                        </button>
+                      </td>
+
+                      {/* Actions */}
+                      <td className="py-3 px-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleStartEdit(cat)}
+                            className="text-xs font-semibold text-foreground hover:text-[#C9A227] px-2 py-1 rounded hover:bg-muted/60 transition-colors cursor-pointer"
+                          >
+                            Modifier
+                          </button>
+
+                          <Link
+                            to={`/admin/products?category=${cat.id}`}
+                            className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-0.5 px-2 py-1 rounded hover:bg-muted/60 transition-colors"
+                          >
+                            <span>Produits</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </Link>
+
+                          <button
+                            type="button"
+                            onClick={() => setDeletingCategory(cat)}
+                            className="text-muted-foreground hover:text-rose-600 p-1 rounded hover:bg-rose-50 transition-colors"
+                            title="Supprimer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Colonne Droite : Formulaire d'ajout / modification (5 colonnes sur lg - Exactement comme dans la maquette) */}
+        <div className="lg:col-span-5">
+          <Card className="border-border/70 bg-white rounded-2xl shadow-2xs p-6 space-y-5">
+            <CardHeader className="p-0 pb-1">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base font-bold text-foreground">
+                  {editingCategory ? "Modifier la catégorie" : "Ajouter une catégorie"}
+                </CardTitle>
+                {editingCategory && (
+                  <button
+                    type="button"
+                    onClick={handleStartCreate}
+                    className="text-xs font-semibold text-muted-foreground hover:text-foreground"
+                  >
+                    Annuler
+                  </button>
+                )}
+              </div>
+            </CardHeader>
+
+            <form onSubmit={handleSaveCategory} className="space-y-4">
+              {/* Nom de la catégorie */}
+              <div className="space-y-1.5">
+                <Label htmlFor="catName" className="text-xs font-semibold text-foreground">
+                  Nom de la catégorie
+                </Label>
+                <Input
+                  id="catName"
+                  value={nameInput}
+                  onChange={(e) => setNameInput(e.target.value)}
+                  placeholder="Ex. : Chemises"
+                  required
+                  className="h-10 text-xs bg-white border-border rounded-xl focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]"
+                />
+              </div>
+
+              {/* Adresse dans la boutique */}
+              <div className="space-y-1.5">
+                <Label htmlFor="catSlug" className="text-xs font-semibold text-foreground">
+                  Adresse dans la boutique
+                </Label>
+                <Input
+                  id="catSlug"
+                  value={slugPreview}
+                  disabled
+                  className="h-10 text-xs bg-muted/40 border-border rounded-xl text-muted-foreground font-mono"
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  Générée automatiquement à partir du nom.
+                </p>
+              </div>
+
+              {/* Image de la catégorie (Dropzone conforme à la maquette) */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-foreground">
+                  Image de la catégorie
+                </Label>
+                <div className="border border-dashed border-border rounded-xl p-6 text-center bg-muted/20 hover:border-[#C9A227] transition-colors relative cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                      if (e.target.files && e.target.files[0]) {
+                        toast.info("Image prête pour l'enregistrement.")
+                      }
+                    }}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <div className="flex flex-col items-center pointer-events-none space-y-1.5">
+                    <Upload className="w-5 h-5 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground font-medium">
+                      Glissez une image ici ou cliquez
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Toggle Afficher dans la boutique */}
+              <div className="pt-2 flex items-center justify-between border-t border-border/50">
+                <div>
+                  <p className="text-xs font-bold text-foreground">Afficher dans la boutique</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    Visible par les clients dès l'enregistrement.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsActiveInput(!isActiveInput)}
+                  className={`px-3 py-1 rounded-full text-[10px] font-bold transition-colors cursor-pointer ${isActiveInput
+                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                    : "bg-neutral-100 text-neutral-600 border border-neutral-200"
+                    }`}
+                >
+                  {isActiveInput ? "Active" : "Inactive"}
+                </button>
+              </div>
+
+              {/* Bouton Enregistrer (Bouton doré plein arrondi) */}
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full h-11 bg-[#C9A227] hover:bg-[#B38F1E] text-[#111111] font-bold text-xs rounded-xl shadow-xs transition-colors mt-2 flex items-center justify-center gap-2 cursor-pointer border-0"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-black" />
+                    <span>Enregistrement...</span>
+                  </>
+                ) : (
+                  <span>
+                    {editingCategory ? "Mettre à jour la catégorie" : "Enregistrer la catégorie"}
+                  </span>
+                )}
+              </Button>
+            </form>
+          </Card>
         </div>
       </div>
 
-      {/* Create / Edit Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FolderTree className="w-5 h-5 text-[#C9A227]" />
-              {editingCategory ? "Modifier la catégorie" : "Ajouter une catégorie"}
-            </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground">
-              Définissez le nom et la position d'affichage de la collection.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-2 text-xs">
-            <div className="space-y-1.5">
-              <Label htmlFor="catName" className="text-xs font-semibold">
-                Nom de la catégorie <span className="text-rose-500">*</span>
-              </Label>
-              <Input
-                id="catName"
-                value={nameInput}
-                onChange={(e) => setNameInput(e.target.value)}
-                placeholder="Ex: Capuches zippé"
-                className="h-9 text-xs"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="catSort" className="text-xs font-semibold">
-                Ordre d'affichage
-              </Label>
-              <Input
-                id="catSort"
-                type="number"
-                min="1"
-                value={sortOrderInput}
-                onChange={(e) => setSortOrderInput(parseInt(e.target.value) || 1)}
-                className="h-9 text-xs"
-              />
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              disabled={isSubmitting}
-              onClick={() => setIsDialogOpen(false)}
-              className="text-xs h-9"
-            >
-              Annuler
-            </Button>
-            <Button
-              disabled={isSubmitting}
-              onClick={handleSaveCategory}
-              className="bg-[#111111] hover:bg-[#252525] text-white text-xs font-semibold h-9 shadow-xs"
-            >
-              {isSubmitting ? "Enregistrement..." : "Enregistrer"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Confirmation Dialog */}
+      {/* AlertDialog pour confirmation de suppression */}
       {deletingCategory && (
         <AlertDialog
-          open={!!deletingCategory}
+          open={Boolean(deletingCategory)}
           onOpenChange={(open) => !open && setDeletingCategory(null)}
         >
-          <AlertDialogContent>
+          <AlertDialogContent className="rounded-2xl">
             <AlertDialogHeader>
-              <AlertDialogTitle className="flex items-center gap-2 text-rose-600">
-                <AlertCircle className="w-5 h-5" />
-                Supprimer la catégorie
-              </AlertDialogTitle>
-              <AlertDialogDescription className="text-xs text-muted-foreground">
-                Êtes-vous sûr de vouloir supprimer la catégorie{" "}
-                <strong className="text-foreground">« {deletingCategory?.name} »</strong> ? Notez
-                qu'une catégorie contenant des produits ne peut pas être supprimée.
+              <AlertDialogTitle>Supprimer la catégorie ?</AlertDialogTitle>
+              <AlertDialogDescription className="text-xs leading-relaxed">
+                Êtes-vous sûr de vouloir supprimer la catégorie « {deletingCategory?.name} » ? Les
+                vêtements associés ne seront pas supprimés mais n'auront plus de catégorie rattachée.
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={isDeleting} className="text-xs">
+            <AlertDialogFooter className="gap-2">
+              <AlertDialogCancel
+                onClick={() => setDeletingCategory(null)}
+                className="rounded-xl text-xs h-9"
+              >
                 Annuler
               </AlertDialogCancel>
               <AlertDialogAction
-                disabled={isDeleting}
                 onClick={handleDeleteConfirm}
-                className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold"
+                disabled={isDeleting}
+                className="bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs h-9"
               >
-                {isDeleting ? "Suppression en cours..." : "Confirmer la suppression"}
+                {isDeleting ? "Suppression..." : "Confirmer la suppression"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

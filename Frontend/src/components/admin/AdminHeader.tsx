@@ -7,9 +7,6 @@ import {
   LogOut,
   Settings,
   Search,
-  Bell,
-  CheckCircle2,
-  Info,
 } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { Button } from "@/components/ui/button"
@@ -78,16 +75,17 @@ export default function AdminHeader() {
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!searchQuery.trim()) return
-    // Rechercher sur les commandes ou les produits
     if (location.pathname.includes("/admin/orders")) {
       navigate(`/admin/orders?search=${encodeURIComponent(searchQuery.trim())}`)
+    } else if (location.pathname.includes("/admin/categories")) {
+      // stay on categories or filter
     } else {
       navigate(`/admin/products?search=${encodeURIComponent(searchQuery.trim())}`)
     }
   }
 
   return (
-    <header className="h-16 bg-white border-b border-border/80 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30">
+    <header className="h-16 bg-white border-b border-border/70 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30">
       <div className="flex items-center gap-3">
         {/* Mobile Sidebar Trigger */}
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -103,15 +101,15 @@ export default function AdminHeader() {
           </SheetContent>
         </Sheet>
 
-        {/* Global Search Input (Exact style from reference screenshot) */}
-        <form onSubmit={handleSearchSubmit} className="relative hidden sm:block w-64 md:w-80">
-          <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+        {/* Global Functional Search Bar */}
+        <form onSubmit={handleSearchSubmit} className="relative hidden sm:block w-72 md:w-88">
+          <Search className="w-4 h-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <Input
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Rechercher..."
-            className="pl-9 h-9 text-xs bg-muted/30 border-border/70 rounded-xl focus:bg-white focus:border-[#C9A227] transition-all"
+            placeholder="Rechercher un produit, commande ou catégorie..."
+            className="pl-9.5 h-9 text-xs bg-muted/20 border-border/70 rounded-xl focus:bg-white focus:border-[#C9A227] transition-all"
           />
         </form>
 
@@ -135,50 +133,11 @@ export default function AdminHeader() {
         </nav>
       </div>
 
-      {/* Right Actions: Notifications & Admin Profile */}
+      {/* Right Actions: Admin Profile Pill ONLY (Notifications Bell completely removed per instructions) */}
       <div className="flex items-center gap-3">
-        {/* Notifications Dropdown (Bell icon with red dot as in reference) */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative h-9 w-9 text-foreground hover:bg-muted rounded-full"
-              title="Notifications système"
-            >
-              <Bell className="w-4 h-4" />
-              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-500 border border-white" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80 p-2">
-            <DropdownMenuLabel className="text-xs font-bold text-foreground px-2 py-1.5 flex items-center justify-between">
-              <span>Notifications</span>
-              <span className="text-[10px] text-muted-foreground font-normal">Temps réel</span>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <div className="space-y-1 py-1">
-              <div className="p-2 rounded-lg bg-emerald-50/60 border border-emerald-200/50 flex items-start gap-2 text-xs">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-semibold text-emerald-900">Connexion réussie</p>
-                  <p className="text-[11px] text-emerald-700">Bienvenue sur votre espace admin El Bahli Store.</p>
-                </div>
-              </div>
-              <div className="p-2 rounded-lg bg-blue-50/60 border border-blue-200/50 flex items-start gap-2 text-xs">
-                <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-semibold text-blue-900">Catalogue à jour</p>
-                  <p className="text-[11px] text-blue-700">Toutes les variantes et stocks sont synchronisés.</p>
-                </div>
-              </div>
-            </div>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* User Profile Pill (Black circle "A" + "Admin ˅" as in reference) */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-full hover:bg-muted/80 transition-colors cursor-pointer select-none border border-border/50">
+            <button className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full hover:bg-muted/80 transition-colors cursor-pointer select-none border border-border/60 bg-white shadow-2xs">
               <div className="w-7 h-7 rounded-full bg-[#111111] text-white flex items-center justify-center font-extrabold text-xs">
                 {user?.name ? user.name.charAt(0).toUpperCase() : "A"}
               </div>
@@ -188,11 +147,11 @@ export default function AdminHeader() {
               <span className="text-[10px] text-muted-foreground">▾</span>
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel className="font-normal">
-              <div className="flex flex-col space-y-1">
+          <DropdownMenuContent align="end" className="w-56 p-1">
+            <DropdownMenuLabel className="font-normal px-2 py-1.5">
+              <div className="flex flex-col space-y-0.5">
                 <p className="text-xs font-bold text-foreground">{user?.name || "Administrateur"}</p>
-                <p className="text-[11px] text-muted-foreground truncate">{user?.email}</p>
+                <p className="text-[11px] text-muted-foreground truncate">{user?.email || "admin@elbahli.ma"}</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
@@ -214,7 +173,7 @@ export default function AdminHeader() {
               className="text-destructive focus:text-destructive cursor-pointer text-xs"
             >
               <LogOut className="w-4 h-4 mr-2" />
-              Se déconnecter
+              Déconnexion
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

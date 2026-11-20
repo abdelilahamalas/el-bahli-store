@@ -1,13 +1,12 @@
 import { useState, type FormEvent } from "react"
 import { useNavigate, useLocation, Navigate } from "react-router-dom"
-import { Eye, EyeOff, Lock, Mail, ArrowRight, ShieldCheck } from "lucide-react"
+import { Check, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { useAuth } from "@/hooks/useAuth"
 import { adminService } from "@/services/adminService"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import logoImg from "@/images/logo store.jpeg"
 
 export default function AdminLoginPage() {
@@ -18,6 +17,7 @@ export default function AdminLoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
+  const [rememberMe, setRememberMe] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
@@ -65,103 +65,185 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0E0E0E] flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <Card className="bg-[#141414] border-[#262626] text-white shadow-xl">
-          <CardHeader className="text-center pb-6 pt-8">
-            <div className="mx-auto w-16 h-16 rounded-full overflow-hidden border border-[#C9A227]/60 mb-4 bg-black">
-              <img src={logoImg} alt="El Bahli Store" className="w-full h-full object-cover" />
+    <div className="min-h-screen w-full flex bg-[#F9F9F8]">
+      {/* 1. Colonne Gauche Sombre — Identique à la maquette de référence */}
+      <div className="hidden lg:flex lg:w-1/2 bg-[#0D0D0D] text-white p-12 xl:p-16 flex-col justify-between select-none relative overflow-hidden">
+        {/* Logo officiel en médaillon circulaire avec bordure or */}
+        <div className="flex items-center gap-3">
+          <div className="w-14 h-14 rounded-full overflow-hidden border border-[#C9A227]/70 bg-black flex items-center justify-center p-0.5 shadow-sm">
+            <img
+              src={logoImg}
+              alt="Logo officiel El Bahli Store"
+              className="w-full h-full object-cover rounded-full"
+            />
+          </div>
+          <div>
+            <span className="font-extrabold text-sm tracking-widest text-[#C9A227] uppercase block">
+              EL BAHLI
+            </span>
+            <span className="font-bold text-xs tracking-wider text-white uppercase block">
+              STORE
+            </span>
+          </div>
+        </div>
+
+        {/* Bloc central avec titre et checkmarks */}
+        <div className="max-w-md space-y-6 my-auto py-12">
+          <h1 className="text-3xl xl:text-4xl font-extrabold tracking-tight text-white leading-tight">
+            Espace administrateur
+          </h1>
+          <p className="text-sm text-neutral-400 leading-relaxed">
+            Gérez vos commandes, vos produits, vos catégories et votre stock depuis un seul endroit.
+          </p>
+
+          <div className="space-y-3.5 pt-2">
+            <div className="flex items-center gap-3 text-sm text-neutral-200">
+              <span className="w-5 h-5 rounded-full bg-[#C9A227]/20 text-[#C9A227] flex items-center justify-center shrink-0">
+                <Check className="w-3.5 h-3.5 stroke-[3]" />
+              </span>
+              <span>Voir et confirmer les commandes</span>
             </div>
-            <CardTitle className="text-2xl font-bold tracking-tight text-white flex items-center justify-center gap-2">
-              EL BAHLI <span className="text-[#C9A227]">STORE</span>
-            </CardTitle>
-            <CardDescription className="text-xs text-[#888888] tracking-wider uppercase font-medium mt-1">
-              Espace d'administration
-            </CardDescription>
-          </CardHeader>
 
-          <CardContent>
-            {errorMessage && (
-              <div className="mb-5 p-3 rounded-md bg-red-950/40 border border-red-800/60 text-red-300 text-xs flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
-                <span>{errorMessage}</span>
-              </div>
-            )}
+            <div className="flex items-center gap-3 text-sm text-neutral-200">
+              <span className="w-5 h-5 rounded-full bg-[#C9A227]/20 text-[#C9A227] flex items-center justify-center shrink-0">
+                <Check className="w-3.5 h-3.5 stroke-[3]" />
+              </span>
+              <span>Ajouter ou supprimer des produits par catégorie</span>
+            </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-xs font-semibold text-[#CCCCCC]">
-                  Adresse e-mail
-                </Label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-[#666666] absolute left-3 top-1/2 -translate-y-1/2" />
-                  <Input
-                    id="email"
-                    type="email"
-                    autoComplete="email"
-                    placeholder="contact@exemple.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={isLoading}
-                    required
-                    className="pl-9 bg-[#1A1A1A] border-[#333333] text-white placeholder:text-[#666666] focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227] h-10 text-xs rounded-md"
-                  />
-                </div>
-              </div>
+            <div className="flex items-center gap-3 text-sm text-neutral-200">
+              <span className="w-5 h-5 rounded-full bg-[#C9A227]/20 text-[#C9A227] flex items-center justify-center shrink-0">
+                <Check className="w-3.5 h-3.5 stroke-[3]" />
+              </span>
+              <span>Suivre le stock et les encaissements</span>
+            </div>
+          </div>
+        </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="password" className="text-xs font-semibold text-[#CCCCCC]">
-                  Mot de passe
-                </Label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-[#666666] absolute left-3 top-1/2 -translate-y-1/2" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    autoComplete="current-password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={isLoading}
-                    required
-                    className="pl-9 pr-9 bg-[#1A1A1A] border-[#333333] text-white placeholder:text-[#666666] focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227] h-10 text-xs rounded-md"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    tabIndex={-1}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#777777] hover:text-white"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
+        {/* Copyright conforme à la maquette */}
+        <div className="text-xs text-neutral-500">
+          © 2026 El Bahli Store · Tous droits réservés
+        </div>
+      </div>
 
-              <Button
-                type="submit"
+      {/* 2. Colonne Droite Claire — Formulaire de connexion propre */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12">
+        <div className="w-full max-w-md bg-white rounded-2xl border border-border/70 p-8 sm:p-10 shadow-xs space-y-6">
+          {/* Mobile Header (Affiché uniquement sur petits écrans) */}
+          <div className="lg:hidden text-center pb-2">
+            <div className="w-14 h-14 mx-auto rounded-full overflow-hidden border border-[#C9A227]/70 bg-black flex items-center justify-center p-0.5 mb-2 shadow-sm">
+              <img
+                src={logoImg}
+                alt="Logo officiel El Bahli Store"
+                className="w-full h-full object-cover rounded-full"
+              />
+            </div>
+            <span className="font-extrabold text-sm tracking-widest text-[#C9A227] uppercase">
+              EL BAHLI STORE
+            </span>
+          </div>
+
+          <div className="space-y-1">
+            <h2 className="text-2xl font-bold tracking-tight text-foreground">
+              Connexion
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Entrez votre email et votre mot de passe administrateur.
+            </p>
+          </div>
+
+          {errorMessage && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium">
+              {errorMessage}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-xs font-semibold text-foreground">
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                placeholder="admin@elbahli.ma"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
-                className="w-full h-10 bg-[#C9A227] hover:bg-[#B38F1E] text-black font-semibold text-xs tracking-wider uppercase transition-colors shadow-xs mt-2 flex items-center justify-center gap-2"
-              >
-                {isLoading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                    <span>Connexion en cours...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Se connecter</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </Button>
-            </form>
-
-            <div className="mt-6 pt-4 border-t border-[#222222] flex items-center justify-center gap-2 text-[11px] text-[#777777]">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#C9A227]" />
-              <span>Authentification sécurisée par jeton chiffré</span>
+                required
+                className="h-10 text-xs bg-white border-border rounded-xl focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]"
+              />
             </div>
-          </CardContent>
-        </Card>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="password" className="text-xs font-semibold text-foreground">
+                Mot de passe
+              </Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  placeholder="••••••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                  required
+                  className="h-10 pr-20 text-xs bg-white border-border rounded-xl focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  tabIndex={-1}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#C9A227] hover:text-[#B38F1E] cursor-pointer"
+                >
+                  {showPassword ? "Masquer" : "Afficher"}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between text-xs pt-1">
+              <label className="flex items-center gap-2 cursor-pointer select-none text-muted-foreground hover:text-foreground">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="rounded border-border text-[#C9A227] focus:ring-[#C9A227]"
+                />
+                <span>Se souvenir de moi</span>
+              </label>
+
+              <button
+                type="button"
+                onClick={() => toast.info("Contactez l'administrateur principal pour réinitialiser vos identifiants.")}
+                className="text-[#C9A227] hover:underline font-semibold"
+              >
+                Mot de passe oublié ?
+              </button>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full h-11 bg-[#C9A227] hover:bg-[#B38F1E] text-[#111111] font-bold text-xs rounded-xl shadow-xs transition-colors mt-2 flex items-center justify-center gap-2 cursor-pointer border-0"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-black" />
+                  <span>Connexion en cours...</span>
+                </>
+              ) : (
+                <span>Se connecter</span>
+              )}
+            </Button>
+          </form>
+
+          {/* Note de sécurité conforme à la maquette */}
+          <p className="text-[11px] text-muted-foreground text-center leading-relaxed pt-2 border-t border-border/50">
+            Accès réservé à l'administrateur. Après plusieurs tentatives échouées, la connexion est bloquée quelques minutes.
+          </p>
+        </div>
       </div>
     </div>
   )
