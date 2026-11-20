@@ -16,14 +16,14 @@ export default function CategoryCard({ category }: CategoryCardProps) {
       to={`/categories/${category.slug}`}
       className="group block focus:outline-hidden"
     >
-      <Card className="relative overflow-hidden rounded-2xl border border-border/70 bg-brand-lightGray transition-all duration-500 hover:border-brand-gold hover:shadow-xl">
+      <Card className="relative overflow-hidden rounded-2xl border border-border/70 bg-brand-lightGray transition-colors duration-200 hover:border-brand-gold shadow-xs">
         {/* Conteneur d'image avec ratio moderne */}
         <div className="relative aspect-[3/4] w-full overflow-hidden bg-brand-lightGray">
           {image ? (
             <img
               src={image}
               alt={category.name}
-              className="h-full w-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-108"
+              className="h-full w-full object-cover object-center"
               loading="lazy"
             />
           ) : (
@@ -53,7 +53,7 @@ export default function CategoryCard({ category }: CategoryCardProps) {
                 {category.name}
               </h3>
             </div>
-            <div className="h-9 w-9 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-brand-gold group-hover:text-brand-black group-hover:scale-110 shadow-sm">
+            <div className="h-9 w-9 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 transition-colors duration-200 group-hover:bg-brand-gold group-hover:text-brand-black shadow-xs">
               <ArrowRight className="h-4 w-4" />
             </div>
           </div>
