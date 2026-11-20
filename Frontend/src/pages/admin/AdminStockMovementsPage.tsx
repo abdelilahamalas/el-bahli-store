@@ -7,6 +7,15 @@ import type { StockMovementItem } from "@/types/admin"
 import type { PaginationMeta } from "@/types/api"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Card } from "@/components/ui/card"
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export default function AdminStockMovementsPage() {
@@ -125,32 +134,32 @@ export default function AdminStockMovementsPage() {
       </div>
 
       {/* Movements Table */}
-      <div className="bg-white rounded-lg border border-border shadow-xs overflow-hidden">
+      <Card className="overflow-hidden border-border bg-white shadow-xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr className="border-b border-border bg-muted/40 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                <th className="py-3 px-4">Date & Heure</th>
-                <th className="py-3 px-4">Article & Variante</th>
-                <th className="py-3 px-4">Opération</th>
-                <th className="py-3 px-4 text-center">Variation</th>
-                <th className="py-3 px-4 text-center">Avant / Après</th>
-                <th className="py-3 px-4">Motif / Contexte</th>
-                <th className="py-3 px-4 text-right">Auteur</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/40 hover:bg-muted/40 border-b border-border">
+                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Date & Heure</TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Article & Variante</TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Opération</TableHead>
+                <TableHead className="text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Variation</TableHead>
+                <TableHead className="text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Avant / Après</TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Motif / Contexte</TableHead>
+                <TableHead className="text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Auteur</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {loading ? (
                 [...Array(6)].map((_, i) => (
-                  <tr key={i} className="animate-pulse">
-                    <td className="py-3.5 px-4"><Skeleton className="h-4 w-28" /></td>
-                    <td className="py-3.5 px-4"><Skeleton className="h-4 w-36" /></td>
-                    <td className="py-3.5 px-4"><Skeleton className="h-5 w-24 rounded" /></td>
-                    <td className="py-3.5 px-4 text-center"><Skeleton className="h-4 w-12 mx-auto" /></td>
-                    <td className="py-3.5 px-4 text-center"><Skeleton className="h-4 w-16 mx-auto" /></td>
-                    <td className="py-3.5 px-4"><Skeleton className="h-4 w-32" /></td>
-                    <td className="py-3.5 px-4 text-right"><Skeleton className="h-4 w-20 ml-auto" /></td>
-                  </tr>
+                  <TableRow key={i} className="animate-pulse">
+                    <TableCell className="py-3.5"><Skeleton className="h-4 w-28" /></TableCell>
+                    <TableCell className="py-3.5"><Skeleton className="h-4 w-36" /></TableCell>
+                    <TableCell className="py-3.5"><Skeleton className="h-5 w-24 rounded" /></TableCell>
+                    <TableCell className="py-3.5 text-center"><Skeleton className="h-4 w-12 mx-auto" /></TableCell>
+                    <TableCell className="py-3.5 text-center"><Skeleton className="h-4 w-16 mx-auto" /></TableCell>
+                    <TableCell className="py-3.5"><Skeleton className="h-4 w-32" /></TableCell>
+                    <TableCell className="py-3.5 text-right"><Skeleton className="h-4 w-20 ml-auto" /></TableCell>
+                  </TableRow>
                 ))
               ) : movements.length > 0 ? (
                 movements.map((m) => {
@@ -167,24 +176,24 @@ export default function AdminStockMovementsPage() {
                   const isNegative = delta < 0
 
                   return (
-                    <tr key={m.id} className="hover:bg-muted/30 transition-colors">
-                      <td className="py-3 px-4 whitespace-nowrap text-muted-foreground flex items-center gap-1.5">
+                    <TableRow key={m.id} className="hover:bg-muted/30 transition-colors">
+                      <TableCell className="py-3 whitespace-nowrap text-muted-foreground flex items-center gap-1.5">
                         <Calendar className="w-3.5 h-3.5 text-muted-foreground/60" />
                         {dateStr}
-                      </td>
+                      </TableCell>
 
-                      <td className="py-3 px-4">
+                      <TableCell className="py-3">
                         <div className="flex flex-col">
                           <span className="font-semibold text-foreground">{m.product_name}</span>
                           <span className="text-[11px] text-muted-foreground">
                             Taille : {m.size} · Couleur : {m.color}
                           </span>
                         </div>
-                      </td>
+                      </TableCell>
 
-                      <td className="py-3 px-4 whitespace-nowrap">{renderTypeBadge(m.type)}</td>
+                      <TableCell className="py-3 whitespace-nowrap">{renderTypeBadge(m.type)}</TableCell>
 
-                      <td className="py-3 px-4 text-center whitespace-nowrap">
+                      <TableCell className="py-3 text-center whitespace-nowrap">
                         <span
                           className={`font-bold inline-flex items-center gap-0.5 ${
                             isPositive
@@ -199,15 +208,15 @@ export default function AdminStockMovementsPage() {
                           {!isPositive && !isNegative && <Minus className="w-3 h-3" />}
                           {isPositive ? `+${delta}` : delta}
                         </span>
-                      </td>
+                      </TableCell>
 
-                      <td className="py-3 px-4 text-center whitespace-nowrap text-muted-foreground">
+                      <TableCell className="py-3 text-center whitespace-nowrap text-muted-foreground">
                         <span className="font-medium text-foreground">{m.quantity_before}</span>
                         <span className="mx-1.5 text-muted-foreground/60">&rarr;</span>
                         <span className="font-bold text-foreground">{m.quantity_after}</span>
-                      </td>
+                      </TableCell>
 
-                      <td className="py-3 px-4">
+                      <TableCell className="py-3">
                         <div className="flex flex-col">
                           <span className="text-foreground">{m.reason || "—"}</span>
                           {m.order_reference && (
@@ -216,17 +225,17 @@ export default function AdminStockMovementsPage() {
                             </span>
                           )}
                         </div>
-                      </td>
+                      </TableCell>
 
-                      <td className="py-3 px-4 text-right whitespace-nowrap text-muted-foreground">
+                      <TableCell className="py-3 text-right whitespace-nowrap text-muted-foreground">
                         {m.admin_name || "Système"}
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   )
                 })
               ) : (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-muted-foreground">
+                <TableRow>
+                  <TableCell colSpan={7} className="py-12 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center">
                       <History className="w-9 h-9 text-muted-foreground/40 mb-2" />
                       <p className="font-semibold text-sm text-foreground">
@@ -236,11 +245,11 @@ export default function AdminStockMovementsPage() {
                         Toutes les variations de stock futures apparaîtront ici.
                       </p>
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
 
         {/* Pagination Bar */}
@@ -275,7 +284,7 @@ export default function AdminStockMovementsPage() {
             </div>
           </div>
         )}
-      </div>
+      </Card>
     </div>
   )
 }

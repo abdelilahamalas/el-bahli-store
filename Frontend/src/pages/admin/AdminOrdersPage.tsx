@@ -1,12 +1,9 @@
 import { useEffect, useState, useTransition } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import {
   Search,
   ShoppingBag,
-  Calendar,
-  Phone,
-  MapPin,
-  ChevronRight,
+  RefreshCw,
 } from "lucide-react"
 import { toast } from "sonner"
 import { adminService } from "@/services/adminService"
@@ -14,6 +11,15 @@ import type { AdminOrder } from "@/types/admin"
 import type { PaginationMeta } from "@/types/api"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table"
+import { Card } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getOrderStatusBadge } from "@/utils/orderStatus"
 
@@ -28,6 +34,7 @@ export default function AdminOrdersPage() {
   const [currentPage, setCurrentPage] = useState(1)
 
   const [, startTransition] = useTransition()
+  const navigate = useNavigate()
 
   const fetchOrders = async () => {
     try {
@@ -67,59 +74,6 @@ export default function AdminOrdersPage() {
     return `${num.toLocaleString("fr-FR", { minimumFractionDigits: 0 })} MAD`
   }
 
-  const renderDeliveryIndicator = (order: AdminOrder) => {
-    switch (order.status) {
-      case "delivered":
-        return (
-          <span className="inline-flex items-center gap-1.5 text-xs text-emerald-700 font-semibold">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-            Livrée à domicile
-          </span>
-        )
-      case "shipped":
-        return (
-          <span className="inline-flex items-center gap-1.5 text-xs text-purple-700 font-semibold">
-            <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse shrink-0" />
-            En acheminement
-          </span>
-        )
-      case "processing":
-        return (
-          <span className="inline-flex items-center gap-1.5 text-xs text-indigo-700 font-medium">
-            <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
-            Préparation colis
-          </span>
-        )
-      case "confirmed":
-        return (
-          <span className="inline-flex items-center gap-1.5 text-xs text-blue-700 font-medium">
-            <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
-            Prête à expédier
-          </span>
-        )
-      case "pending":
-        return (
-          <span className="inline-flex items-center gap-1.5 text-xs text-amber-700 font-medium">
-            <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
-            À confirmer
-          </span>
-        )
-      case "cancelled":
-        return (
-          <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 font-medium">
-            <span className="w-2 h-2 rounded-full bg-slate-400 shrink-0" />
-            Annulée (Non livrée)
-          </span>
-        )
-      default:
-        return (
-          <span className="text-xs text-muted-foreground">
-            Livraison standard
-          </span>
-        )
-    }
-  }
-
   const statusTabs = [
     { id: "all", label: "Toutes les commandes" },
     { id: "pending", label: "En attente" },
@@ -131,19 +85,32 @@ export default function AdminOrdersPage() {
   ]
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
+    <div className="space-y-6 max-w-7xl mx-auto pb-10">
+      {/* 1. Header de la page */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Commandes</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Suivi des ventes, confirmations téléphoniques et expéditions en paiement à la livraison (COD).
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+            Commandes
+          </h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+            Suivi des ventes, validation des commandes et livraisons au Maroc.
           </p>
         </div>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => fetchOrders()}
+          disabled={loading}
+          className="h-9 px-3 text-xs rounded-xl border-border hover:bg-muted self-start sm:self-auto gap-2"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-[#C9A227]" : ""}`} />
+          <span>Actualiser</span>
+        </Button>
       </div>
 
-      {/* Status Pills / Tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-medium border-b border-border">
+      {/* 2. Onglets de filtrage par statut */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
         {statusTabs.map((tab) => {
           const isActive = selectedStatus === tab.id
           return (
@@ -155,10 +122,10 @@ export default function AdminOrdersPage() {
                   setCurrentPage(1)
                 })
               }}
-              className={`px-3 py-2 rounded-t-md whitespace-nowrap transition-all border-b-2 font-medium ${
+              className={`px-3 py-1.5 rounded-xl whitespace-nowrap transition-colors cursor-pointer text-xs font-semibold ${
                 isActive
-                  ? "border-[#C9A227] text-foreground font-semibold bg-white shadow-2xs"
-                  : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                  ? "bg-[#111111] text-white shadow-2xs"
+                  : "bg-white text-muted-foreground hover:text-foreground border border-border/70 hover:bg-muted/40"
               }`}
             >
               {tab.label}
@@ -167,214 +134,174 @@ export default function AdminOrdersPage() {
         })}
       </div>
 
-      {/* Search Toolbar */}
-      <div className="bg-white p-3 rounded-lg border border-border shadow-xs flex items-center justify-between gap-3">
-        <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher par référence, nom client, numéro de téléphone..."
-            className="pl-9 h-9 text-xs bg-muted/20 border-border"
-          />
+      {/* 3. Barre de recherche avec Input shadcn */}
+      <Card className="border-border/70 shadow-2xs rounded-2xl bg-white p-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="relative flex-1 max-w-md">
+            <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Rechercher par référence, nom client, téléphone..."
+              className="pl-9 h-9 text-xs bg-muted/20 border-border/70 rounded-xl focus:bg-white focus:border-[#C9A227]"
+            />
+          </div>
+          {search && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSearch("")}
+              className="text-xs text-muted-foreground hover:text-foreground h-8"
+            >
+              Effacer
+            </Button>
+          )}
         </div>
-        {search && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setSearch("")}
-            className="text-xs text-muted-foreground hover:text-foreground h-8"
-          >
-            Effacer
-          </Button>
-        )}
-      </div>
+      </Card>
 
-      {/* Orders Table */}
-      <div className="bg-white rounded-lg border border-border shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-border bg-muted/40 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                <th className="py-3 px-4">Commande</th>
-                <th className="py-3 px-4">Client & Téléphone</th>
-                <th className="py-3 px-4">Ville</th>
-                <th className="py-3 px-4">Livraison (Maroc)</th>
-                <th className="py-3 px-4">Total à payer</th>
-                <th className="py-3 px-4">Statut</th>
-                <th className="py-3 px-4 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border text-xs">
-              {loading ? (
-                [...Array(6)].map((_, i) => (
-                  <tr key={i} className="animate-pulse">
-                    <td className="py-4 px-4"><Skeleton className="h-4 w-32 mb-1" /><Skeleton className="h-3 w-20" /></td>
-                    <td className="py-4 px-4"><Skeleton className="h-4 w-28 mb-1" /><Skeleton className="h-3 w-24" /></td>
-                    <td className="py-4 px-4"><Skeleton className="h-4 w-20" /></td>
-                    <td className="py-4 px-4"><Skeleton className="h-4 w-28" /></td>
-                    <td className="py-4 px-4"><Skeleton className="h-4 w-16" /></td>
-                    <td className="py-4 px-4"><Skeleton className="h-5 w-24 rounded" /></td>
-                    <td className="py-4 px-4 text-right"><Skeleton className="h-8 w-24 rounded ml-auto" /></td>
-                  </tr>
-                ))
-              ) : orders.length > 0 ? (
-                orders.map((order) => {
-                  const dateStr = new Date(order.created_at).toLocaleDateString("fr-FR", {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })
-
-                  const displayCity = order.city || order.customer_city || "Ville non précisée"
-
-                  return (
-                    <tr key={order.id} className="hover:bg-muted/30 transition-colors">
-                      {/* Reference & Date */}
-                      <td className="py-3.5 px-4">
-                        <div className="flex flex-col">
-                          <Link
-                            to={`/admin/orders/${order.id}`}
-                            className="font-mono font-bold text-foreground hover:text-[#C9A227] transition-colors"
-                          >
-                            {order.reference}
-                          </Link>
-                          <span className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            {dateStr}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Customer Info */}
-                      <td className="py-3.5 px-4">
-                        <div className="flex flex-col">
-                          <span className="font-semibold text-foreground">
-                            {order.customer_name}
-                          </span>
-                          <span className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1">
-                            <Phone className="w-3 h-3" />
-                            {order.customer_phone}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* City */}
-                      <td className="py-3.5 px-4 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5 text-muted-foreground">
-                          <MapPin className="w-3.5 h-3.5 text-[#C9A227] shrink-0" />
-                          <span className="font-medium text-foreground">{displayCity}</span>
-                        </div>
-                      </td>
-
-                      {/* Delivery Status Indicator */}
-                      <td className="py-3.5 px-4 whitespace-nowrap">
-                        {renderDeliveryIndicator(order)}
-                      </td>
-
-                      {/* Total */}
-                      <td className="py-3.5 px-4 whitespace-nowrap">
-                        <div className="flex flex-col">
-                          <span className="font-bold text-foreground">{formatMAD(order.total)}</span>
-                          <span className="text-[10px] text-muted-foreground">
-                            {order.payment_status === "paid" ? (
-                              <span className="text-emerald-600 font-semibold">Encaissé</span>
-                            ) : (
-                              <span>Paiement à la livraison</span>
-                            )}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Status Badge */}
-                      <td className="py-3.5 px-4 whitespace-nowrap">
-                        {getOrderStatusBadge(order.status, order.status_label)}
-                      </td>
-
-                      {/* Explicit Action Button */}
-                      <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          asChild
-                          className="h-8 px-3 text-xs font-semibold border-border hover:border-[#C9A227] hover:text-[#C9A227] gap-1 shadow-2xs"
-                        >
-                          <Link to={`/admin/orders/${order.id}`}>
-                            <span>Gérer</span>
-                            <ChevronRight className="w-3.5 h-3.5" />
-                          </Link>
-                        </Button>
-                      </td>
-                    </tr>
-                  )
+      {/* 4. Tableau shadcn/ui officiel (Table, TableHeader, TableRow, TableHead, TableCell) */}
+      <Card className="border-border/70 shadow-2xs rounded-2xl bg-white overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow className="border-b border-border/70 bg-muted/30 text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
+              <TableHead className="py-3 px-4 font-bold">Référence</TableHead>
+              <TableHead className="py-3 px-4 font-bold">Client</TableHead>
+              <TableHead className="py-3 px-4 font-bold">Téléphone</TableHead>
+              <TableHead className="py-3 px-4 font-bold">Ville</TableHead>
+              <TableHead className="py-3 px-4 font-bold">Date</TableHead>
+              <TableHead className="py-3 px-4 font-bold">Montant total</TableHead>
+              <TableHead className="py-3 px-4 font-bold">Statut</TableHead>
+              <TableHead className="py-3 px-4 text-right font-bold">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody className="text-xs divide-y divide-border/50">
+            {loading ? (
+              [...Array(6)].map((_, i) => (
+                <TableRow key={i}>
+                  <TableCell className="py-4 px-4"><Skeleton className="h-4 w-24" /></TableCell>
+                  <TableCell className="py-4 px-4"><Skeleton className="h-4 w-28" /></TableCell>
+                  <TableCell className="py-4 px-4"><Skeleton className="h-4 w-24" /></TableCell>
+                  <TableCell className="py-4 px-4"><Skeleton className="h-4 w-20" /></TableCell>
+                  <TableCell className="py-4 px-4"><Skeleton className="h-4 w-24" /></TableCell>
+                  <TableCell className="py-4 px-4"><Skeleton className="h-4 w-16" /></TableCell>
+                  <TableCell className="py-4 px-4"><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
+                  <TableCell className="py-4 px-4 text-right"><Skeleton className="h-8 w-16 rounded ml-auto" /></TableCell>
+                </TableRow>
+              ))
+            ) : orders.length > 0 ? (
+              orders.map((order) => {
+                const dateStr = new Date(order.created_at).toLocaleDateString("fr-FR", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
                 })
-              ) : (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-muted-foreground">
-                    <div className="flex flex-col items-center justify-center">
-                      <ShoppingBag className="w-9 h-9 text-muted-foreground/40 mb-2" />
-                      <p className="font-semibold text-sm text-foreground">Aucune commande trouvée</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {search || selectedStatus !== "all"
-                          ? "Aucune commande ne correspond aux filtres sélectionnés."
-                          : "Vous n'avez pas encore reçu de commande."}
-                      </p>
-                      {(search || selectedStatus !== "all") && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSearch("")
-                            setSelectedStatus("all")
-                          }}
-                          className="mt-3 text-xs"
-                        >
-                          Réinitialiser les filtres
-                        </Button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                const displayCity = order.city || order.customer_city || "Maroc"
 
-        {/* Pagination Bar */}
+                return (
+                  <TableRow
+                    key={order.id}
+                    className="hover:bg-muted/30 transition-colors cursor-pointer group"
+                    onClick={() => navigate(`/admin/orders/${order.id}`)}
+                  >
+                    {/* Référence */}
+                    <TableCell className="py-3.5 px-4 font-mono font-bold text-foreground">
+                      <Link
+                        to={`/admin/orders/${order.id}`}
+                        className="hover:text-[#C9A227] transition-colors"
+                      >
+                        {order.reference}
+                      </Link>
+                    </TableCell>
+
+                    {/* Client */}
+                    <TableCell className="py-3.5 px-4 font-semibold text-foreground">
+                      {order.customer_name}
+                    </TableCell>
+
+                    {/* Téléphone */}
+                    <TableCell className="py-3.5 px-4 font-mono text-muted-foreground">
+                      {order.customer_phone}
+                    </TableCell>
+
+                    {/* Ville */}
+                    <TableCell className="py-3.5 px-4 text-foreground font-medium">
+                      {displayCity}
+                    </TableCell>
+
+                    {/* Date */}
+                    <TableCell className="py-3.5 px-4 text-muted-foreground">
+                      {dateStr}
+                    </TableCell>
+
+                    {/* Montant total */}
+                    <TableCell className="py-3.5 px-4 font-bold text-foreground">
+                      {formatMAD(order.total)}
+                    </TableCell>
+
+                    {/* Statut */}
+                    <TableCell className="py-3.5 px-4">
+                      {getOrderStatusBadge(order.status, order.status_label)}
+                    </TableCell>
+
+                    {/* Actions */}
+                    <TableCell className="py-3.5 px-4 text-right" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        asChild
+                        className="h-8 px-3 text-xs rounded-xl border-border/80 hover:border-[#C9A227] hover:text-[#C9A227] font-semibold"
+                      >
+                        <Link to={`/admin/orders/${order.id}`}>
+                          <span>Détails</span>
+                        </Link>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                )
+              })
+            ) : (
+              <TableRow>
+                <TableCell colSpan={8} className="py-12 text-center text-muted-foreground">
+                  <ShoppingBag className="w-8 h-8 text-muted-foreground/40 mx-auto mb-2" />
+                  <p className="text-sm font-semibold text-foreground">Aucune commande trouvée</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Modifiez vos critères de recherche ou réinitialisez les filtres.
+                  </p>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+
+        {/* Pagination fonctionnelle */}
         {pagination && pagination.last_page > 1 && (
-          <div className="py-3 px-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-            <span>
-              Affichage de {pagination.from || 1} à {pagination.to || orders.length} sur{" "}
-              {pagination.total} commandes
+          <div className="p-4 border-t border-border/70 flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">
+              Page {pagination.current_page} sur {pagination.last_page} ({pagination.total} commandes)
             </span>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                disabled={currentPage <= 1 || loading}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="h-8 text-xs"
+                disabled={currentPage <= 1 || loading}
+                className="h-8 rounded-xl text-xs"
               >
                 Précédent
               </Button>
-              <span className="px-2 font-medium text-foreground">
-                Page {currentPage} sur {pagination.last_page}
-              </span>
               <Button
                 variant="outline"
                 size="sm"
-                disabled={currentPage >= pagination.last_page || loading}
                 onClick={() => setCurrentPage((p) => Math.min(pagination.last_page, p + 1))}
-                className="h-8 text-xs"
+                disabled={currentPage >= pagination.last_page || loading}
+                className="h-8 rounded-xl text-xs"
               >
                 Suivant
               </Button>
             </div>
           </div>
         )}
-      </div>
+      </Card>
     </div>
   )
 }

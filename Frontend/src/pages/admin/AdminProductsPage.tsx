@@ -20,6 +20,15 @@ import type { PaginationMeta } from "@/types/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { Card } from "@/components/ui/card"
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -256,24 +265,24 @@ export default function AdminProductsPage() {
       </div>
 
       {/* Products Data Table */}
-      <div className="bg-white rounded-lg border border-border shadow-xs overflow-hidden">
+      <Card className="overflow-hidden border-border bg-white shadow-xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-border bg-muted/40 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                <th className="py-3 px-4">Produit</th>
-                <th className="py-3 px-4">Catégorie</th>
-                <th className="py-3 px-4">Prix</th>
-                <th className="py-3 px-4">Stock disponible</th>
-                <th className="py-3 px-4">Statut</th>
-                <th className="py-3 px-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border text-xs">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/40 hover:bg-muted/40 border-b border-border">
+                <TableHead className="w-[300px] text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Produit</TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Catégorie</TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Prix</TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Stock disponible</TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Statut</TableHead>
+                <TableHead className="text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {loading ? (
                 [...Array(6)].map((_, i) => (
-                  <tr key={i} className="animate-pulse">
-                    <td className="py-4 px-4">
+                  <TableRow key={i} className="animate-pulse">
+                    <TableCell className="py-4">
                       <div className="flex items-center gap-3">
                         <Skeleton className="w-10 h-10 rounded-md" />
                         <div className="space-y-1.5">
@@ -281,13 +290,13 @@ export default function AdminProductsPage() {
                           <Skeleton className="h-2.5 w-24" />
                         </div>
                       </div>
-                    </td>
-                    <td className="py-4 px-4"><Skeleton className="h-5 w-20 rounded" /></td>
-                    <td className="py-4 px-4"><Skeleton className="h-4 w-16" /></td>
-                    <td className="py-4 px-4"><Skeleton className="h-4 w-28" /></td>
-                    <td className="py-4 px-4"><Skeleton className="h-5 w-14 rounded" /></td>
-                    <td className="py-4 px-4 text-right"><Skeleton className="h-8 w-8 rounded ml-auto" /></td>
-                  </tr>
+                    </TableCell>
+                    <TableCell><Skeleton className="h-5 w-20 rounded" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-28" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-14 rounded" /></TableCell>
+                    <TableCell className="text-right"><Skeleton className="h-8 w-8 rounded ml-auto" /></TableCell>
+                  </TableRow>
                 ))
               ) : products.length > 0 ? (
                 products.map((product) => {
@@ -296,12 +305,12 @@ export default function AdminProductsPage() {
                   const imageUrl = mainImage?.image_url
 
                   return (
-                    <tr
+                    <TableRow
                       key={product.id}
                       className="hover:bg-muted/30 transition-colors group"
                     >
                       {/* Product Thumbnail & Name */}
-                      <td className="py-3 px-4">
+                      <TableCell className="py-3">
                         <div className="flex items-center gap-3">
                           <div className="w-11 h-11 rounded-md overflow-hidden bg-muted flex-shrink-0 border border-border">
                             {imageUrl ? (
@@ -328,20 +337,20 @@ export default function AdminProductsPage() {
                             </span>
                           </div>
                         </div>
-                      </td>
+                      </TableCell>
 
                       {/* Category */}
-                      <td className="py-3 px-4 whitespace-nowrap">
+                      <TableCell className="whitespace-nowrap">
                         <Badge
                           variant="secondary"
                           className="bg-muted text-muted-foreground font-normal text-[11px] hover:bg-muted"
                         >
                           {product.category?.name || product.category_name || "Général"}
                         </Badge>
-                      </td>
+                      </TableCell>
 
                       {/* Price */}
-                      <td className="py-3 px-4 whitespace-nowrap">
+                      <TableCell className="whitespace-nowrap">
                         <div className="flex flex-col">
                           <span className="font-semibold text-foreground">
                             {formatPrice(product.promotional_price || product.price)}
@@ -352,15 +361,15 @@ export default function AdminProductsPage() {
                             </span>
                           )}
                         </div>
-                      </td>
+                      </TableCell>
 
                       {/* Stock Level Bar */}
-                      <td className="py-3 px-4 whitespace-nowrap">
+                      <TableCell className="whitespace-nowrap">
                         {renderStockIndicator(product.total_stock)}
-                      </td>
+                      </TableCell>
 
                       {/* Status */}
-                      <td className="py-3 px-4 whitespace-nowrap">
+                      <TableCell className="whitespace-nowrap">
                         {product.is_active ? (
                           <Badge
                             variant="outline"
@@ -378,10 +387,10 @@ export default function AdminProductsPage() {
                             Masqué
                           </Badge>
                         )}
-                      </td>
+                      </TableCell>
 
                       {/* Row Actions */}
-                      <td className="py-3 px-4 text-right whitespace-nowrap">
+                      <TableCell className="text-right whitespace-nowrap">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
@@ -431,13 +440,13 @@ export default function AdminProductsPage() {
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   )
                 })
               ) : (
-                <tr>
-                  <td colSpan={6} className="py-12 text-center text-muted-foreground">
+                <TableRow>
+                  <TableCell colSpan={6} className="py-12 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center">
                       <Package className="w-9 h-9 text-muted-foreground/40 mb-2" />
                       <p className="font-semibold text-sm text-foreground">Aucun produit trouvé</p>
@@ -470,11 +479,11 @@ export default function AdminProductsPage() {
                         </Button>
                       )}
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
 
         {/* Pagination Bar */}
@@ -509,7 +518,7 @@ export default function AdminProductsPage() {
             </div>
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Delete Confirmation Dialog */}
       {productToDelete && (

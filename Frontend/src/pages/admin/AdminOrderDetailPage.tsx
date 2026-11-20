@@ -28,6 +28,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableFooter,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table"
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -329,12 +339,15 @@ export default function AdminOrderDetailPage() {
 
               {/* Instructions ou Note du Client */}
               {displayNote && (
-                <div className="p-3 rounded-lg bg-amber-50/70 border border-amber-200/80 text-xs">
-                  <span className="font-bold text-amber-900 block mb-0.5">
+                <Alert variant="warning" className="bg-amber-50/70 border-amber-200/80 text-amber-900">
+                  <AlertCircle className="w-4 h-4 text-amber-600" />
+                  <AlertTitle className="text-xs font-bold text-amber-900">
                     Instructions particulières laissées par le client :
-                  </span>
-                  <p className="text-amber-800 leading-relaxed">{displayNote}</p>
-                </div>
+                  </AlertTitle>
+                  <AlertDescription className="text-xs text-amber-800 leading-relaxed mt-1">
+                    {displayNote}
+                  </AlertDescription>
+                </Alert>
               )}
             </CardContent>
           </Card>
@@ -350,70 +363,66 @@ export default function AdminOrderDetailPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-muted/40 text-[11px] font-semibold text-muted-foreground uppercase border-b border-border/60">
-                    <tr>
-                      <th className="py-3 px-4">Article</th>
-                      <th className="py-3 px-4">Variante (Taille / Couleur)</th>
-                      <th className="py-3 px-4 text-center">Quantité</th>
-                      <th className="py-3 px-4 text-right">Prix unitaire</th>
-                      <th className="py-3 px-4 text-right">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/60">
-                    {order.items?.map((item) => (
-                      <tr key={item.id} className="hover:bg-muted/20">
-                        <td className="py-3 px-4">
-                          <span className="font-bold text-foreground">
-                            {item.product_name}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="font-bold text-foreground">{item.size}</span>
-                          <span className="text-muted-foreground"> · {item.color}</span>
-                        </td>
-                        <td className="py-3 px-4 text-center font-extrabold text-foreground">
-                          {item.quantity}
-                        </td>
-                        <td className="py-3 px-4 text-right text-muted-foreground">
-                          {formatMAD(item.unit_price)}
-                        </td>
-                        <td className="py-3 px-4 text-right font-bold text-foreground">
-                          {formatMAD(item.line_total)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                  {/* 4. SECTION : Récapitulatif financier */}
-                  <tfoot className="border-t-2 border-border/80 bg-muted/20 text-xs">
-                    <tr>
-                      <td colSpan={3} className="py-2.5 px-4 text-muted-foreground">
-                        Sous-total articles
-                      </td>
-                      <td colSpan={2} className="py-2.5 px-4 text-right font-semibold">
-                        {formatMAD(order.subtotal)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td colSpan={3} className="py-2.5 px-4 text-muted-foreground">
-                        Frais de livraison (Tout le Royaume)
-                      </td>
-                      <td colSpan={2} className="py-2.5 px-4 text-right font-semibold text-emerald-600">
-                        0.00 MAD (Gratuit)
-                      </td>
-                    </tr>
-                    <tr className="border-t border-border font-bold text-sm bg-muted/40">
-                      <td colSpan={3} className="py-3 px-4 text-foreground">
-                        4. Total net à encaisser à la livraison
-                      </td>
-                      <td colSpan={2} className="py-3 px-4 text-right text-foreground font-extrabold">
-                        {formatMAD(order.total)}
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/40 hover:bg-muted/40 border-b border-border/60">
+                    <TableHead className="text-[11px] font-semibold text-muted-foreground uppercase">Article</TableHead>
+                    <TableHead className="text-[11px] font-semibold text-muted-foreground uppercase">Variante (Taille / Couleur)</TableHead>
+                    <TableHead className="text-center text-[11px] font-semibold text-muted-foreground uppercase">Quantité</TableHead>
+                    <TableHead className="text-right text-[11px] font-semibold text-muted-foreground uppercase">Prix unitaire</TableHead>
+                    <TableHead className="text-right text-[11px] font-semibold text-muted-foreground uppercase">Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {order.items?.map((item) => (
+                    <TableRow key={item.id} className="hover:bg-muted/20">
+                      <TableCell className="py-3 font-bold text-foreground">
+                        {item.product_name}
+                      </TableCell>
+                      <TableCell className="py-3">
+                        <span className="font-bold text-foreground">{item.size}</span>
+                        <span className="text-muted-foreground"> · {item.color}</span>
+                      </TableCell>
+                      <TableCell className="py-3 text-center font-extrabold text-foreground">
+                        {item.quantity}
+                      </TableCell>
+                      <TableCell className="py-3 text-right text-muted-foreground">
+                        {formatMAD(item.unit_price)}
+                      </TableCell>
+                      <TableCell className="py-3 text-right font-bold text-foreground">
+                        {formatMAD(item.line_total)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+                {/* 4. SECTION : Récapitulatif financier */}
+                <TableFooter className="border-t-2 border-border/80 bg-muted/20 text-xs">
+                  <TableRow>
+                    <TableCell colSpan={3} className="py-2.5 text-muted-foreground">
+                      Sous-total articles
+                    </TableCell>
+                    <TableCell colSpan={2} className="py-2.5 text-right font-semibold">
+                      {formatMAD(order.subtotal)}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell colSpan={3} className="py-2.5 text-muted-foreground">
+                      Frais de livraison (Tout le Royaume)
+                    </TableCell>
+                    <TableCell colSpan={2} className="py-2.5 text-right font-semibold text-emerald-600">
+                      0.00 MAD (Gratuit)
+                    </TableCell>
+                  </TableRow>
+                  <TableRow className="border-t border-border font-bold text-sm bg-muted/40">
+                    <TableCell colSpan={3} className="py-3 text-foreground font-bold">
+                      4. Total net à encaisser à la livraison
+                    </TableCell>
+                    <TableCell colSpan={2} className="py-3 text-right text-foreground font-extrabold">
+                      {formatMAD(order.total)}
+                    </TableCell>
+                  </TableRow>
+                </TableFooter>
+              </Table>
             </CardContent>
           </Card>
 
@@ -468,12 +477,12 @@ export default function AdminOrderDetailPage() {
                 </div>
               </div>
 
-              <div className="p-3 rounded-lg bg-blue-50/60 border border-blue-200/60 text-blue-900 text-[11px] flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0" />
-                <span>
+              <Alert variant="info" className="bg-blue-50/60 border-blue-200/60 text-blue-900">
+                <ShieldCheck className="w-4 h-4 text-blue-600" />
+                <AlertDescription className="text-[11px] text-blue-900">
                   Livraison assurée avec vérification du colis et encaissement en espèces lors de la remise.
-                </span>
-              </div>
+                </AlertDescription>
+              </Alert>
             </CardContent>
           </Card>
 

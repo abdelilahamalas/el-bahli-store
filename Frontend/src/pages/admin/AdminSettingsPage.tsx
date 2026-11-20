@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react"
-import { Store, Phone, AlertCircle, Check } from "lucide-react"
+import { Store, Phone, AlertCircle, Check, Info } from "lucide-react"
 import { toast } from "sonner"
 import { adminService } from "@/services/adminService"
 import type { StoreSettings } from "@/types/admin"
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export default function AdminSettingsPage() {
@@ -281,12 +282,17 @@ export default function AdminSettingsPage() {
             />
           </div>
 
-          <div className="p-3 rounded-lg bg-muted/40 border border-border text-xs text-muted-foreground space-y-1">
-            <p className="font-semibold text-foreground">Politique de livraison et paiement :</p>
-            <p>• Paiement : Exclusivement à la livraison (Cash on Delivery - COD)</p>
-            <p>• Frais de port : 0.00 MAD (Livraison gratuite dans tout le Royaume du Maroc)</p>
-            <p>• Devise officielle : MAD (Dirham Marocain)</p>
-          </div>
+          <Alert className="border-border bg-muted/30">
+            <Info className="w-4 h-4 text-[#C9A227]" />
+            <AlertTitle className="text-xs font-semibold text-foreground">
+              Politique de livraison et paiement :
+            </AlertTitle>
+            <AlertDescription className="text-xs text-muted-foreground space-y-1 mt-1">
+              <p>• Paiement : Exclusivement à la livraison (Cash on Delivery - COD)</p>
+              <p>• Frais de port : 0.00 MAD (Livraison gratuite dans tout le Royaume du Maroc)</p>
+              <p>• Devise officielle : MAD (Dirham Marocain)</p>
+            </AlertDescription>
+          </Alert>
         </CardContent>
       </Card>
     </form>

@@ -16,6 +16,14 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table"
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -241,56 +249,56 @@ export default function AdminInventoryPage() {
       </div>
 
       {/* Inventory Table */}
-      <div className="bg-white rounded-lg border border-border shadow-xs overflow-hidden">
+      <Card className="overflow-hidden border-border bg-white shadow-xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-border bg-muted/40 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                <th className="py-3 px-4">Article</th>
-                <th className="py-3 px-4">Catégorie</th>
-                <th className="py-3 px-4">Taille / Couleur</th>
-                <th className="py-3 px-4">Stock actuel</th>
-                <th className="py-3 px-4">État</th>
-                <th className="py-3 px-4">Active</th>
-                <th className="py-3 px-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border text-xs">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/40 hover:bg-muted/40 border-b border-border">
+                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Article</TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Catégorie</TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Taille / Couleur</TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Stock actuel</TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">État</TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Active</TableHead>
+                <TableHead className="text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {loading ? (
                 [...Array(6)].map((_, i) => (
-                  <tr key={i} className="animate-pulse">
-                    <td className="py-3.5 px-4"><Skeleton className="h-4 w-36" /></td>
-                    <td className="py-3.5 px-4"><Skeleton className="h-4 w-20" /></td>
-                    <td className="py-3.5 px-4"><Skeleton className="h-4 w-24" /></td>
-                    <td className="py-3.5 px-4"><Skeleton className="h-4 w-12" /></td>
-                    <td className="py-3.5 px-4"><Skeleton className="h-5 w-20 rounded" /></td>
-                    <td className="py-3.5 px-4"><Skeleton className="h-4 w-6 rounded" /></td>
-                    <td className="py-3.5 px-4 text-right"><Skeleton className="h-7 w-20 rounded ml-auto" /></td>
-                  </tr>
+                  <TableRow key={i} className="animate-pulse">
+                    <TableCell className="py-3.5"><Skeleton className="h-4 w-36" /></TableCell>
+                    <TableCell className="py-3.5"><Skeleton className="h-4 w-20" /></TableCell>
+                    <TableCell className="py-3.5"><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell className="py-3.5"><Skeleton className="h-4 w-12" /></TableCell>
+                    <TableCell className="py-3.5"><Skeleton className="h-5 w-20 rounded" /></TableCell>
+                    <TableCell className="py-3.5"><Skeleton className="h-4 w-6 rounded" /></TableCell>
+                    <TableCell className="py-3.5 text-right"><Skeleton className="h-7 w-20 rounded ml-auto" /></TableCell>
+                  </TableRow>
                 ))
               ) : items.length > 0 ? (
                 items.map((item) => (
-                  <tr key={item.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="py-3 px-4 font-semibold text-foreground">
+                  <TableRow key={item.id} className="hover:bg-muted/30 transition-colors">
+                    <TableCell className="py-3 font-semibold text-foreground">
                       {item.product_name}
-                    </td>
+                    </TableCell>
 
-                    <td className="py-3 px-4">
+                    <TableCell className="py-3">
                       <Badge variant="secondary" className="bg-muted text-muted-foreground font-normal text-[11px]">
                         {item.category_name}
                       </Badge>
-                    </td>
+                    </TableCell>
 
-                    <td className="py-3 px-4">
+                    <TableCell className="py-3">
                       <span className="font-bold text-foreground">{item.size}</span>
                       <span className="text-muted-foreground"> · {item.color}</span>
-                    </td>
+                    </TableCell>
 
-                    <td className="py-3 px-4 font-bold text-foreground">
+                    <TableCell className="py-3 font-bold text-foreground">
                       {item.stock} pièce(s)
-                    </td>
+                    </TableCell>
 
-                    <td className="py-3 px-4 whitespace-nowrap">
+                    <TableCell className="py-3 whitespace-nowrap">
                       {item.stock === 0 ? (
                         <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-200 text-[10px] font-bold">
                           Rupture
@@ -304,9 +312,9 @@ export default function AdminInventoryPage() {
                           En stock
                         </Badge>
                       )}
-                    </td>
+                    </TableCell>
 
-                    <td className="py-3 px-4 whitespace-nowrap">
+                    <TableCell className="py-3 whitespace-nowrap">
                       <button
                         type="button"
                         onClick={() => handleToggleVariant(item)}
@@ -319,9 +327,9 @@ export default function AdminInventoryPage() {
                       >
                         <Power className="w-4 h-4" />
                       </button>
-                    </td>
+                    </TableCell>
 
-                    <td className="py-3 px-4 text-right whitespace-nowrap">
+                    <TableCell className="py-3 text-right whitespace-nowrap">
                       <Button
                         variant="outline"
                         size="sm"
@@ -331,12 +339,12 @@ export default function AdminInventoryPage() {
                         <Edit3 className="w-3 h-3" />
                         Ajuster
                       </Button>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))
               ) : (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-muted-foreground">
+                <TableRow>
+                  <TableCell colSpan={7} className="py-12 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center">
                       <Boxes className="w-9 h-9 text-muted-foreground/40 mb-2" />
                       <p className="font-semibold text-sm text-foreground">Aucune variante trouvée</p>
@@ -344,11 +352,11 @@ export default function AdminInventoryPage() {
                         Aucun article ne correspond à vos filtres actuels.
                       </p>
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
 
         {/* Pagination Bar */}
@@ -383,7 +391,7 @@ export default function AdminInventoryPage() {
             </div>
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Stock Adjustment Dialog */}
       <Dialog open={!!adjustingItem} onOpenChange={(open) => !open && setAdjustingItem(null)}>

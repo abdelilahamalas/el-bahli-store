@@ -111,19 +111,17 @@ export default function AdminSidebar({ onNavClick }: AdminSidebarProps) {
               end={item.end}
               onClick={onNavClick}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
-                  isActive
-                    ? "bg-[#C9A227] text-[#111111] shadow-xs"
-                    : "text-[#9E9E9E] hover:text-white hover:bg-[#1A1A1A]"
+                `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors ${isActive
+                  ? "bg-[#C9A227] text-[#111111] shadow-xs"
+                  : "text-[#9E9E9E] hover:text-white hover:bg-[#1A1A1A]"
                 }`
               }
             >
               {({ isActive }) => (
                 <>
                   <Icon
-                    className={`w-4 h-4 flex-shrink-0 ${
-                      isActive ? "text-[#111111]" : "text-[#777777]"
-                    }`}
+                    className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-[#111111]" : "text-[#777777]"
+                      }`}
                   />
                   <span className="truncate">{item.label}</span>
                 </>
