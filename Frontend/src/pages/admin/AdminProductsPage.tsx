@@ -512,36 +512,38 @@ export default function AdminProductsPage() {
       </div>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog
-        open={!!productToDelete}
-        onOpenChange={(open) => !open && setProductToDelete(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-rose-600">
-              <AlertCircle className="w-5 h-5" />
-              Supprimer le produit
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-muted-foreground">
-              Êtes-vous sûr de vouloir supprimer définitivement le produit{" "}
-              <strong className="text-foreground">« {productToDelete?.name} »</strong> ? Cette
-              action est irréversible. Les variantes et images associées seront également retirées.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting} className="text-xs">
-              Annuler
-            </AlertDialogCancel>
-            <AlertDialogAction
-              disabled={isDeleting}
-              onClick={handleDeleteConfirm}
-              className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold"
-            >
-              {isDeleting ? "Suppression en cours..." : "Confirmer la suppression"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {productToDelete && (
+        <AlertDialog
+          open={!!productToDelete}
+          onOpenChange={(open) => !open && setProductToDelete(null)}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2 text-rose-600">
+                <AlertCircle className="w-5 h-5" />
+                Supprimer le produit
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-xs text-muted-foreground">
+                Êtes-vous sûr de vouloir supprimer définitivement le produit{" "}
+                <strong className="text-foreground">« {productToDelete?.name} »</strong> ? Cette
+                action est irréversible. Les variantes et images associées seront également retirées.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isDeleting} className="text-xs">
+                Annuler
+              </AlertDialogCancel>
+              <AlertDialogAction
+                disabled={isDeleting}
+                onClick={handleDeleteConfirm}
+                className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold"
+              >
+                {isDeleting ? "Suppression en cours..." : "Confirmer la suppression"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   )
 }

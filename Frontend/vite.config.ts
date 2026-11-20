@@ -9,6 +9,19 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
+    dedupe: ['react', 'react-dom'],
+  },
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-alert-dialog',
+      '@radix-ui/react-slot',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-select',
+    ],
   },
   server: {
     port: 5173,

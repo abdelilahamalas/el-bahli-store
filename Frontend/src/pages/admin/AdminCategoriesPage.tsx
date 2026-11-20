@@ -349,36 +349,38 @@ export default function AdminCategoriesPage() {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog
-        open={!!deletingCategory}
-        onOpenChange={(open) => !open && setDeletingCategory(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-rose-600">
-              <AlertCircle className="w-5 h-5" />
-              Supprimer la catégorie
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-muted-foreground">
-              Êtes-vous sûr de vouloir supprimer la catégorie{" "}
-              <strong className="text-foreground">« {deletingCategory?.name} »</strong> ? Notez
-              qu'une catégorie contenant des produits ne peut pas être supprimée.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting} className="text-xs">
-              Annuler
-            </AlertDialogCancel>
-            <AlertDialogAction
-              disabled={isDeleting}
-              onClick={handleDeleteConfirm}
-              className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold"
-            >
-              {isDeleting ? "Suppression en cours..." : "Confirmer la suppression"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {deletingCategory && (
+        <AlertDialog
+          open={!!deletingCategory}
+          onOpenChange={(open) => !open && setDeletingCategory(null)}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2 text-rose-600">
+                <AlertCircle className="w-5 h-5" />
+                Supprimer la catégorie
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-xs text-muted-foreground">
+                Êtes-vous sûr de vouloir supprimer la catégorie{" "}
+                <strong className="text-foreground">« {deletingCategory?.name} »</strong> ? Notez
+                qu'une catégorie contenant des produits ne peut pas être supprimée.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isDeleting} className="text-xs">
+                Annuler
+              </AlertDialogCancel>
+              <AlertDialogAction
+                disabled={isDeleting}
+                onClick={handleDeleteConfirm}
+                className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold"
+              >
+                {isDeleting ? "Suppression en cours..." : "Confirmer la suppression"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   )
 }

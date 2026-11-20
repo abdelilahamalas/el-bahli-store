@@ -604,54 +604,56 @@ export default function AdminOrderDetailPage() {
       </div>
 
       {/* Confirmation Dialog for Status Transitions */}
-      <AlertDialog
-        open={!!targetTransition}
-        onOpenChange={(open) => !open && setTargetTransition(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-[#C9A227]" />
-              {targetTransition && getActionLabel(targetTransition.value, targetTransition.label)}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-muted-foreground">
-              Voulez-vous modifier le statut de la commande{" "}
-              <strong className="text-foreground">{order.reference}</strong> vers{" "}
-              <strong className="text-foreground">
-                {targetTransition && getActionLabel(targetTransition.value, targetTransition.label)}
-              </strong>{" "}
-              ?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+      {targetTransition && (
+        <AlertDialog
+          open={!!targetTransition}
+          onOpenChange={(open) => !open && setTargetTransition(null)}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-[#C9A227]" />
+                {getActionLabel(targetTransition.value, targetTransition.label)}
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-xs text-muted-foreground">
+                Voulez-vous modifier le statut de la commande{" "}
+                <strong className="text-foreground">{order.reference}</strong> vers{" "}
+                <strong className="text-foreground">
+                  {getActionLabel(targetTransition.value, targetTransition.label)}
+                </strong>{" "}
+                ?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
 
-          <div className="py-2 space-y-1.5">
-            <label className="text-xs font-semibold text-foreground">
-              Motif ou commentaire d'opération{" "}
-              <span className="text-muted-foreground font-normal">(Optionnel)</span>
-            </label>
-            <Textarea
-              value={transitionReason}
-              onChange={(e) => setTransitionReason(e.target.value)}
-              placeholder="Ex: Confirmation téléphonique avec le client..."
-              rows={2}
-              className="text-xs resize-none"
-            />
-          </div>
+            <div className="py-2 space-y-1.5">
+              <label className="text-xs font-semibold text-foreground">
+                Motif ou commentaire d'opération{" "}
+                <span className="text-muted-foreground font-normal">(Optionnel)</span>
+              </label>
+              <Textarea
+                value={transitionReason}
+                onChange={(e) => setTransitionReason(e.target.value)}
+                placeholder="Ex: Confirmation téléphonique avec le client..."
+                rows={2}
+                className="text-xs resize-none"
+              />
+            </div>
 
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isUpdatingStatus} className="text-xs">
-              Annuler
-            </AlertDialogCancel>
-            <AlertDialogAction
-              disabled={isUpdatingStatus}
-              onClick={handleTransitionConfirm}
-              className="bg-[#111111] hover:bg-[#222222] text-white text-xs font-semibold"
-            >
-              {isUpdatingStatus ? "Traitement..." : "Confirmer"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isUpdatingStatus} className="text-xs">
+                Annuler
+              </AlertDialogCancel>
+              <AlertDialogAction
+                disabled={isUpdatingStatus}
+                onClick={handleTransitionConfirm}
+                className="bg-[#111111] hover:bg-[#222222] text-white text-xs font-semibold"
+              >
+                {isUpdatingStatus ? "Traitement..." : "Confirmer"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   )
 }
