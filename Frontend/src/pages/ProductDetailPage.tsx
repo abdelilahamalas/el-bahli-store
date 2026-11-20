@@ -377,14 +377,10 @@ export default function ProductDetailPage() {
                     type="button"
                     size="lg"
                     onClick={handleAddToCart}
-                    className="w-full h-12 sm:h-13 text-xs sm:text-sm font-extrabold rounded-xl bg-[#111111] text-white hover:bg-[#1C1C1C] hover:border-[#C9A227] border border-[#2A2A2A] shadow-md hover:shadow-lg active:scale-[0.99] transition-all gap-2.5 cursor-pointer relative overflow-hidden group"
+                    className="w-full h-12 text-sm font-semibold rounded-xl bg-[#111111] text-white hover:bg-[#222222] border border-[#C9A227]/30 transition-colors gap-2 cursor-pointer"
                   >
-                    <div className="w-6 h-6 rounded-lg bg-[#C9A227]/20 border border-[#C9A227]/40 flex items-center justify-center shrink-0 group-hover:bg-[#C9A227] transition-colors">
-                      <ShoppingBag className="h-3.5 w-3.5 text-[#C9A227] group-hover:text-black transition-colors" />
-                    </div>
-                    <span className="tracking-wide uppercase text-[12px] sm:text-[13px]">
-                      Ajouter au Panier
-                    </span>
+                    <ShoppingBag className="h-4 w-4 text-[#C9A227]" />
+                    <span>Ajouter au panier</span>
                   </Button>
                 )}
 

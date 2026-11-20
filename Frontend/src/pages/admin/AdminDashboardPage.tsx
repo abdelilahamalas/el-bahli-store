@@ -77,11 +77,10 @@ export default function AdminDashboardPage() {
                 key={tab.id}
                 onClick={() => handlePeriodChange(tab.id)}
                 disabled={loading || isPending}
-                className={`px-3 py-1.5 rounded-md transition-all ${
-                  period === tab.id
-                    ? "bg-[#111111] text-white font-semibold shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={`px-3 py-1.5 rounded-md transition-all ${period === tab.id
+                  ? "bg-[#111111] text-white font-semibold shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+                  }`}
               >
                 {tab.label}
               </button>
@@ -189,9 +188,8 @@ export default function AdminDashboardPage() {
                 État des stocks
               </span>
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  data.kpis.out_of_stock_variants > 0 ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-600"
-                }`}
+                className={`w-8 h-8 rounded-full flex items-center justify-center ${data.kpis.out_of_stock_variants > 0 ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-600"
+                  }`}
               >
                 <AlertTriangle className="w-4 h-4" />
               </div>
@@ -262,11 +260,10 @@ export default function AdminDashboardPage() {
                       <div className="w-full max-w-[40px] flex flex-col items-center">
                         <div
                           style={{ height: `${heightPercent}%` }}
-                          className={`w-full rounded-t-md transition-all ${
-                            day.orders_count > 0
-                              ? "bg-gradient-to-t from-[#111111] to-[#333333] group-hover:from-[#C9A227] group-hover:to-[#E5BD3B]"
-                              : "bg-muted/60"
-                          }`}
+                          className={`w-full rounded-t-md transition-all ${day.orders_count > 0
+                            ? "bg-gradient-to-t from-[#111111] to-[#333333] group-hover:from-[#C9A227] group-hover:to-[#E5BD3B]"
+                            : "bg-muted/60"
+                            }`}
                         />
                       </div>
 

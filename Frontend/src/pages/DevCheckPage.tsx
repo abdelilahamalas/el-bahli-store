@@ -359,7 +359,7 @@ export default function DevCheckPage() {
             <CardDescription className="text-brand-gray">
               Requête Axios réelle vers <code>GET /categories</code> sur{" "}
               <span className="text-brand-gold">
-                {import.meta.env.VITE_API_BASE_URL || "http://el-bahli-store.test/api/v1"}
+                {import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api/v1"}
               </span>
             </CardDescription>
           </CardHeader>

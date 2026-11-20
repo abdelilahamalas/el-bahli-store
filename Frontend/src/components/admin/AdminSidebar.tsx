@@ -2,10 +2,9 @@ import { NavLink, useNavigate } from "react-router-dom"
 import {
   LayoutDashboard,
   Package,
-  FolderTree,
   ShoppingBag,
   Boxes,
-  History,
+  FolderTree,
   Settings,
   Plus,
   LogOut,
@@ -28,79 +27,49 @@ export default function AdminSidebar({ onNavClick }: AdminSidebarProps) {
     navigate("/admin/login")
   }
 
+  // Les 6 rubriques officielles requises
   const navItems = [
     {
-      group: "VUE D'ENSEMBLE",
-      items: [
-        {
-          label: "Dashboard",
-          to: "/admin",
-          icon: LayoutDashboard,
-          end: true,
-        },
-      ],
+      label: "Vue d’ensemble",
+      to: "/admin",
+      icon: LayoutDashboard,
+      end: true,
     },
     {
-      group: "CATALOGUE",
-      items: [
-        {
-          label: "Produits",
-          to: "/admin/products",
-          icon: Package,
-          end: false,
-        },
-        {
-          label: "Catégories",
-          to: "/admin/categories",
-          icon: FolderTree,
-          end: false,
-        },
-      ],
+      label: "Produits",
+      to: "/admin/products",
+      icon: Package,
+      end: false,
     },
     {
-      group: "COMMANDES",
-      items: [
-        {
-          label: "Commandes",
-          to: "/admin/orders",
-          icon: ShoppingBag,
-          end: false,
-        },
-      ],
+      label: "Commandes",
+      to: "/admin/orders",
+      icon: ShoppingBag,
+      end: false,
     },
     {
-      group: "GESTION DU STOCK",
-      items: [
-        {
-          label: "Inventaire",
-          to: "/admin/inventory",
-          icon: Boxes,
-          end: true,
-        },
-        {
-          label: "Mouvements",
-          to: "/admin/inventory/movements",
-          icon: History,
-          end: true,
-        },
-      ],
+      label: "Gestion du stock",
+      to: "/admin/inventory",
+      icon: Boxes,
+      end: false,
     },
     {
-      group: "PARAMÈTRES",
-      items: [
-        {
-          label: "Boutique",
-          to: "/admin/settings",
-          icon: Settings,
-          end: true,
-        },
-      ],
+      label: "Catégories",
+      to: "/admin/categories",
+      icon: FolderTree,
+      end: false,
+    },
+    {
+      label: "Paramètres",
+      to: "/admin/settings",
+      icon: Settings,
+      end: true,
     },
   ]
 
   return (
     <aside className="w-64 bg-[#0D0D0D] text-white flex flex-col h-full border-r border-[#222222] select-none">
-      {/* Brand Header */}
+      {/* En-tête officiel de la marque */}
       <div className="p-5 border-b border-[#222222] flex items-center gap-3">
         <div className="w-10 h-10 rounded-full overflow-hidden border border-[#C9A227]/40 flex-shrink-0 bg-black">
           <img src={logoImg} alt="El Bahli Store" className="w-full h-full object-cover" />
@@ -109,20 +78,20 @@ export default function AdminSidebar({ onNavClick }: AdminSidebarProps) {
           <span className="font-bold text-sm tracking-wide text-white truncate">
             EL BAHLI <span className="text-[#C9A227]">STORE</span>
           </span>
-          <span className="text-[11px] text-[#888888] font-medium tracking-wider uppercase">
-            Back-office
+          <span className="text-[10px] text-[#888888] font-medium tracking-wider uppercase">
+            Administration
           </span>
         </div>
       </div>
 
-      {/* Quick Action Button */}
+      {/* Bouton d'action rapide : Nouveau produit */}
       <div className="px-4 pt-4 pb-2">
         <Button
           onClick={() => {
             navigate("/admin/products/new")
             onNavClick?.()
           }}
-          className="w-full bg-[#1A1A1A] hover:bg-[#252525] text-white border border-[#333333] hover:border-[#C9A227]/60 justify-start gap-2 h-9 text-xs font-semibold shadow-sm transition-all"
+          className="w-full bg-[#181818] hover:bg-[#222222] text-white border border-[#333333] hover:border-[#C9A227]/50 justify-start gap-2.5 h-9 text-xs font-semibold shadow-xs transition-colors"
         >
           <div className="w-5 h-5 rounded bg-[#C9A227] text-black flex items-center justify-center font-bold">
             <Plus className="w-3.5 h-3.5" />
@@ -131,47 +100,43 @@ export default function AdminSidebar({ onNavClick }: AdminSidebarProps) {
         </Button>
       </div>
 
-      {/* Navigation Sections */}
-      <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-5">
-        {navItems.map((group) => (
-          <div key={group.group} className="space-y-1">
-            <div className="px-3 text-[10px] font-bold text-[#666666] tracking-wider uppercase">
-              {group.group}
-            </div>
-            {group.items.map((item) => {
-              const Icon = item.icon
-              return (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  end={item.end}
-                  onClick={onNavClick}
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                      isActive
-                        ? "bg-[#C9A227] text-black font-semibold shadow-sm"
-                        : "text-[#B0B0B0] hover:text-white hover:bg-[#1A1A1A]"
-                    }`
-                  }
-                >
-                  {({ isActive }) => (
-                    <>
-                      <Icon
-                        className={`w-4 h-4 flex-shrink-0 ${
-                          isActive ? "text-black" : "text-[#888888]"
-                        }`}
-                      />
-                      <span className="truncate">{item.label}</span>
-                    </>
-                  )}
-                </NavLink>
-              )
-            })}
-          </div>
-        ))}
+      {/* Navigation principale avec les 6 rubriques */}
+      <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1.5">
+        <div className="px-3 pb-1 text-[10px] font-bold text-[#666666] tracking-wider uppercase">
+          Menu Principal
+        </div>
+        {navItems.map((item) => {
+          const Icon = item.icon
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              onClick={onNavClick}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-colors ${
+                  isActive
+                    ? "bg-[#C9A227] text-black font-semibold shadow-xs"
+                    : "text-[#B0B0B0] hover:text-white hover:bg-[#1A1A1A]"
+                }`
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <Icon
+                    className={`w-4 h-4 flex-shrink-0 ${
+                      isActive ? "text-black" : "text-[#888888]"
+                    }`}
+                  />
+                  <span className="truncate">{item.label}</span>
+                </>
+              )}
+            </NavLink>
+          )
+        })}
       </nav>
 
-      {/* User Info & Footer Actions */}
+      {/* Pied de Sidebar : Lien boutique et profil utilisateur */}
       <div className="p-3 border-t border-[#222222] bg-[#0A0A0A] space-y-2">
         <a
           href="/"
@@ -196,7 +161,7 @@ export default function AdminSidebar({ onNavClick }: AdminSidebarProps) {
                 {user?.name || "Administrateur"}
               </span>
               <span className="text-[10px] text-[#777777] truncate">
-                {user?.email || "admin@elbahli.store"}
+                {user?.email || "admin@exemple.com"}
               </span>
             </div>
           </div>

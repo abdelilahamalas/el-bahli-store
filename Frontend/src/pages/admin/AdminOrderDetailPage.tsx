@@ -84,15 +84,15 @@ export default function AdminOrderDetailPage() {
   const getActionLabel = (value: string, defaultLabel: string) => {
     switch (value) {
       case "confirmed":
-        return "Confirmer la commande"
+        return "Confirmer"
       case "processing":
-        return "Préparer la commande"
+        return "Préparer"
       case "shipped":
-        return "Expédier la commande"
+        return "Expédier"
       case "delivered":
         return "Marquer comme livrée"
       case "cancelled":
-        return "Annuler la commande"
+        return "Annuler"
       case "return_requested":
         return "Demande de retour"
       case "return_received":
@@ -241,11 +241,10 @@ export default function AdminOrderDetailPage() {
                     setTargetTransition(tr)
                     setTransitionReason("")
                   }}
-                  className={`text-xs h-9 px-3.5 font-bold transition-all shadow-xs ${
-                    isCancel
+                  className={`text-xs h-9 px-3.5 font-bold transition-all shadow-xs ${isCancel
                       ? "bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200"
                       : "bg-[#111111] hover:bg-[#252525] text-white border border-[#222222] hover:border-[#C9A227]"
-                  }`}
+                    }`}
                 >
                   {isCancel ? (
                     <Ban className="w-3.5 h-3.5 mr-1.5 text-rose-500" />
@@ -443,11 +442,11 @@ export default function AdminOrderDetailPage() {
                   <p className="font-semibold text-foreground">
                     {order.shipped_at
                       ? new Date(order.shipped_at).toLocaleDateString("fr-FR", {
-                          day: "numeric",
-                          month: "short",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
+                        day: "numeric",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
                       : "Non encore expédiée"}
                   </p>
                 </div>
@@ -459,11 +458,11 @@ export default function AdminOrderDetailPage() {
                   <p className="font-semibold text-foreground">
                     {order.delivered_at
                       ? new Date(order.delivered_at).toLocaleDateString("fr-FR", {
-                          day: "numeric",
-                          month: "short",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
+                        day: "numeric",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
                       : "En attente"}
                   </p>
                 </div>

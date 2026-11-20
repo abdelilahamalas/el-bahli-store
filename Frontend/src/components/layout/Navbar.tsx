@@ -259,7 +259,7 @@ export default function Navbar({ categories, isLoading }: NavbarProps) {
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
               <Input
-                placeholder="Ex : Capuche, Polo, Veste, Jeans, Chaussures..."
+                placeholder="Rechercher un produit..."
                 className="pl-9 pr-4 rounded-xl"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}

@@ -220,7 +220,7 @@ export default function AdminSettingsPage() {
                 type="email"
                 value={storeEmail}
                 onChange={(e) => setStoreEmail(e.target.value)}
-                placeholder="contact@elbahli.store"
+                placeholder="contact@exemple.com"
                 className="h-9 text-xs"
               />
             </div>

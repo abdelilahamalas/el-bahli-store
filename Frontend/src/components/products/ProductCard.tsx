@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom"
 import { ShoppingBag, ArrowRight } from "lucide-react"
 import type { Product } from "@/types/product"
-import { getCategoryImage } from "@/utils/categoryImages"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
@@ -10,12 +9,12 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  // Déterminer l'image principale
+  // Déterminer uniquement l'image réelle du produit (aucun visuel tiers ou temporaire)
   const mainImage =
     product.images?.find((img) => img.is_main)?.image_url ||
     product.image_url ||
     product.images?.[0]?.image_url ||
-    (product.category_name ? getCategoryImage(product.category_name) : null)
+    null
 
   const numPrice = parseFloat(product.price)
   const numPromo = product.promotional_price ? parseFloat(product.promotional_price) : null
@@ -36,20 +35,20 @@ export default function ProductCard({ product }: ProductCardProps) {
       to={`/products/${product.slug}`}
       className="group block focus:outline-hidden"
     >
-      <Card className="overflow-hidden border border-border/70 bg-card transition-all duration-300 hover:border-brand-gold hover:shadow-xl rounded-2xl flex flex-col h-full">
+      <Card className="overflow-hidden border border-border/70 bg-card transition-colors duration-200 hover:border-brand-gold rounded-2xl flex flex-col h-full">
         {/* Conteneur d'image */}
         <div className="relative aspect-[3/4] w-full overflow-hidden bg-brand-lightGray">
           {mainImage ? (
             <img
               src={mainImage}
               alt={product.name}
-              className="h-full w-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-106"
+              className="h-full w-full object-cover object-center"
               loading="lazy"
             />
           ) : (
-            <div className="h-full w-full flex flex-col items-center justify-center bg-muted text-muted-foreground p-4 text-center">
-              <ShoppingBag className="h-10 w-10 mb-2 opacity-30 text-brand-gold" />
-              <span className="text-xs font-semibold">{product.name}</span>
+            <div className="h-full w-full flex flex-col items-center justify-center bg-neutral-100 text-neutral-400 p-4 text-center">
+              <ShoppingBag className="h-10 w-10 mb-2 opacity-30 text-neutral-600" />
+              <span className="text-xs font-medium text-neutral-500">{product.name}</span>
             </div>
           )}
 

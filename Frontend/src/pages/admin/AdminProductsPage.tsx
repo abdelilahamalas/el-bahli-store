@@ -215,7 +215,7 @@ export default function AdminProductsPage() {
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher par nom..."
+            placeholder="Rechercher un produit..."
             className="pl-9 h-9 text-xs bg-muted/30 border-border focus:bg-white"
           />
         </div>

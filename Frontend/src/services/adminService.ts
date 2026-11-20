@@ -6,7 +6,6 @@ import type {
   AdminDashboardData,
   AdminProduct,
   AdminProductVariant,
-  AdminProductImage,
   UpdateProductPayload,
   AdminOrder,
   AdminOrderDetailResponse,
@@ -92,21 +91,53 @@ export const adminService = {
     return response.data.data
   },
 
-  async uploadProductImages(id: number | string, formData: FormData): Promise<AdminProductImage[]> {
-    const response = await api.post<ApiResponse<AdminProductImage[]>>(
-      `/admin/products/${id}/images`,
+  async uploadProductImage(
+    productId: number | string,
+    file: File,
+    isMain = false
+  ): Promise<AdminProduct> {
+    const formData = new FormData()
+    formData.append("image", file)
+    if (isMain) {
+      formData.append("is_main", "1")
+    }
+    const response = await api.post<ApiResponse<AdminProduct>>(
+      `/admin/products/${productId}/images`,
       formData,
       { headers: { "Content-Type": "multipart/form-data" } }
     )
     return response.data.data
   },
 
-  async setMainProductImage(productId: number | string, imageId: number | string): Promise<void> {
-    await api.post(`/admin/products/${productId}/images/${imageId}/main`)
+  async uploadProductImages(
+    productId: number | string,
+    files: File[]
+  ): Promise<AdminProduct> {
+    let updatedProduct: AdminProduct | null = null
+    for (const file of files) {
+      const formData = new FormData()
+      formData.append("image", file)
+      const res = await api.post<ApiResponse<AdminProduct>>(
+        `/admin/products/${productId}/images`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      )
+      updatedProduct = res.data.data
+    }
+    if (!updatedProduct) {
+      throw new Error("Aucun fichier à uploader.")
+    }
+    return updatedProduct
   },
 
-  async deleteProductImage(productId: number | string, imageId: number | string): Promise<void> {
-    await api.delete(`/admin/products/${productId}/images/${imageId}`)
+  async setMainProductImage(productId: number | string, imageId: number | string): Promise<AdminProduct> {
+    const response = await api.post<ApiResponse<AdminProduct>>(`/admin/products/${productId}/images/${imageId}/main`)
+    return response.data.data
+  },
+
+  async deleteProductImage(productId: number | string, imageId: number | string): Promise<AdminProduct> {
+    const response = await api.delete<ApiResponse<AdminProduct>>(`/admin/products/${productId}/images/${imageId}`)
+    return response.data.data
   },
 
   async addVariant(

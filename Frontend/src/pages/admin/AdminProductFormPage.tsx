@@ -5,8 +5,10 @@ import {
   Upload,
   Plus,
   Trash2,
-  Star,
   Check,
+  Star,
+  RefreshCw,
+  ImageIcon,
 } from "lucide-react"
 import { toast } from "sonner"
 import { adminService } from "@/services/adminService"
@@ -16,6 +18,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 
 interface VariantRow {
   id?: number
@@ -47,11 +50,13 @@ export default function AdminProductFormPage() {
   const [existingImages, setExistingImages] = useState<AdminProductImage[]>([])
   const [selectedNewFiles, setSelectedNewFiles] = useState<File[]>([])
   const [filePreviews, setFilePreviews] = useState<string[]>([])
+  const [selectedNewMainIndex, setSelectedNewMainIndex] = useState(0)
 
   // UI state
   const [categories, setCategories] = useState<AdminCategory[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isImageActionLoading, setIsImageActionLoading] = useState(false)
 
   // Load categories
   useEffect(() => {
@@ -106,44 +111,105 @@ export default function AdminProductFormPage() {
     }
   }, [filePreviews])
 
-  // File selection handler
+  // File selection handler (multiple images at once)
   const handleFilesChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return
+    if (!e.target.files || e.target.files.length === 0) return
     const files = Array.from(e.target.files)
-    setSelectedNewFiles((prev) => [...prev, ...files])
 
-    const newUrls = files.map((f) => URL.createObjectURL(f))
+    // Validation des formats et tailles
+    const validFiles: File[] = []
+    for (const f of files) {
+      if (f.size > 5 * 1024 * 1024) {
+        toast.error(`Le fichier ${f.name} dépasse la limite de 5 Mo.`)
+        continue
+      }
+      validFiles.push(f)
+    }
+
+    if (validFiles.length === 0) return
+
+    setSelectedNewFiles((prev) => [...prev, ...validFiles])
+    const newUrls = validFiles.map((f) => URL.createObjectURL(f))
     setFilePreviews((prev) => [...prev, ...newUrls])
+    toast.success(`${validFiles.length} photo(s) ajoutée(s) à la sélection.`)
   }
 
   const removeSelectedFile = (index: number) => {
     URL.revokeObjectURL(filePreviews[index])
     setSelectedNewFiles((prev) => prev.filter((_, i) => i !== index))
     setFilePreviews((prev) => prev.filter((_, i) => i !== index))
-  }
-
-  // Existing image actions in edit mode
-  const handleSetMainImage = async (imageId: number) => {
-    if (!id) return
-    try {
-      await adminService.setMainProductImage(id, imageId)
-      setExistingImages((prev) =>
-        prev.map((img) => ({ ...img, is_main: img.id === imageId }))
-      )
-      toast.success("Image principale mise à jour.")
-    } catch {
-      toast.error("Impossible de changer l'image principale.")
+    if (selectedNewMainIndex === index) {
+      setSelectedNewMainIndex(0)
+    } else if (selectedNewMainIndex > index) {
+      setSelectedNewMainIndex((prev) => prev - 1)
     }
   }
 
+  // Upload pending new images immediately in edit mode
+  const handleUploadPendingFiles = async () => {
+    if (!id || selectedNewFiles.length === 0) return
+    setIsImageActionLoading(true)
+    try {
+      const updatedProduct = await adminService.uploadProductImages(id, selectedNewFiles)
+      if (updatedProduct?.images) {
+        setExistingImages(updatedProduct.images)
+      }
+      // Clear previews
+      filePreviews.forEach((url) => URL.revokeObjectURL(url))
+      setSelectedNewFiles([])
+      setFilePreviews([])
+      toast.success("Photos ajoutées à la galerie avec succès.")
+    } catch (err: unknown) {
+      let msg = "Erreur lors du téléchargement des images."
+      if (err && typeof err === "object" && "response" in err) {
+        const axErr = err as { response?: { data?: { message?: string } } }
+        if (axErr.response?.data?.message) {
+          msg = axErr.response.data.message
+        }
+      }
+      toast.error(msg)
+    } finally {
+      setIsImageActionLoading(false)
+    }
+  }
+
+  // Set designated existing image as main
+  const handleSetMainImage = async (imageId: number) => {
+    if (!id) return
+    setIsImageActionLoading(true)
+    try {
+      const updatedProduct = await adminService.setMainProductImage(id, imageId)
+      if (updatedProduct?.images) {
+        setExistingImages(updatedProduct.images)
+      } else {
+        setExistingImages((prev) =>
+          prev.map((img) => ({ ...img, is_main: img.id === imageId }))
+        )
+      }
+      toast.success("Image principale définie avec succès.")
+    } catch {
+      toast.error("Impossible de modifier l'image principale.")
+    } finally {
+      setIsImageActionLoading(false)
+    }
+  }
+
+  // Delete an existing image
   const handleDeleteExistingImage = async (imageId: number) => {
     if (!id) return
+    setIsImageActionLoading(true)
     try {
-      await adminService.deleteProductImage(id, imageId)
-      setExistingImages((prev) => prev.filter((img) => img.id !== imageId))
-      toast.success("Image supprimée.")
+      const updatedProduct = await adminService.deleteProductImage(id, imageId)
+      if (updatedProduct?.images) {
+        setExistingImages(updatedProduct.images)
+      } else {
+        setExistingImages((prev) => prev.filter((img) => img.id !== imageId))
+      }
+      toast.success("Image retirée de la galerie.")
     } catch {
-      toast.error("Impossible de supprimer cette image.")
+      toast.error("Impossible de supprimer cette photo.")
+    } finally {
+      setIsImageActionLoading(false)
     }
   }
 
@@ -164,7 +230,7 @@ export default function AdminProductFormPage() {
       is_active: true,
     }))
     setVariants(newVariants)
-    toast.info("Tailles standards (S, M, L, XL, XXL) ajoutées.")
+    toast.info("Tailles standards (S, M, L, XL, XXL) configurées.")
   }
 
   const handleUpdateVariant = (
@@ -230,11 +296,7 @@ export default function AdminProductFormPage() {
 
         // If new images were selected during edit, upload them
         if (selectedNewFiles.length > 0) {
-          const imgFormData = new FormData()
-          selectedNewFiles.forEach((file) => {
-            imgFormData.append("images[]", file)
-          })
-          await adminService.uploadProductImages(id, imgFormData)
+          await adminService.uploadProductImages(id, selectedNewFiles)
         }
 
         toast.success(`Le produit « ${name} » a été mis à jour avec succès.`)
@@ -261,13 +323,17 @@ export default function AdminProductFormPage() {
           formData.append(`sizes[${index}][is_active]`, v.is_active ? "1" : "0")
         })
 
-        // Images
+        // Images handling
         if (selectedNewFiles.length > 0) {
-          // First image as main image
-          formData.append("image", selectedNewFiles[0])
-          // Additional images
-          selectedNewFiles.slice(1).forEach((file) => {
-            formData.append("images[]", file)
+          // Designated main image
+          const mainFile = selectedNewFiles[selectedNewMainIndex] || selectedNewFiles[0]
+          formData.append("image", mainFile)
+
+          // Other images
+          selectedNewFiles.forEach((file, idx) => {
+            if (idx !== selectedNewMainIndex) {
+              formData.append("images[]", file)
+            }
           })
         }
 
@@ -302,27 +368,28 @@ export default function AdminProductFormPage() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-5xl mx-auto pb-12">
-      {/* Top Bar Navigation */}
-      <div className="flex items-center justify-between gap-4">
+    <form onSubmit={handleSubmit} className="space-y-6 pb-12">
+      {/* Top Bar with Navigation & Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
         <div className="flex items-center gap-3">
           <Button
             type="button"
             variant="outline"
             size="icon"
             onClick={() => navigate("/admin/products")}
-            className="h-9 w-9 border-border"
+            className="h-9 w-9 border-border hover:bg-muted"
+            title="Retour à la liste"
           >
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              {isEditMode ? "Modifier le produit" : "Ajouter un nouveau produit"}
+            <h1 className="text-xl font-bold tracking-tight text-foreground">
+              {isEditMode ? `Modifier le produit` : "Créer un nouveau produit"}
             </h1>
             <p className="text-xs text-muted-foreground mt-0.5">
               {isEditMode
-                ? "Mettez à jour les caractéristiques, prix, variantes et photos."
-                : "Renseignez les détails du produit pour l'ajouter à votre boutique."}
+                ? `Réf : #${id} — Gestion des informations, prix, photos et stocks.`
+                : "Remplissez les informations et ajoutez des photos pour publier un article."}
             </p>
           </div>
         </div>
@@ -332,18 +399,20 @@ export default function AdminProductFormPage() {
             type="button"
             variant="outline"
             onClick={() => navigate("/admin/products")}
-            className="text-xs h-9"
+            disabled={isSubmitting}
+            className="text-xs h-9 border-border"
           >
             Annuler
           </Button>
+
           <Button
             type="submit"
-            disabled={isSubmitting}
-            className="bg-[#111111] hover:bg-[#252525] text-white text-xs font-semibold h-9 px-5 shadow-xs"
+            disabled={isSubmitting || isImageActionLoading}
+            className="text-xs h-9 bg-[#111111] hover:bg-[#222222] text-white border border-[#C9A227]/40 shadow-xs"
           >
             {isSubmitting ? (
               <span className="flex items-center gap-2">
-                <div className="w-3.5 h-3.5 border-2 border-[#C9A227] border-t-transparent rounded-full animate-spin" />
+                <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#C9A227]" />
                 Enregistrement...
               </span>
             ) : (
@@ -379,7 +448,7 @@ export default function AdminProductFormPage() {
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Ex: Capuche Imprimé - Rose Pastel"
+                  placeholder="Ex. Jean slim noir"
                   className="h-9 text-xs"
                   required
                 />
@@ -419,7 +488,7 @@ export default function AdminProductFormPage() {
                     onChange={(e) => setIsActive(e.target.value === "1")}
                     className="w-full h-9 px-3 text-xs bg-white border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
                   >
-                    <option value="1">Actif (Visible en ligne)</option>
+                    <option value="1">Actif (Visible en boutique)</option>
                     <option value="0">Masqué (Brouillon)</option>
                   </select>
                 </div>
@@ -438,7 +507,7 @@ export default function AdminProductFormPage() {
                     min="0"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
-                    placeholder="Ex: 300"
+                    placeholder="Ex. 250"
                     className="h-9 text-xs"
                     required
                   />
@@ -456,7 +525,7 @@ export default function AdminProductFormPage() {
                     min="0"
                     value={promotionalPrice}
                     onChange={(e) => setPromotionalPrice(e.target.value)}
-                    placeholder="Ex: 250"
+                    placeholder="Ex. 199"
                     className="h-9 text-xs"
                   />
                 </div>
@@ -487,7 +556,7 @@ export default function AdminProductFormPage() {
                   Variantes, Tailles et Stocks
                 </CardTitle>
                 <CardDescription className="text-xs text-muted-foreground">
-                  Définissez chaque combinaison de taille, couleur et stock initial.
+                  Définissez chaque combinaison de taille, couleur et stock disponible.
                 </CardDescription>
               </div>
 
@@ -499,30 +568,29 @@ export default function AdminProductFormPage() {
                   onClick={handleQuickAddSizes}
                   className="h-8 text-xs border-border hover:border-[#C9A227]"
                 >
-                  Pack S-XXL
+                  Tailles standards (S-XXL)
                 </Button>
                 <Button
                   type="button"
                   size="sm"
                   onClick={handleAddVariant}
-                  className="h-8 text-xs bg-[#111111] hover:bg-[#252525] text-white"
+                  className="h-8 text-xs bg-[#111111] hover:bg-[#222222] text-white gap-1"
                 >
-                  <Plus className="w-3.5 h-3.5 mr-1 text-[#C9A227]" />
+                  <Plus className="w-3.5 h-3.5 text-[#C9A227]" />
                   Ajouter une ligne
                 </Button>
               </div>
             </CardHeader>
-
             <CardContent>
-              <div className="border border-border rounded-md overflow-hidden">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-muted/40 border-b border-border text-[11px] font-semibold text-muted-foreground uppercase">
+              <div className="overflow-x-auto border border-border rounded-lg">
+                <table className="w-full text-xs text-left">
+                  <thead className="bg-muted/50 border-b border-border text-muted-foreground uppercase text-[10px] font-semibold">
                     <tr>
                       <th className="py-2.5 px-3">Taille</th>
-                      <th className="py-2.5 px-3">Couleur</th>
-                      <th className="py-2.5 px-3">Quantité en stock</th>
-                      <th className="py-2.5 px-3">Active</th>
-                      <th className="py-2.5 px-3 text-right">Suppr.</th>
+                      <th className="py-2.5 px-3">Couleur / Modèle</th>
+                      <th className="py-2.5 px-3">Stock initial</th>
+                      <th className="py-2.5 px-3">Actif</th>
+                      <th className="py-2.5 px-3 text-right">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
@@ -533,7 +601,7 @@ export default function AdminProductFormPage() {
                           <Input
                             value={v.size}
                             onChange={(e) => handleUpdateVariant(idx, "size", e.target.value)}
-                            placeholder="Ex: M ou 42"
+                            placeholder="Ex. M"
                             className="h-8 text-xs w-24"
                             required
                           />
@@ -544,8 +612,8 @@ export default function AdminProductFormPage() {
                           <Input
                             value={v.color}
                             onChange={(e) => handleUpdateVariant(idx, "color", e.target.value)}
-                            placeholder="Ex: Noir ou Standard"
-                            className="h-8 text-xs w-28"
+                            placeholder="Ex. Noir"
+                            className="h-8 text-xs w-32"
                           />
                         </td>
 
@@ -594,20 +662,26 @@ export default function AdminProductFormPage() {
           </Card>
         </div>
 
-        {/* Right Column (1 col): Photos & Media */}
+        {/* Right Column (1 col): Photos & Images Management */}
         <div className="space-y-6">
           <Card className="border-border bg-white shadow-xs">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base font-bold text-foreground">
-                Photos du vêtement
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4 text-[#C9A227]" />
+                  Gestion des photos
+                </CardTitle>
+                {isImageActionLoading && (
+                  <RefreshCw className="w-4 h-4 animate-spin text-[#C9A227]" />
+                )}
+              </div>
               <CardDescription className="text-xs text-muted-foreground">
-                Ajoutez des visuels sous fond blanc ou neutre (JPEG, PNG, WebP).
+                Ajoutez plusieurs photos et définissez l'image principale visible en boutique.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* File Dropzone Button */}
-              <div className="border-2 border-dashed border-border rounded-lg p-5 text-center hover:border-[#C9A227]/70 transition-colors bg-muted/20 relative">
+              <div className="border-2 border-dashed border-border rounded-lg p-5 text-center hover:border-[#C9A227] transition-colors bg-muted/20 relative">
                 <input
                   type="file"
                   multiple
@@ -620,97 +694,149 @@ export default function AdminProductFormPage() {
                     <Upload className="w-4 h-4" />
                   </div>
                   <span className="text-xs font-semibold text-foreground">
-                    Cliquez ou glissez vos photos ici
+                    Sélectionner une ou plusieurs photos
                   </span>
                   <span className="text-[10px] text-muted-foreground mt-0.5">
-                    Formats acceptés : JPG, PNG, WebP (max 5 Mo)
+                    JPG, PNG ou WebP (max 5 Mo chacune)
                   </span>
                 </div>
               </div>
 
               {/* New Selected Files Previews */}
               {selectedNewFiles.length > 0 && (
-                <div className="space-y-2">
-                  <span className="text-xs font-semibold text-foreground flex items-center justify-between">
-                    <span>Nouvelles images ({selectedNewFiles.length})</span>
-                    <span className="text-[10px] text-muted-foreground font-normal">
-                      À uploader
+                <div className="space-y-2.5 pt-2 border-t border-border">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-foreground">
+                      Nouvelles photos ({selectedNewFiles.length})
                     </span>
-                  </span>
-                  <div className="grid grid-cols-2 gap-2">
-                    {filePreviews.map((previewUrl, idx) => (
-                      <div
-                        key={idx}
-                        className="relative group rounded-md overflow-hidden border border-border aspect-square bg-muted"
+                    {isEditMode && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={handleUploadPendingFiles}
+                        disabled={isImageActionLoading}
+                        className="h-7 text-[11px] bg-[#111111] text-white hover:bg-[#222222] border border-[#C9A227]/40"
                       >
-                        <img
-                          src={previewUrl}
-                          alt="Nouveau fichier"
-                          className="w-full h-full object-cover"
-                        />
-                        {idx === 0 && !isEditMode && (
-                          <span className="absolute top-1 left-1 bg-[#111111] text-[#C9A227] text-[9px] font-bold px-1.5 py-0.5 rounded shadow">
-                            Principale
-                          </span>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => removeSelectedFile(idx)}
-                          className="absolute top-1 right-1 p-1 bg-black/60 text-white rounded hover:bg-rose-600 transition-colors"
+                        Enregistrer ces photos
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {filePreviews.map((previewUrl, idx) => {
+                      const isDesignatedMain = idx === selectedNewMainIndex && !isEditMode
+                      return (
+                        <div
+                          key={idx}
+                          className="rounded-lg border border-border overflow-hidden bg-neutral-50 flex flex-col justify-between"
                         >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ))}
+                          <div className="relative aspect-square w-full overflow-hidden bg-muted">
+                            <img
+                              src={previewUrl}
+                              alt="Nouvelle sélection"
+                              className="w-full h-full object-cover"
+                            />
+                            {isDesignatedMain && (
+                              <Badge className="absolute top-1.5 left-1.5 bg-[#C9A227] text-black font-bold text-[9px] px-1.5 py-0.5 shadow-xs">
+                                Principale
+                              </Badge>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => removeSelectedFile(idx)}
+                              className="absolute top-1.5 right-1.5 p-1 bg-black/70 text-white rounded-md hover:bg-rose-600 transition-colors"
+                              title="Retirer ce fichier"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+
+                          {!isEditMode && !isDesignatedMain && (
+                            <div className="p-1.5 bg-white border-t border-border">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedNewMainIndex(idx)}
+                                className="w-full h-6 text-[10px] px-1 font-medium border-border hover:border-[#C9A227]"
+                              >
+                                Définir comme principale
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               )}
 
               {/* Existing Images in Edit Mode */}
-              {isEditMode && existingImages.length > 0 && (
-                <div className="space-y-2 pt-2 border-t border-border">
-                  <span className="text-xs font-semibold text-foreground">
-                    Images existantes ({existingImages.length})
-                  </span>
-                  <div className="grid grid-cols-2 gap-2">
-                    {existingImages.map((img) => (
-                      <div
-                        key={img.id}
-                        className="relative group rounded-md overflow-hidden border border-border aspect-square bg-muted"
-                      >
-                        <img
-                          src={img.image_url}
-                          alt="Photo existante"
-                          className="w-full h-full object-cover"
-                        />
-
-                        {img.is_main ? (
-                          <span className="absolute top-1 left-1 bg-[#C9A227] text-black text-[9px] font-bold px-1.5 py-0.5 rounded shadow flex items-center gap-0.5">
-                            <Star className="w-2.5 h-2.5 fill-black" />
-                            Principale
-                          </span>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleSetMainImage(img.id)}
-                            className="absolute top-1 left-1 p-1 bg-black/60 text-white rounded hover:bg-[#C9A227] hover:text-black transition-colors"
-                            title="Définir comme principale"
-                          >
-                            <Star className="w-3 h-3" />
-                          </button>
-                        )}
-
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteExistingImage(img.id)}
-                          className="absolute top-1 right-1 p-1 bg-black/60 text-white rounded hover:bg-rose-600 transition-colors"
-                          title="Supprimer cette photo"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ))}
+              {isEditMode && (
+                <div className="space-y-2.5 pt-3 border-t border-border">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-foreground">
+                      Photos enregistrées ({existingImages.length})
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      En ligne
+                    </span>
                   </div>
+
+                  {existingImages.length === 0 ? (
+                    <div className="p-4 rounded-lg bg-muted/30 border border-dashed border-border text-center text-xs text-muted-foreground">
+                      Aucune image dans la galerie. Ajoutez-en ci-dessus.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2.5">
+                      {existingImages.map((img) => (
+                        <div
+                          key={img.id}
+                          className="rounded-lg border border-border overflow-hidden bg-neutral-50 flex flex-col justify-between"
+                        >
+                          <div className="relative aspect-square w-full overflow-hidden bg-muted">
+                            <img
+                              src={img.image_url}
+                              alt="Photo produit"
+                              className="w-full h-full object-cover"
+                            />
+
+                            {img.is_main && (
+                              <Badge className="absolute top-1.5 left-1.5 bg-[#C9A227] text-black font-bold text-[9px] px-1.5 py-0.5 shadow-xs flex items-center gap-1">
+                                <Star className="w-2.5 h-2.5 fill-black" />
+                                Principale
+                              </Badge>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteExistingImage(img.id)}
+                              disabled={isImageActionLoading}
+                              className="absolute top-1.5 right-1.5 p-1 bg-black/70 text-white rounded-md hover:bg-rose-600 transition-colors disabled:opacity-50"
+                              title="Supprimer cette photo"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+
+                          {!img.is_main && (
+                            <div className="p-1.5 bg-white border-t border-border">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleSetMainImage(img.id)}
+                                disabled={isImageActionLoading}
+                                className="w-full h-6 text-[10px] px-1 font-medium border-border hover:border-[#C9A227] hover:text-[#C9A227]"
+                              >
+                                Définir comme principale
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>

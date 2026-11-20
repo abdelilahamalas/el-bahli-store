@@ -226,7 +226,7 @@ export default function CheckoutPage() {
                       </Label>
                       <Input
                         id="customer_name"
-                        placeholder="Ex : Karim El Idrissi"
+                        placeholder="Ex. Mohammed Alami"
                         value={formData.customer_name}
                         onChange={(e) =>
                           setFormData({ ...formData, customer_name: e.target.value })
@@ -247,7 +247,7 @@ export default function CheckoutPage() {
                       <Input
                         id="customer_phone"
                         type="tel"
-                        placeholder="Ex : 0612345678"
+                        placeholder="Ex. 06XXXXXXXX"
                         value={formData.customer_phone}
                         onChange={(e) =>
                           setFormData({ ...formData, customer_phone: e.target.value })
@@ -271,7 +271,7 @@ export default function CheckoutPage() {
                       </Label>
                       <Input
                         id="city"
-                        placeholder="Ex : Casablanca, Rabat, Marrakech..."
+                        placeholder="Ex. Casablanca"
                         value={formData.city}
                         onChange={(e) =>
                           setFormData({ ...formData, city: e.target.value })
@@ -291,7 +291,7 @@ export default function CheckoutPage() {
                       </Label>
                       <Textarea
                         id="address"
-                        placeholder="Numéro, rue, quartier, bâtiment, étage..."
+                        placeholder="Ex. Quartier, rue et numéro"
                         rows={3}
                         value={formData.address}
                         onChange={(e) =>
@@ -312,7 +312,7 @@ export default function CheckoutPage() {
                       </Label>
                       <Input
                         id="note"
-                        placeholder="Ex : Sonner à la porte gauche, appeler à l'arrivée..."
+                        placeholder="Ex. Appeler à l'arrivée, sonner à la porte"
                         value={formData.note}
                         onChange={(e) =>
                           setFormData({ ...formData, note: e.target.value })
