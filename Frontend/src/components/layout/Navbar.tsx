@@ -227,16 +227,16 @@ export default function Navbar({ categories, isLoading }: NavbarProps) {
                 <Search className="h-5 w-5" />
               </button>
 
-              {/* Bouton Panier avec compteur badge circulaire */}
+              {/* Bouton Panier avec compteur badge circulaire or très visible */}
               <button
                 type="button"
                 onClick={openCart}
                 aria-label={`Accéder au panier (${totalCount} articles)`}
-                className="relative p-2 sm:p-2.5 text-foreground/80 hover:text-brand-gold hover:bg-muted/60 rounded-full transition-colors cursor-pointer flex items-center"
+                className="relative p-2 sm:p-2.5 text-foreground/85 hover:text-brand-gold hover:bg-muted/60 rounded-full transition-colors cursor-pointer flex items-center justify-center"
               >
-                <ShoppingBag className="h-5 w-5" />
+                <ShoppingBag className="h-5 w-5 sm:h-5.5 sm:w-5.5" />
                 {totalCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center bg-brand-gold text-brand-black text-[10px] font-extrabold h-4.5 w-4.5 rounded-full shadow-xs">
+                  <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 px-1 rounded-full bg-[#C9A227] text-[#111111] text-[11px] font-black shadow-sm border-2 border-background select-none pointer-events-none animate-in zoom-in-75 duration-200">
                     {totalCount}
                   </span>
                 )}
