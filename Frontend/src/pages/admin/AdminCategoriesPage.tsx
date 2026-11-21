@@ -1,5 +1,5 @@
 import { useEffect, useState, type ChangeEvent } from "react"
-import { Link } from "react-router-dom"
+import { Link, useSearchParams } from "react-router-dom"
 import {
   Upload,
   ArrowRight,
@@ -10,6 +10,20 @@ import { toast } from "sonner"
 import { adminService } from "@/services/adminService"
 import type { AdminCategory } from "@/types/admin"
 import { Button } from "@/components/ui/button"
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table"
+import { Switch } from "@/components/ui/switch"
+import {
+  Empty,
+  EmptyTitle,
+  EmptyDescription,
+} from "@/components/ui/empty"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +40,9 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export default function AdminCategoriesPage() {
+  const [searchParams] = useSearchParams()
+  const searchQuery = searchParams.get("search") || ""
+
   const [categories, setCategories] = useState<AdminCategory[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -154,6 +171,11 @@ export default function AdminCategoriesPage() {
   }
 
   const activeCount = categories.filter((c) => c.is_active).length
+  const displayedCategories = searchQuery.trim()
+    ? categories.filter((c) =>
+        c.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
+      )
+    : categories
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-10">
@@ -173,76 +195,77 @@ export default function AdminCategoriesPage() {
         {/* Colonne Gauche : Tableau des catégories (7 colonnes sur lg) */}
         <div className="lg:col-span-7 bg-white rounded-2xl border border-border/70 shadow-2xs overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="border-b border-border/60 text-muted-foreground uppercase text-[10px] font-semibold">
-                <tr>
-                  <th className="py-3 px-4">Nom</th>
-                  <th className="py-3 px-4">Produits</th>
-                  <th className="py-3 px-4">Statut</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/50">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b border-border/60 hover:bg-transparent">
+                  <TableHead className="text-muted-foreground uppercase text-[10px] font-semibold">Nom</TableHead>
+                  <TableHead className="text-muted-foreground uppercase text-[10px] font-semibold">Produits</TableHead>
+                  <TableHead className="text-muted-foreground uppercase text-[10px] font-semibold">Statut</TableHead>
+                  <TableHead className="text-right text-muted-foreground uppercase text-[10px] font-semibold">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {loading ? (
                   [...Array(6)].map((_, i) => (
-                    <tr key={i}>
-                      <td colSpan={4} className="py-3.5 px-4">
+                    <TableRow key={i}>
+                      <TableCell colSpan={4} className="py-3.5 px-4">
                         <Skeleton className="h-5 w-full rounded" />
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))
-                ) : categories.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="py-8 text-center text-muted-foreground">
-                      Aucune catégorie trouvée.
-                    </td>
-                  </tr>
+                ) : displayedCategories.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="py-8 text-center">
+                      <Empty className="border-none py-4">
+                        <EmptyTitle>
+                          {searchQuery.trim() ? "Aucun résultat trouvé" : "Aucune catégorie"}
+                        </EmptyTitle>
+                        <EmptyDescription>
+                          {searchQuery.trim()
+                            ? `Aucune catégorie ne correspond à « ${searchQuery} ».`
+                            : "Créez votre première catégorie à l'aide du formulaire ci-contre."}
+                        </EmptyDescription>
+                      </Empty>
+                    </TableCell>
+                  </TableRow>
                 ) : (
-                  categories.map((cat) => (
-                    <tr
+                  displayedCategories.map((cat) => (
+                    <TableRow
                       key={cat.id}
                       className="hover:bg-muted/20 transition-colors group"
                     >
                       {/* Nom */}
-                      <td className="py-3 px-4 font-semibold text-foreground">
+                      <TableCell className="py-3 px-4 font-semibold text-foreground">
                         {cat.name}
-                      </td>
+                      </TableCell>
 
                       {/* Produits rattachés */}
-                      <td className="py-3 px-4 text-muted-foreground">
+                      <TableCell className="py-3 px-4 text-muted-foreground">
                         {cat.products_count !== undefined
                           ? `${cat.products_count} produits`
                           : "Catalogue"}
-                      </td>
+                      </TableCell>
 
-                      {/* Statut avec switch toggle */}
-                      <td className="py-3 px-4">
-                        <button
-                          type="button"
-                          onClick={() => handleToggle(cat)}
-                          className={`inline-flex items-center gap-2 cursor-pointer select-none text-xs font-medium`}
-                        >
-                          <div
-                            className={`w-9 h-5 rounded-full p-0.5 transition-colors ${cat.is_active ? "bg-[#111111]" : "bg-neutral-200"
-                              }`}
-                          >
-                            <div
-                              className={`w-4 h-4 rounded-full bg-white transition-transform ${cat.is_active ? "translate-x-4" : "translate-x-0"
-                                }`}
-                            />
-                          </div>
+                      {/* Statut avec Switch shadcn/ui */}
+                      <TableCell className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={cat.is_active}
+                            onCheckedChange={() => handleToggle(cat)}
+                            aria-label={`Activer ou désactiver ${cat.name}`}
+                          />
                           <span
                             className={
-                              cat.is_active ? "text-foreground font-semibold" : "text-muted-foreground"
+                              cat.is_active ? "text-foreground font-semibold text-xs" : "text-muted-foreground text-xs"
                             }
                           >
                             {cat.is_active ? "Active" : "Inactive"}
                           </span>
-                        </button>
-                      </td>
+                        </div>
+                      </TableCell>
 
                       {/* Actions */}
-                      <td className="py-3 px-4 text-right">
+                      <TableCell className="py-3 px-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button
                             type="button"
@@ -269,12 +292,12 @@ export default function AdminCategoriesPage() {
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))
                 )}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </div>
 
@@ -355,7 +378,7 @@ export default function AdminCategoriesPage() {
                 </div>
               </div>
 
-              {/* Toggle Afficher dans la boutique */}
+              {/* Toggle Afficher dans la boutique avec Switch shadcn/ui */}
               <div className="pt-2 flex items-center justify-between border-t border-border/50">
                 <div>
                   <p className="text-xs font-bold text-foreground">Afficher dans la boutique</p>
@@ -363,16 +386,16 @@ export default function AdminCategoriesPage() {
                     Visible par les clients dès l'enregistrement.
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setIsActiveInput(!isActiveInput)}
-                  className={`px-3 py-1 rounded-full text-[10px] font-bold transition-colors cursor-pointer ${isActiveInput
-                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                    : "bg-neutral-100 text-neutral-600 border border-neutral-200"
-                    }`}
-                >
-                  {isActiveInput ? "Active" : "Inactive"}
-                </button>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={isActiveInput}
+                    onCheckedChange={setIsActiveInput}
+                    aria-label="Afficher dans la boutique"
+                  />
+                  <span className="text-xs font-medium text-foreground">
+                    {isActiveInput ? "Active" : "Inactive"}
+                  </span>
+                </div>
               </div>
 
               {/* Bouton Enregistrer (Bouton doré plein arrondi) */}

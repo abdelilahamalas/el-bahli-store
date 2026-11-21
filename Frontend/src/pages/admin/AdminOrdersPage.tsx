@@ -1,9 +1,10 @@
 import { useEffect, useState, useTransition } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import {
   Search,
   ShoppingBag,
   RefreshCw,
+  Banknote,
 } from "lucide-react"
 import { toast } from "sonner"
 import { adminService } from "@/services/adminService"
@@ -21,6 +22,12 @@ import {
 } from "@/components/ui/table"
 import { Card } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Empty,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+} from "@/components/ui/empty"
 import { getOrderStatusBadge } from "@/utils/orderStatus"
 
 export default function AdminOrdersPage() {
@@ -28,13 +35,24 @@ export default function AdminOrdersPage() {
   const [pagination, setPagination] = useState<PaginationMeta | null>(null)
   const [loading, setLoading] = useState(true)
 
+  const [searchParams] = useSearchParams()
+  const urlSearch = searchParams.get("search") || ""
+
   // Filters
-  const [search, setSearch] = useState("")
+  const [search, setSearch] = useState(urlSearch)
   const [selectedStatus, setSelectedStatus] = useState<string>("all")
   const [currentPage, setCurrentPage] = useState(1)
 
   const [, startTransition] = useTransition()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    const q = searchParams.get("search") || ""
+    if (q !== search) {
+      setSearch(q)
+      setCurrentPage(1)
+    }
+  }, [searchParams])
 
   const fetchOrders = async () => {
     try {
@@ -73,6 +91,10 @@ export default function AdminOrdersPage() {
     const num = typeof amount === "string" ? parseFloat(amount) : amount
     return `${num.toLocaleString("fr-FR", { minimumFractionDigits: 0 })} MAD`
   }
+
+  const totalToCollectOnPage = orders
+    .filter((o) => o.payment_status === "pending" && !["cancelled", "returned"].includes(o.status))
+    .reduce((acc, o) => acc + (typeof o.total === "string" ? parseFloat(o.total) : o.total), 0)
 
   const statusTabs = [
     { id: "all", label: "Toutes les commandes" },
@@ -134,28 +156,37 @@ export default function AdminOrdersPage() {
         })}
       </div>
 
-      {/* 3. Barre de recherche avec Input shadcn */}
+      {/* 3. Barre de recherche avec Input shadcn et indicateur COD */}
       <Card className="border-border/70 shadow-2xs rounded-2xl bg-white p-3">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-4 h-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Rechercher par référence, nom client, téléphone..."
-              className="pl-9 h-9 text-xs bg-muted/20 border-border/70 rounded-xl focus:bg-white focus:border-[#C9A227]"
+              className="pl-9.5 h-9 text-xs"
             />
           </div>
-          {search && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSearch("")}
-              className="text-xs text-muted-foreground hover:text-foreground h-8"
-            >
-              Effacer
-            </Button>
-          )}
+
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            {search && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSearch("")}
+                className="text-xs text-muted-foreground hover:text-foreground h-8"
+              >
+                Effacer
+              </Button>
+            )}
+
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50/70 border border-amber-200 text-amber-900 text-xs font-semibold">
+              <Banknote className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+              <span>À encaisser (page) :</span>
+              <span className="font-extrabold text-foreground">{formatMAD(totalToCollectOnPage)}</span>
+            </div>
+          </div>
         </div>
       </Card>
 
@@ -261,12 +292,18 @@ export default function AdminOrdersPage() {
               })
             ) : (
               <TableRow>
-                <TableCell colSpan={8} className="py-12 text-center text-muted-foreground">
-                  <ShoppingBag className="w-8 h-8 text-muted-foreground/40 mx-auto mb-2" />
-                  <p className="text-sm font-semibold text-foreground">Aucune commande trouvée</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Modifiez vos critères de recherche ou réinitialisez les filtres.
-                  </p>
+                <TableCell colSpan={8} className="py-12 text-center">
+                  <Empty className="border-none py-4">
+                    <EmptyMedia>
+                      <ShoppingBag className="w-5 h-5 text-muted-foreground" />
+                    </EmptyMedia>
+                    <EmptyTitle>Aucune commande trouvée</EmptyTitle>
+                    <EmptyDescription>
+                      {search || selectedStatus !== "all"
+                        ? "Modifiez vos critères de recherche ou réinitialisez les filtres."
+                        : "Les commandes de vos clients apparaîtront ici."}
+                    </EmptyDescription>
+                  </Empty>
                 </TableCell>
               </TableRow>
             )}

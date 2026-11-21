@@ -74,6 +74,9 @@ class OrderResource extends JsonResource
                 'id' => $item->id,
                 'product_id' => $item->product_id,
                 'product_name' => $item->product_name,
+                'product_slug' => $item->product?->slug,
+                'product_image' => $item->product?->images?->where('is_main', true)->first()?->image_url
+                    ?? $item->product?->images?->first()?->image_url,
                 'size' => $item->size,
                 'color' => $item->couleur_copie ?: 'Standard',
                 'couleur_copie' => $item->couleur_copie ?: 'Standard',

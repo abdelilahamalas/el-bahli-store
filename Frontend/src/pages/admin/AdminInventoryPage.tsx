@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useSearchParams } from "react-router-dom"
 import {
   Boxes,
   Search,
   History,
   Edit3,
-  Power,
 } from "lucide-react"
 import { toast } from "sonner"
 import { adminService } from "@/services/adminService"
@@ -15,6 +14,13 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
+import { Switch } from "@/components/ui/switch"
+import {
+  Empty,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+} from "@/components/ui/empty"
 import {
   Table,
   TableHeader,
@@ -35,6 +41,9 @@ import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export default function AdminInventoryPage() {
+  const [searchParams] = useSearchParams()
+  const urlSearch = searchParams.get("search") || ""
+
   const [items, setItems] = useState<InventoryItem[]>([])
   const [stats, setStats] = useState<InventoryStats | null>(null)
   const [categories, setCategories] = useState<AdminCategory[]>([])
@@ -42,10 +51,18 @@ export default function AdminInventoryPage() {
   const [loading, setLoading] = useState(true)
 
   // Filters
-  const [search, setSearch] = useState("")
+  const [search, setSearch] = useState(urlSearch)
   const [selectedCategory, setSelectedCategory] = useState<string>("")
   const [selectedStockStatus, setSelectedStockStatus] = useState<string>("")
   const [currentPage, setCurrentPage] = useState(1)
+
+  useEffect(() => {
+    const q = searchParams.get("search") || ""
+    if (q !== search) {
+      setSearch(q)
+      setCurrentPage(1)
+    }
+  }, [searchParams])
 
   // Adjust stock modal state
   const [adjustingItem, setAdjustingItem] = useState<InventoryItem | null>(null)
@@ -315,18 +332,16 @@ export default function AdminInventoryPage() {
                     </TableCell>
 
                     <TableCell className="py-3 whitespace-nowrap">
-                      <button
-                        type="button"
-                        onClick={() => handleToggleVariant(item)}
-                        title={item.is_active ? "Désactiver la variante" : "Activer la variante"}
-                        className={`p-1.5 rounded transition-colors ${
-                          item.is_active
-                            ? "text-emerald-600 hover:bg-emerald-50"
-                            : "text-muted-foreground hover:bg-muted"
-                        }`}
-                      >
-                        <Power className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={item.is_active}
+                          onCheckedChange={() => handleToggleVariant(item)}
+                          aria-label={`Activer ou désactiver la variante ${item.size} ${item.color}`}
+                        />
+                        <span className="text-[11px] text-muted-foreground font-medium">
+                          {item.is_active ? "Active" : "Inactive"}
+                        </span>
+                      </div>
                     </TableCell>
 
                     <TableCell className="py-3 text-right whitespace-nowrap">
@@ -344,14 +359,18 @@ export default function AdminInventoryPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-12 text-center text-muted-foreground">
-                    <div className="flex flex-col items-center justify-center">
-                      <Boxes className="w-9 h-9 text-muted-foreground/40 mb-2" />
-                      <p className="font-semibold text-sm text-foreground">Aucune variante trouvée</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        Aucun article ne correspond à vos filtres actuels.
-                      </p>
-                    </div>
+                  <TableCell colSpan={7} className="py-12 text-center">
+                    <Empty className="border-none py-4">
+                      <EmptyMedia>
+                        <Boxes className="w-5 h-5 text-muted-foreground" />
+                      </EmptyMedia>
+                      <EmptyTitle>Aucune variante trouvée</EmptyTitle>
+                      <EmptyDescription>
+                        {search || selectedCategory || selectedStockStatus
+                          ? "Aucun article ne correspond à vos filtres actuels."
+                          : "Les variantes d'articles s'afficheront ici."}
+                      </EmptyDescription>
+                    </Empty>
                   </TableCell>
                 </TableRow>
               )}

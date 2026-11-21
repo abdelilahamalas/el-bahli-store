@@ -40,8 +40,10 @@ export interface TopProductItem {
 }
 
 export interface TopCategoryItem {
-  id: number
+  id?: number
   name: string
+  category_id?: number
+  category_name?: string
   units_sold: number
   revenue: string
 }
@@ -219,6 +221,8 @@ export interface AdminOrderItem {
   product_id: number
   product_size_id: number
   product_name: string
+  product_image?: string | null
+  product_slug?: string | null
   size: string
   color: string
   unit_price: string

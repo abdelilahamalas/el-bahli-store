@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import {
   Plus,
   Search,
@@ -21,6 +21,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
+import {
+  Empty,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+  EmptyContent,
+} from "@/components/ui/empty"
 import {
   Table,
   TableHeader,
@@ -51,16 +59,27 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function AdminProductsPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const urlSearch = searchParams.get("search") || ""
+
   const [products, setProducts] = useState<AdminProduct[]>([])
   const [categories, setCategories] = useState<AdminCategory[]>([])
   const [pagination, setPagination] = useState<PaginationMeta | null>(null)
   const [loading, setLoading] = useState(true)
 
   // Filters
-  const [search, setSearch] = useState("")
+  const [search, setSearch] = useState(urlSearch)
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
   const [selectedStatus, setSelectedStatus] = useState<string>("all")
   const [currentPage, setCurrentPage] = useState(1)
+
+  useEffect(() => {
+    const q = searchParams.get("search") || ""
+    if (q !== search) {
+      setSearch(q)
+      setCurrentPage(1)
+    }
+  }, [searchParams])
 
   // Product deletion dialog state
   const [productToDelete, setProductToDelete] = useState<AdminProduct | null>(null)
@@ -153,45 +172,39 @@ export default function AdminProductsPage() {
     return `${val.toLocaleString("fr-FR", { minimumFractionDigits: 0 })} MAD`
   }
 
-  // Stock status badge inspired by Shadcnblocks Admin Kit
+  // Stock status indicator using shadcn Progress component
   const renderStockIndicator = (totalStock: number) => {
     if (totalStock === 0) {
       return (
-        <div className="flex flex-col gap-1 w-32">
+        <div className="flex flex-col gap-1 w-28">
           <div className="flex items-center justify-between text-xs font-semibold text-rose-600">
             <span>0 unité</span>
             <span className="text-[10px] font-bold uppercase tracking-wider">Rupture</span>
           </div>
-          <div className="w-full h-1.5 bg-rose-100 rounded-full overflow-hidden">
-            <div className="h-full bg-rose-600 w-full" />
-          </div>
+          <Progress value={100} indicatorClassName="bg-rose-600" className="h-1.5 bg-rose-100" />
         </div>
       )
     }
 
     if (totalStock <= 5) {
       return (
-        <div className="flex flex-col gap-1 w-32">
+        <div className="flex flex-col gap-1 w-28">
           <div className="flex items-center justify-between text-xs font-semibold text-amber-600">
             <span>{totalStock} unités</span>
             <span className="text-[10px] font-bold uppercase tracking-wider">Faible</span>
           </div>
-          <div className="w-full h-1.5 bg-amber-100 rounded-full overflow-hidden">
-            <div className="h-full bg-amber-500 w-[35%]" />
-          </div>
+          <Progress value={(totalStock / 5) * 100} indicatorClassName="bg-amber-500" className="h-1.5 bg-amber-100" />
         </div>
       )
     }
 
     return (
-      <div className="flex flex-col gap-1 w-32">
+      <div className="flex flex-col gap-1 w-28">
         <div className="flex items-center justify-between text-xs font-semibold text-emerald-700">
           <span>{totalStock} unités</span>
           <span className="text-[10px] font-bold uppercase tracking-wider">Optimal</span>
         </div>
-        <div className="w-full h-1.5 bg-emerald-100 rounded-full overflow-hidden">
-          <div className="h-full bg-emerald-600 w-full" />
-        </div>
+        <Progress value={Math.min(100, (totalStock / 30) * 100)} indicatorClassName="bg-emerald-600" className="h-1.5 bg-emerald-100" />
       </div>
     )
   }
@@ -445,16 +458,19 @@ export default function AdminProductsPage() {
                   )
                 })
               ) : (
-                <TableRow>
-                  <TableCell colSpan={6} className="py-12 text-center text-muted-foreground">
-                    <div className="flex flex-col items-center justify-center">
-                      <Package className="w-9 h-9 text-muted-foreground/40 mb-2" />
-                      <p className="font-semibold text-sm text-foreground">Aucun produit trouvé</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {search || selectedCategory !== "all" || selectedStatus !== "all"
-                          ? "Essayez d'ajuster vos critères de recherche ou de filtrage."
-                          : "Votre catalogue est actuellement vide."}
-                      </p>
+              <TableRow>
+                <TableCell colSpan={6} className="py-12 text-center">
+                  <Empty className="border-none py-4">
+                    <EmptyMedia>
+                      <Package className="w-5 h-5 text-muted-foreground" />
+                    </EmptyMedia>
+                    <EmptyTitle>Aucun produit trouvé</EmptyTitle>
+                    <EmptyDescription>
+                      {search || selectedCategory !== "all" || selectedStatus !== "all"
+                        ? "Essayez d'ajuster vos critères de recherche ou de filtrage."
+                        : "Votre catalogue de vêtements est actuellement vide."}
+                    </EmptyDescription>
+                    <EmptyContent>
                       {search || selectedCategory !== "all" || selectedStatus !== "all" ? (
                         <Button
                           variant="outline"
@@ -464,7 +480,7 @@ export default function AdminProductsPage() {
                             setSelectedCategory("all")
                             setSelectedStatus("all")
                           }}
-                          className="mt-3 text-xs"
+                          className="text-xs"
                         >
                           Réinitialiser les filtres
                         </Button>
@@ -472,15 +488,16 @@ export default function AdminProductsPage() {
                         <Button
                           size="sm"
                           onClick={() => navigate("/admin/products/new")}
-                          className="mt-3 text-xs bg-[#111111] text-white hover:bg-[#222]"
+                          className="text-xs bg-[#111111] text-white hover:bg-[#222]"
                         >
                           <Plus className="w-3.5 h-3.5 mr-1 text-[#C9A227]" />
                           Créer le premier produit
                         </Button>
                       )}
-                    </div>
-                  </TableCell>
-                </TableRow>
+                    </EmptyContent>
+                  </Empty>
+                </TableCell>
+              </TableRow>
               )}
             </TableBody>
           </Table>

@@ -87,7 +87,7 @@ class OrderController extends ApiController
      */
     public function show(Order $order): JsonResponse
     {
-        $order->load(['items.product', 'statusHistories.user', 'returns.item', 'returns.variant', 'returns.user']);
+        $order->load(['items.product.images', 'statusHistories.user', 'returns.item', 'returns.variant', 'returns.user']);
 
         $allowedTransitions = collect($order->status->allowedTransitions())->map(fn ($s) => [
             'value' => $s->value,
@@ -110,7 +110,7 @@ class OrderController extends ApiController
 
         $order = $this->orderService->transitionStatus($order, $newStatus, $request->user()?->id, $reason);
 
-        $order->load(['items.product', 'statusHistories.user', 'returns.item', 'returns.variant', 'returns.user']);
+        $order->load(['items.product.images', 'statusHistories.user', 'returns.item', 'returns.variant', 'returns.user']);
 
         return $this->success(
             (new OrderResource($order))->resolve(),
@@ -132,7 +132,7 @@ class OrderController extends ApiController
             $validated['reason'] ?? null
         );
 
-        $order->load(['items.product', 'statusHistories.user', 'returns.item', 'returns.variant', 'returns.user']);
+        $order->load(['items.product.images', 'statusHistories.user', 'returns.item', 'returns.variant', 'returns.user']);
 
         return $this->success(
             (new OrderResource($order))->resolve(),
@@ -181,7 +181,7 @@ class OrderController extends ApiController
             $request->user()?->id
         );
 
-        $order->load(['items.product', 'statusHistories.user', 'returns.item', 'returns.variant', 'returns.user']);
+        $order->load(['items.product.images', 'statusHistories.user', 'returns.item', 'returns.variant', 'returns.user']);
 
         return $this->success(
             (new OrderResource($order))->resolve(),

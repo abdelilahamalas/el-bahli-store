@@ -15,6 +15,8 @@ import type { AdminDashboardData } from "@/types/admin"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
+import { Empty, EmptyTitle, EmptyDescription } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export default function AdminDashboardPage() {
@@ -100,13 +102,10 @@ export default function AdminDashboardPage() {
   const toCollectRevenue = parseNum(data?.kpis?.amount_to_collect)
   const pendingOrdersCount = data?.kpis?.pending_orders ?? 0
 
-  // Pending orders list for "À traiter maintenant"
-  const pendingOrders = (data?.recent_orders || []).filter(
+  // Real pending orders list for "À traiter maintenant" (strictly pending)
+  const ordersToProcess = (data?.recent_orders || []).filter(
     (order) => order.status === "pending"
   )
-
-  // Fallback orders if none pending, take recent
-  const ordersToProcess = pendingOrders.length > 0 ? pendingOrders : (data?.recent_orders || []).slice(0, 3)
 
   // Top products from API
   const topProducts = data?.charts?.top_products || []
@@ -120,7 +119,40 @@ export default function AdminDashboardPage() {
 
   // Daily activity for the smooth curve area chart
   const activity = data?.activity_7_days || []
-  const maxDayRevenue = Math.max(...activity.map((d) => parseNum(d.revenue)), 1000)
+  const maxDayRevenue = Math.max(...activity.map((d) => parseNum(d.revenue)), 0)
+
+  // Dynamic SVG curve generation from real activity data
+  const chartPoints = activity.map((day, idx) => {
+    const x = activity.length > 1 ? (idx / (activity.length - 1)) * 560 + 20 : 300
+    const rev = parseNum(day.revenue)
+    const y = maxDayRevenue > 0 ? 140 - (rev / maxDayRevenue) * 90 : 130
+    return { x, y, rev, day }
+  })
+
+  const peakPoint = chartPoints.reduce(
+    (max, pt) => (pt.rev > max.rev ? pt : max),
+    chartPoints[0] || { x: 500, y: 70, rev: 0, day: { date: "", orders_count: 0, revenue: "0" } }
+  )
+
+  const generateSmoothPath = () => {
+    if (chartPoints.length === 0) return ""
+    if (chartPoints.length === 1) return `M ${chartPoints[0].x} ${chartPoints[0].y}`
+
+    let d = `M ${chartPoints[0].x} ${chartPoints[0].y}`
+    for (let i = 0; i < chartPoints.length - 1; i++) {
+      const p0 = chartPoints[i]
+      const p1 = chartPoints[i + 1]
+      const cpX = (p0.x + p1.x) / 2
+      d += ` C ${cpX} ${p0.y}, ${cpX} ${p1.y}, ${p1.x} ${p1.y}`
+    }
+    return d
+  }
+
+  const smoothPath = generateSmoothPath()
+  const areaPath =
+    chartPoints.length > 1
+      ? `${smoothPath} L ${chartPoints[chartPoints.length - 1].x} 160 L ${chartPoints[0].x} 160 Z`
+      : ""
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-10">
@@ -201,11 +233,8 @@ export default function AdminDashboardPage() {
               <div className="text-2xl font-bold tracking-tight text-foreground">
                 {formatMAD(totalRevenue)}
               </div>
-              <div className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600">
-                <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700">
-                  +12%
-                </span>
-                <span className="text-muted-foreground font-normal">vs mois dernier</span>
+              <div className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <span>Commandes confirmées &amp; livrées</span>
               </div>
             </div>
           </Card>
@@ -224,11 +253,8 @@ export default function AdminDashboardPage() {
               <div className="text-2xl font-bold tracking-tight text-foreground">
                 {totalOrders}
               </div>
-              <div className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600">
-                <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700">
-                  +8%
-                </span>
-                <span className="text-muted-foreground font-normal">vs mois dernier</span>
+              <div className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <span>Sur la période sélectionnée</span>
               </div>
             </div>
           </Card>
@@ -247,11 +273,8 @@ export default function AdminDashboardPage() {
               <div className="text-2xl font-bold tracking-tight text-foreground">
                 {formatMAD(averageBasket)}
               </div>
-              <div className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600">
-                <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700">
-                  +4%
-                </span>
-                <span className="text-muted-foreground font-normal">vs mois dernier</span>
+              <div className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <span>Moyenne par commande réalisée</span>
               </div>
             </div>
           </Card>
@@ -274,7 +297,7 @@ export default function AdminDashboardPage() {
                 <span className="px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-700 font-semibold">
                   À la livraison
                 </span>
-                <span className="text-muted-foreground">paiement attendu</span>
+                <span className="text-muted-foreground">Espèces attendues (COD)</span>
               </div>
             </div>
           </Card>
@@ -326,7 +349,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* Graphique courbe fluide SVG (Exactement comme dans la maquette) */}
+          {/* Graphique courbe fluide SVG basé sur les données réelles */}
           <div className="pt-4 flex-1 flex flex-col justify-end">
             <div className="relative h-48 w-full flex items-end">
               <svg
@@ -342,42 +365,74 @@ export default function AdminDashboardPage() {
                 </defs>
 
                 {/* Filled Area Under Curve */}
-                <path
-                  d="M 0 130 C 80 130, 120 115, 180 120 C 240 125, 280 100, 340 90 C 400 80, 440 95, 500 70 C 530 55, 560 60, 600 65 L 600 160 L 0 160 Z"
-                  fill="url(#salesGradient)"
-                />
+                {areaPath ? (
+                  <path
+                    d={areaPath}
+                    fill="url(#salesGradient)"
+                  />
+                ) : (
+                  <path
+                    d="M 20 140 L 580 140 L 580 160 L 20 160 Z"
+                    fill="url(#salesGradient)"
+                  />
+                )}
 
                 {/* Curved Smooth Line */}
-                <path
-                  d="M 0 130 C 80 130, 120 115, 180 120 C 240 125, 280 100, 340 90 C 400 80, 440 95, 500 70 C 530 55, 560 60, 600 65"
-                  fill="none"
-                  stroke="#111111"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                />
+                {smoothPath ? (
+                  <path
+                    d={smoothPath}
+                    fill="none"
+                    stroke="#111111"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                  />
+                ) : (
+                  <path
+                    d="M 20 140 L 580 140"
+                    fill="none"
+                    stroke="#111111"
+                    strokeWidth="2"
+                    strokeDasharray="4 4"
+                  />
+                )}
 
-                {/* Active Tooltip Dot */}
-                <circle cx="560" cy="60" r="5" fill="#C9A227" stroke="#111111" strokeWidth="2" />
+                {/* Active Tooltip Dot on Peak */}
+                {peakPoint && peakPoint.rev > 0 && (
+                  <circle cx={peakPoint.x} cy={peakPoint.y} r="5" fill="#C9A227" stroke="#111111" strokeWidth="2" />
+                )}
               </svg>
 
-              {/* Floating Tooltip Pill (Exactement comme 3 050 MAD dans la maquette) */}
-              <div className="absolute right-8 top-8 bg-[#111111] text-white text-[11px] font-bold py-1 px-2.5 rounded-lg shadow-md pointer-events-none">
-                {formatMAD(maxDayRevenue)}
-              </div>
+              {/* Floating Tooltip Pill */}
+              {peakPoint && peakPoint.rev > 0 ? (
+                <div
+                  style={{
+                    left: `${Math.min(Math.max((peakPoint.x / 600) * 100, 10), 85)}%`,
+                    top: `${Math.max((peakPoint.y / 160) * 100 - 20, 5)}%`,
+                  }}
+                  className="absolute bg-[#111111] text-white text-[11px] font-bold py-1 px-2.5 rounded-lg shadow-md pointer-events-none transform -translate-x-1/2"
+                >
+                  {formatMAD(peakPoint.rev)}
+                </div>
+              ) : null}
             </div>
 
-            {/* X-Axis Numbers Milestones */}
+            {/* X-Axis Real Dates */}
             <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-3 border-t border-border/50">
-              <span>2</span>
-              <span>4</span>
-              <span>6</span>
-              <span>8</span>
-              <span>10</span>
-              <span>12</span>
-              <span>14</span>
-              <span>16</span>
-              <span>18</span>
-              <span>20</span>
+              {activity.length > 0 ? (
+                activity.map((d) => {
+                  const dateObj = new Date(d.date)
+                  const dayName = isNaN(dateObj.getTime())
+                    ? d.date
+                    : dateObj.toLocaleDateString("fr-FR", { weekday: "short", day: "numeric" })
+                  return (
+                    <span key={d.date} className="capitalize">
+                      {dayName}
+                    </span>
+                  )
+                })
+              ) : (
+                <span>Aucune activité enregistrée</span>
+              )}
             </div>
           </div>
         </Card>
@@ -445,8 +500,13 @@ export default function AdminDashboardPage() {
                   </div>
                 ))
               ) : (
-                <div className="py-8 text-center text-xs text-muted-foreground">
-                  Aucune commande en attente de traitement.
+                <div className="py-8 text-center">
+                  <Empty className="border-none py-4">
+                    <EmptyTitle className="text-xs">Toutes les commandes sont traitées</EmptyTitle>
+                    <EmptyDescription className="text-[11px]">
+                      Aucune nouvelle commande en attente de confirmation immédiate.
+                    </EmptyDescription>
+                  </Empty>
                 </div>
               )}
             </div>
@@ -481,43 +541,26 @@ export default function AdminDashboardPage() {
                     : 20
 
                 return (
-                  <div key={cat.id} className="space-y-1">
+                  <div key={cat.id || cat.name} className="space-y-1">
                     <div className="flex items-center justify-between text-xs font-medium">
                       <span className="text-foreground">{cat.name}</span>
                       <span className="font-bold text-foreground">{pct}%</span>
                     </div>
-                    <div className="h-2 w-full bg-muted/60 rounded-full overflow-hidden">
-                      <div
-                        style={{ width: `${pct}%` }}
-                        className="h-full bg-[#111111] rounded-full transition-all duration-300"
-                      />
-                    </div>
+                    <Progress
+                      value={pct}
+                      indicatorClassName="bg-[#111111]"
+                      className="h-2 bg-muted/60"
+                    />
                   </div>
                 )
               })
             ) : (
-              <div className="space-y-3.5">
-                {[
-                  { name: "Capuches", pct: 32 },
-                  { name: "T-shirts", pct: 24 },
-                  { name: "Jeans", pct: 18 },
-                  { name: "Ensembles", pct: 14 },
-                  { name: "Autres", pct: 12 },
-                ].map((item) => (
-                  <div key={item.name} className="space-y-1">
-                    <div className="flex items-center justify-between text-xs font-medium">
-                      <span className="text-foreground">{item.name}</span>
-                      <span className="font-bold text-foreground">{item.pct}%</span>
-                    </div>
-                    <div className="h-2 w-full bg-muted/60 rounded-full overflow-hidden">
-                      <div
-                        style={{ width: `${item.pct}%` }}
-                        className="h-full bg-[#111111] rounded-full"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <Empty className="border-none py-6">
+                <EmptyTitle className="text-xs">Aucune vente par catégorie</EmptyTitle>
+                <EmptyDescription className="text-[11px]">
+                  Les parts de vente s'afficheront dès la livraison des commandes.
+                </EmptyDescription>
+              </Empty>
             )}
           </CardContent>
         </Card>
@@ -553,32 +596,12 @@ export default function AdminDashboardPage() {
                 </div>
               ))
             ) : (
-              <div className="space-y-3">
-                {[
-                  { rank: 1, name: "Hoodie Premium", sold: "86 vendus" },
-                  { rank: 2, name: "T-Shirt Oversize", sold: "64 vendus" },
-                  { rank: 3, name: "Jean Slim", sold: "41 vendus" },
-                  { rank: 4, name: "Casquette Brodée", sold: "38 vendus" },
-                ].map((p) => (
-                  <div key={p.rank} className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                      <div
-                        className={`w-5 h-5 rounded-md flex items-center justify-center font-bold text-[10px] shrink-0 ${
-                          p.rank === 1
-                            ? "bg-[#111111] text-white"
-                            : "bg-muted/60 text-muted-foreground border border-border/60"
-                        }`}
-                      >
-                        {p.rank}
-                      </div>
-                      <span className="font-medium text-foreground truncate">{p.name}</span>
-                    </div>
-                    <span className="text-[11px] text-muted-foreground font-semibold shrink-0">
-                      {p.sold}
-                    </span>
-                  </div>
-                ))}
-              </div>
+              <Empty className="border-none py-6">
+                <EmptyTitle className="text-xs">Aucun produit vendu</EmptyTitle>
+                <EmptyDescription className="text-[11px]">
+                  Le classement des meilleures ventes s'affichera ici au fur et à mesure.
+                </EmptyDescription>
+              </Empty>
             )}
           </CardContent>
         </Card>
@@ -628,44 +651,12 @@ export default function AdminDashboardPage() {
                   </div>
                 ))
               ) : (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-xs py-1">
-                    <div>
-                      <p className="font-bold text-foreground">Jean Slim</p>
-                      <p className="text-[10px] text-muted-foreground">Tailles 32 et 34</p>
-                    </div>
-                    <Badge
-                      variant="outline"
-                      className="bg-rose-50 text-rose-700 border-rose-200 text-[10px] font-bold px-2 py-0.5 rounded-full"
-                    >
-                      Rupture
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between text-xs py-1">
-                    <div>
-                      <p className="font-bold text-foreground">T-Shirt Premium</p>
-                      <p className="text-[10px] text-muted-foreground">3 pièces restantes</p>
-                    </div>
-                    <Badge
-                      variant="outline"
-                      className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] font-bold px-2 py-0.5 rounded-full"
-                    >
-                      Faible
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between text-xs py-1">
-                    <div>
-                      <p className="font-bold text-foreground">Sweat-Shirt Col Rond</p>
-                      <p className="text-[10px] text-muted-foreground">5 pièces restantes</p>
-                    </div>
-                    <Badge
-                      variant="outline"
-                      className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] font-bold px-2 py-0.5 rounded-full"
-                    >
-                      Faible
-                    </Badge>
-                  </div>
-                </div>
+                <Empty className="border-none py-6">
+                  <EmptyTitle className="text-xs">Stocks sous contrôle</EmptyTitle>
+                  <EmptyDescription className="text-[11px]">
+                    Aucune variante en rupture ou sous le seuil d'alerte.
+                  </EmptyDescription>
+                </Empty>
               )}
             </div>
           </div>

@@ -19,6 +19,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
 
 interface VariantRow {
   id?: number
@@ -633,13 +634,11 @@ export default function AdminProductFormPage() {
 
                         {/* Active toggle */}
                         <td className="py-2 px-3">
-                          <input
-                            type="checkbox"
+                          <Checkbox
                             checked={v.is_active}
-                            onChange={(e) =>
-                              handleUpdateVariant(idx, "is_active", e.target.checked)
+                            onCheckedChange={(checked) =>
+                              handleUpdateVariant(idx, "is_active", checked === true)
                             }
-                            className="w-4 h-4 rounded text-[#C9A227] focus:ring-[#C9A227]"
                           />
                         </td>
 

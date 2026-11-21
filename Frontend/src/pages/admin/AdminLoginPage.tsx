@@ -1,12 +1,15 @@
 import { useState, type FormEvent } from "react"
 import { useNavigate, useLocation, Navigate } from "react-router-dom"
-import { Check, Loader2 } from "lucide-react"
+import { Check, Loader2, AlertCircle } from "lucide-react"
 import { toast } from "sonner"
 import { useAuth } from "@/hooks/useAuth"
 import { adminService } from "@/services/adminService"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import logoImg from "@/images/logo store.jpeg"
 
 export default function AdminLoginPage() {
@@ -128,122 +131,135 @@ export default function AdminLoginPage() {
 
       {/* 2. Colonne Droite Claire — Formulaire de connexion propre */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12">
-        <div className="w-full max-w-md bg-white rounded-2xl border border-border/70 p-8 sm:p-10 shadow-xs space-y-6">
-          {/* Mobile Header (Affiché uniquement sur petits écrans) */}
-          <div className="lg:hidden text-center pb-2">
-            <div className="w-14 h-14 mx-auto rounded-full overflow-hidden border border-[#C9A227]/70 bg-black flex items-center justify-center p-0.5 mb-2 shadow-sm">
-              <img
-                src={logoImg}
-                alt="Logo officiel El Bahli Store"
-                className="w-full h-full object-cover rounded-full"
-              />
+        <Card className="w-full max-w-md bg-white rounded-2xl border-border/70 shadow-xs">
+          <CardHeader className="space-y-1 pb-4">
+            {/* Mobile Header (Affiché uniquement sur petits écrans) */}
+            <div className="lg:hidden text-center pb-2">
+              <div className="w-14 h-14 mx-auto rounded-full overflow-hidden border border-[#C9A227]/70 bg-black flex items-center justify-center p-0.5 mb-2 shadow-sm">
+                <img
+                  src={logoImg}
+                  alt="Logo officiel El Bahli Store"
+                  className="w-full h-full object-cover rounded-full"
+                />
+              </div>
+              <span className="font-extrabold text-sm tracking-widest text-[#C9A227] uppercase">
+                EL BAHLI STORE
+              </span>
             </div>
-            <span className="font-extrabold text-sm tracking-widest text-[#C9A227] uppercase">
-              EL BAHLI STORE
-            </span>
-          </div>
 
-          <div className="space-y-1">
-            <h2 className="text-2xl font-bold tracking-tight text-foreground">
+            <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
               Connexion
-            </h2>
-            <p className="text-xs text-muted-foreground">
+            </CardTitle>
+            <CardDescription className="text-xs text-muted-foreground">
               Entrez votre email et votre mot de passe administrateur.
-            </p>
-          </div>
+            </CardDescription>
+          </CardHeader>
 
-          {errorMessage && (
-            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium">
-              {errorMessage}
-            </div>
-          )}
+          <CardContent className="space-y-4">
+            {errorMessage && (
+              <Alert variant="destructive" className="py-2.5 px-3">
+                <AlertCircle className="w-4 h-4 text-destructive shrink-0" />
+                <div className="ml-2">
+                  <AlertTitle className="text-xs font-bold">Erreur de connexion</AlertTitle>
+                  <AlertDescription className="text-xs">{errorMessage}</AlertDescription>
+                </div>
+              </Alert>
+            )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-xs font-semibold text-foreground">
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                autoComplete="email"
-                placeholder="admin@elbahli.ma"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoading}
-                required
-                className="h-10 text-xs bg-white border-border rounded-xl focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="password" className="text-xs font-semibold text-foreground">
-                Mot de passe
-              </Label>
-              <div className="relative">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="email" className="text-xs font-semibold text-foreground">
+                  Email
+                </Label>
                 <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete="current-password"
-                  placeholder="••••••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="admin@elbahli.ma"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
                   required
-                  className="h-10 pr-20 text-xs bg-white border-border rounded-xl focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]"
+                  className="h-10 text-xs bg-white border-border rounded-xl focus-visible:ring-[#C9A227] focus-visible:border-[#C9A227]"
                 />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="password" className="text-xs font-semibold text-foreground">
+                  Mot de passe
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    placeholder="••••••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLoading}
+                    required
+                    className="h-10 pr-20 text-xs bg-white border-border rounded-xl focus-visible:ring-[#C9A227] focus-visible:border-[#C9A227]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    tabIndex={-1}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#C9A227] hover:text-[#B38F1E] cursor-pointer"
+                  >
+                    {showPassword ? "Masquer" : "Afficher"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-xs pt-1">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="remember-me"
+                    checked={rememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked === true)}
+                  />
+                  <Label
+                    htmlFor="remember-me"
+                    className="text-xs font-normal text-muted-foreground hover:text-foreground cursor-pointer select-none"
+                  >
+                    Se souvenir de moi
+                  </Label>
+                </div>
+
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  tabIndex={-1}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#C9A227] hover:text-[#B38F1E] cursor-pointer"
+                  onClick={() => toast.info("Contactez l'administrateur principal pour réinitialiser vos identifiants.")}
+                  className="text-[#C9A227] hover:underline font-semibold"
                 >
-                  {showPassword ? "Masquer" : "Afficher"}
+                  Mot de passe oublié ?
                 </button>
               </div>
-            </div>
 
-            <div className="flex items-center justify-between text-xs pt-1">
-              <label className="flex items-center gap-2 cursor-pointer select-none text-muted-foreground hover:text-foreground">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="rounded border-border text-[#C9A227] focus:ring-[#C9A227]"
-                />
-                <span>Se souvenir de moi</span>
-              </label>
-
-              <button
-                type="button"
-                onClick={() => toast.info("Contactez l'administrateur principal pour réinitialiser vos identifiants.")}
-                className="text-[#C9A227] hover:underline font-semibold"
+              <Button
+                type="submit"
+                disabled={isLoading}
+                variant="gold"
+                className="w-full h-11 text-xs rounded-xl shadow-xs transition-colors mt-2 flex items-center justify-center gap-2 cursor-pointer"
               >
-                Mot de passe oublié ?
-              </button>
-            </div>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-[#111111]" />
+                    <span>Connexion en cours...</span>
+                  </>
+                ) : (
+                  <span>Se connecter</span>
+                )}
+              </Button>
+            </form>
+          </CardContent>
 
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full h-11 bg-[#C9A227] hover:bg-[#B38F1E] text-[#111111] font-bold text-xs rounded-xl shadow-xs transition-colors mt-2 flex items-center justify-center gap-2 cursor-pointer border-0"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin text-black" />
-                  <span>Connexion en cours...</span>
-                </>
-              ) : (
-                <span>Se connecter</span>
-              )}
-            </Button>
-          </form>
-
-          {/* Note de sécurité conforme à la maquette */}
-          <p className="text-[11px] text-muted-foreground text-center leading-relaxed pt-2 border-t border-border/50">
-            Accès réservé à l'administrateur. Après plusieurs tentatives échouées, la connexion est bloquée quelques minutes.
-          </p>
-        </div>
+          <CardFooter className="pt-2 pb-6 border-t border-border/50 justify-center">
+            {/* Note de sécurité conforme à la maquette */}
+            <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
+              Accès réservé à l'administrateur. Après plusieurs tentatives échouées, la connexion est bloquée quelques minutes.
+            </p>
+          </CardFooter>
+        </Card>
       </div>
     </div>
   )

@@ -1,16 +1,24 @@
-import { useState } from "react"
+import React, { useState } from "react"
 import { useLocation, Link, useNavigate } from "react-router-dom"
 import {
   Menu,
   ExternalLink,
-  ChevronRight,
   LogOut,
   Settings,
   Search,
+  X,
 } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -74,23 +82,30 @@ export default function AdminHeader() {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!searchQuery.trim()) return
-    if (location.pathname.includes("/admin/orders")) {
-      navigate(`/admin/orders?search=${encodeURIComponent(searchQuery.trim())}`)
-    } else if (location.pathname.includes("/admin/categories")) {
-      // stay on categories or filter
+    const query = searchQuery.trim()
+    if (!query) return
+
+    if (location.pathname.startsWith("/admin/orders")) {
+      navigate(`/admin/orders?search=${encodeURIComponent(query)}`)
+    } else if (location.pathname.startsWith("/admin/categories")) {
+      navigate(`/admin/categories?search=${encodeURIComponent(query)}`)
+    } else if (location.pathname.startsWith("/admin/inventory")) {
+      navigate(`/admin/inventory?search=${encodeURIComponent(query)}`)
+    } else if (location.pathname.startsWith("/admin/products")) {
+      navigate(`/admin/products?search=${encodeURIComponent(query)}`)
     } else {
-      navigate(`/admin/products?search=${encodeURIComponent(searchQuery.trim())}`)
+      // Depuis le dashboard ou les paramètres, on redirige vers les produits par défaut
+      navigate(`/admin/products?search=${encodeURIComponent(query)}`)
     }
   }
 
   return (
     <header className="h-16 bg-white border-b border-border/70 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0 pr-4">
         {/* Mobile Sidebar Trigger */}
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="md:hidden text-foreground">
+            <Button variant="ghost" size="icon" className="md:hidden text-foreground shrink-0">
               <Menu className="w-5 h-5" />
               <span className="sr-only">Ouvrir le menu</span>
             </Button>
@@ -101,47 +116,63 @@ export default function AdminHeader() {
           </SheetContent>
         </Sheet>
 
-        {/* Global Functional Search Bar */}
-        <form onSubmit={handleSearchSubmit} className="relative hidden sm:block w-72 md:w-88">
-          <Search className="w-4 h-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <Input
-            type="search"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Rechercher un produit, commande ou catégorie..."
-            className="pl-9.5 h-9 text-xs bg-muted/20 border-border/70 rounded-xl focus:bg-white focus:border-[#C9A227] transition-all"
-          />
+        {/* Global Functional Search Bar — Placeholder « Rechercher… », Lucide Search at left-3 */}
+        <form onSubmit={handleSearchSubmit} className="relative w-full max-w-xs sm:max-w-sm md:max-w-md">
+          <div className="relative">
+            <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Rechercher…"
+              className="pl-9 pr-8 h-9 text-xs bg-white border-border/80 rounded-xl focus-visible:ring-[#C9A227] focus-visible:border-[#C9A227] transition-all w-full"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+                <span className="sr-only">Effacer la recherche</span>
+              </button>
+            )}
+          </div>
         </form>
 
-        {/* Breadcrumb Navigation on smaller screens */}
-        <nav aria-label="Breadcrumb" className="sm:hidden flex items-center text-xs font-medium text-muted-foreground">
-          {breadcrumbs.slice(-2).map((crumb, idx) => {
-            const isLast = idx === 1 || breadcrumbs.length === 1
-            return (
-              <div key={crumb.href} className="flex items-center">
-                {idx > 0 && <ChevronRight className="w-3.5 h-3.5 mx-1 text-muted-foreground/60" />}
-                {isLast ? (
-                  <span className="text-foreground font-semibold">{crumb.label}</span>
-                ) : (
-                  <Link to={crumb.href} className="hover:text-foreground">
-                    {crumb.label}
-                  </Link>
-                )}
-              </div>
-            )
-          })}
-        </nav>
+        {/* Official Shadcn/UI Breadcrumb Navigation (sur écrans moyens et grands) */}
+        <Breadcrumb className="hidden xl:flex items-center ml-2 shrink-0">
+          <BreadcrumbList>
+            {breadcrumbs.map((crumb, idx) => {
+              const isLast = idx === breadcrumbs.length - 1
+              return (
+                <React.Fragment key={crumb.href}>
+                  <BreadcrumbItem>
+                    {isLast ? (
+                      <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                    ) : (
+                      <BreadcrumbLink asChild>
+                        <Link to={crumb.href}>{crumb.label}</Link>
+                      </BreadcrumbLink>
+                    )}
+                  </BreadcrumbItem>
+                  {!isLast && <BreadcrumbSeparator />}
+                </React.Fragment>
+              )
+            })}
+          </BreadcrumbList>
+        </Breadcrumb>
       </div>
 
       {/* Right Actions: Admin Profile Pill ONLY (Notifications Bell completely removed per instructions) */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 shrink-0">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full hover:bg-muted/80 transition-colors cursor-pointer select-none border border-border/60 bg-white shadow-2xs">
               <div className="w-7 h-7 rounded-full bg-[#111111] text-white flex items-center justify-center font-extrabold text-xs">
                 {user?.name ? user.name.charAt(0).toUpperCase() : "A"}
               </div>
-              <span className="text-xs font-bold text-foreground">
+              <span className="text-xs font-bold text-foreground hidden sm:inline-block">
                 {user?.name || "Admin"}
               </span>
               <span className="text-[10px] text-muted-foreground">▾</span>

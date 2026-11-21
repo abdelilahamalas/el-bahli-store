@@ -9,6 +9,12 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import {
+  Empty,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+} from "@/components/ui/empty"
+import {
   Table,
   TableHeader,
   TableBody,
@@ -235,16 +241,16 @@ export default function AdminStockMovementsPage() {
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-12 text-center text-muted-foreground">
-                    <div className="flex flex-col items-center justify-center">
-                      <History className="w-9 h-9 text-muted-foreground/40 mb-2" />
-                      <p className="font-semibold text-sm text-foreground">
-                        Aucun mouvement enregistré
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
+                  <TableCell colSpan={7} className="py-10 text-center">
+                    <Empty className="border-none py-2">
+                      <EmptyMedia>
+                        <History className="w-5 h-5" />
+                      </EmptyMedia>
+                      <EmptyTitle>Aucun mouvement enregistré</EmptyTitle>
+                      <EmptyDescription>
                         Toutes les variations de stock futures apparaîtront ici.
-                      </p>
-                    </div>
+                      </EmptyDescription>
+                    </Empty>
                   </TableCell>
                 </TableRow>
               )}

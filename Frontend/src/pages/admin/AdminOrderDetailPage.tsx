@@ -15,6 +15,7 @@ import {
   MessageCircle,
   Ban,
   ShieldCheck,
+  Package,
 } from "lucide-react"
 import { toast } from "sonner"
 import { adminService } from "@/services/adminService"
@@ -374,26 +375,50 @@ export default function AdminOrderDetailPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {order.items?.map((item) => (
-                    <TableRow key={item.id} className="hover:bg-muted/20">
-                      <TableCell className="py-3 font-bold text-foreground">
-                        {item.product_name}
-                      </TableCell>
-                      <TableCell className="py-3">
-                        <span className="font-bold text-foreground">{item.size}</span>
-                        <span className="text-muted-foreground"> · {item.color}</span>
-                      </TableCell>
-                      <TableCell className="py-3 text-center font-extrabold text-foreground">
-                        {item.quantity}
-                      </TableCell>
-                      <TableCell className="py-3 text-right text-muted-foreground">
-                        {formatMAD(item.unit_price)}
-                      </TableCell>
-                      <TableCell className="py-3 text-right font-bold text-foreground">
-                        {formatMAD(item.line_total)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {order.items?.map((item) => {
+                    const itemImage =
+                      item.product_image ||
+                      item.product?.images?.find((img) => img.is_main)?.image_url ||
+                      item.product?.images?.[0]?.image_url
+
+                    return (
+                      <TableRow key={item.id} className="hover:bg-muted/20">
+                        <TableCell className="py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-md overflow-hidden bg-muted flex-shrink-0 border border-border">
+                              {itemImage ? (
+                                <img
+                                  src={itemImage}
+                                  alt={item.product_name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-muted-foreground/40">
+                                  <Package className="w-4 h-4" />
+                                </div>
+                              )}
+                            </div>
+                            <span className="font-bold text-foreground">
+                              {item.product_name}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-3">
+                          <span className="font-bold text-foreground">{item.size}</span>
+                          <span className="text-muted-foreground"> · {item.color}</span>
+                        </TableCell>
+                        <TableCell className="py-3 text-center font-extrabold text-foreground">
+                          {item.quantity}
+                        </TableCell>
+                        <TableCell className="py-3 text-right text-muted-foreground">
+                          {formatMAD(item.unit_price)}
+                        </TableCell>
+                        <TableCell className="py-3 text-right font-bold text-foreground">
+                          {formatMAD(item.line_total)}
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
                 </TableBody>
                 {/* 4. SECTION : Récapitulatif financier */}
                 <TableFooter className="border-t-2 border-border/80 bg-muted/20 text-xs">
