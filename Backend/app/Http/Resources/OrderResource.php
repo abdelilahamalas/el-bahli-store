@@ -70,20 +70,28 @@ class OrderResource extends JsonResource
                 'admin_name' => $ret->user?->name,
                 'created_at' => $ret->created_at?->toIso8601String(),
             ])->values()),
-            'items' => $this->items->map(fn ($item) => [
-                'id' => $item->id,
-                'product_id' => $item->product_id,
-                'product_name' => $item->product_name,
-                'product_slug' => $item->product?->slug,
-                'product_image' => $item->product?->images?->where('is_main', true)->first()?->image_url
-                    ?? $item->product?->images?->first()?->image_url,
-                'size' => $item->size,
-                'color' => $item->couleur_copie ?: 'Standard',
-                'couleur_copie' => $item->couleur_copie ?: 'Standard',
-                'unit_price' => number_format((float) $item->unit_price, 2, '.', ''),
-                'quantity' => (int) $item->quantity,
-                'line_total' => number_format((float) $item->line_total, 2, '.', ''),
-            ])->values(),
+            'items' => $this->relationLoaded('items')
+                ? $this->items->map(function ($item) {
+                    $product = $item->relationLoaded('product') ? $item->product : null;
+                    $productImages = ($product && $product->relationLoaded('images')) ? $product->images : collect();
+                    $mainImage = $productImages->firstWhere('est_principale', true) ?? $productImages->first();
+                    $imageUrl = $mainImage ? asset('storage/'.$mainImage->chemin_image) : null;
+
+                    return [
+                        'id' => $item->id,
+                        'product_id' => $item->product_id,
+                        'product_name' => $item->product_name,
+                        'product_slug' => $product?->slug,
+                        'product_image' => $imageUrl,
+                        'size' => $item->size,
+                        'color' => $item->couleur_copie ?: 'Standard',
+                        'couleur_copie' => $item->couleur_copie ?: 'Standard',
+                        'unit_price' => number_format((float) $item->unit_price, 2, '.', ''),
+                        'quantity' => (int) $item->quantity,
+                        'line_total' => number_format((float) $item->line_total, 2, '.', ''),
+                    ];
+                })->values()
+                : [],
         ];
     }
 }

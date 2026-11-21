@@ -155,6 +155,8 @@ class OrderController extends ApiController
             $request->user()?->id
         );
 
+        $order->load(['items.product.images', 'statusHistories.user', 'returns.item', 'returns.variant', 'returns.user']);
+
         return $this->success(
             (new OrderResource($order))->resolve(),
             'Notes administratives mises à jour.'

@@ -188,7 +188,7 @@ class DashboardController extends ApiController
                 'status' => $variant->stock === 0 ? 'out_of_stock' : 'low_stock',
             ]);
 
-        $recentOrders = Order::with('items')
+        $recentOrders = Order::with('items.product.images')
             ->latest()
             ->take(5)
             ->get();
