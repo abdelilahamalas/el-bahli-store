@@ -237,16 +237,49 @@ export default function AdminProductFormPage() {
     ])
   }
 
+  // Contextual size suggestions based on selected category
+  const getQuickSizes = (): { sizes: string[]; label: string } => {
+    const selectedCat = categories.find((c) => c.id === categoryId)
+    const catName = selectedCat?.name?.toLowerCase() || ""
+
+    // Jeans & pantalons → tailles numériques
+    if (catName.includes("jean") || catName.includes("pantalon")) {
+      return {
+        sizes: ["30", "31", "32", "33", "34", "36", "38", "40", "42", "44", "46"],
+        label: "Tailles numériques (30-46)",
+      }
+    }
+    // Chaussures → pointures
+    if (catName.includes("chaussur")) {
+      return {
+        sizes: ["39", "40", "41", "42", "43", "44", "45"],
+        label: "Pointures (39-45)",
+      }
+    }
+    // Casquettes → taille unique
+    if (catName.includes("casquette")) {
+      return {
+        sizes: ["Taille unique"],
+        label: "Taille unique",
+      }
+    }
+    // Hauts, vestes, ensembles, etc. → lettres
+    return {
+      sizes: ["S", "M", "L", "XL", "XXL"],
+      label: "Tailles standards (S-XXL)",
+    }
+  }
+
   const handleQuickAddSizes = () => {
-    const standardSizes = ["S", "M", "L", "XL", "XXL"]
-    const newVariants: VariantRow[] = standardSizes.map((sz) => ({
+    const { sizes, label } = getQuickSizes()
+    const newVariants: VariantRow[] = sizes.map((sz) => ({
       size: sz,
       color: "Standard",
       stock: 10,
       is_active: true,
     }))
     setVariants(newVariants)
-    toast.info("Tailles standards (S, M, L, XL, XXL) configurées.")
+    toast.info(`${label} configurées.`)
   }
 
   const handleUpdateVariant = (
@@ -587,7 +620,7 @@ export default function AdminProductFormPage() {
                   onClick={handleQuickAddSizes}
                   className="h-8 text-xs border-border hover:border-[#C9A227]"
                 >
-                  Tailles standards (S-XXL)
+                  {getQuickSizes().label}
                 </Button>
                 <Button
                   type="button"
