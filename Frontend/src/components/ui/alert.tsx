@@ -3,19 +3,22 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const alertVariants = cva(
-  "relative w-full rounded-xl border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground",
+  "relative w-full rounded-2xl border p-4 shadow-sm [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-2px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4",
   {
     variants: {
       variant: {
-        default: "bg-background text-foreground border-border",
+        default:
+          "bg-[#18181B] text-white border-[#27272A] [&>svg]:text-white",
+        dark:
+          "bg-[#18181B] text-white border-[#27272A] [&>svg]:text-white",
         destructive:
-          "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive bg-destructive/5",
+          "bg-[#18181B] border-rose-900/60 text-white [&>svg]:text-rose-400 [&_.alert-desc]:text-rose-300",
         success:
-          "border-emerald-200 text-emerald-900 bg-emerald-50/70 [&>svg]:text-emerald-600",
+          "bg-[#18181B] border-emerald-900/60 text-white [&>svg]:text-emerald-400 [&_.alert-desc]:text-emerald-300",
         warning:
-          "border-amber-200 text-amber-900 bg-amber-50/70 [&>svg]:text-amber-600",
+          "bg-[#18181B] border-amber-900/60 text-white [&>svg]:text-amber-400 [&_.alert-desc]:text-amber-300",
         info:
-          "border-blue-200 text-blue-900 bg-blue-50/70 [&>svg]:text-blue-600",
+          "bg-[#18181B] border-blue-900/60 text-white [&>svg]:text-blue-400 [&_.alert-desc]:text-blue-300",
       },
     },
     defaultVariants: {
@@ -55,7 +58,7 @@ const AlertDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("text-xs leading-relaxed opacity-90", className)}
+    className={cn("text-xs leading-relaxed text-[#A1A1AA] alert-desc mt-1", className)}
     {...props}
   />
 ))

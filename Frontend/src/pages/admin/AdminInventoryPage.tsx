@@ -432,13 +432,12 @@ export default function AdminInventoryPage() {
                                   type="button"
                                   onClick={() => handleOpenAdjust(item, v)}
                                   title={`Cliquer pour ajuster le stock de cette variante (${v.size} - ${v.color})`}
-                                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold border transition-all hover:scale-105 cursor-pointer ${
-                                    isOutOfStock
-                                      ? "bg-rose-50 text-rose-700 border-rose-200 line-through opacity-80"
-                                      : isLowStock
+                                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold border transition-all hover:scale-105 cursor-pointer ${isOutOfStock
+                                    ? "bg-rose-50 text-rose-700 border-rose-200 line-through opacity-80"
+                                    : isLowStock
                                       ? "bg-amber-50 text-amber-800 border-amber-200"
                                       : "bg-emerald-50 text-emerald-800 border-emerald-200"
-                                  }`}
+                                    }`}
                                 >
                                   <span>{v.size}</span>
                                   {v.color !== "Standard" && (
@@ -660,11 +659,10 @@ export default function AdminInventoryPage() {
                   <p className="text-[11px] text-muted-foreground">
                     Différence constatée :{" "}
                     <span
-                      className={`font-bold ${
-                        newStockValue - selectedVariant.stock >= 0
-                          ? "text-emerald-600"
-                          : "text-rose-600"
-                      }`}
+                      className={`font-bold ${newStockValue - selectedVariant.stock >= 0
+                        ? "text-emerald-600"
+                        : "text-rose-600"
+                        }`}
                     >
                       {newStockValue - selectedVariant.stock >= 0 ? "+" : ""}
                       {newStockValue - selectedVariant.stock} unité(s)

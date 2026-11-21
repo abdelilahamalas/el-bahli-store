@@ -166,7 +166,9 @@ class DashboardController extends ApiController
             ->take(5)
             ->get()
             ->map(fn ($cat) => [
+                'id' => $cat->id,
                 'category_id' => $cat->id,
+                'name' => $cat->name,
                 'category_name' => $cat->name,
                 'units_sold' => (int) $cat->units_sold,
                 'revenue' => number_format((float) $cat->revenue, 2, '.', ''),

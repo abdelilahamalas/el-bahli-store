@@ -3,20 +3,29 @@ import { Link, useNavigate } from "react-router-dom"
 import {
   TrendingUp,
   ShoppingBag,
-  ShoppingCart,
-  Banknote,
+  Package,
+  Layers,
   ArrowRight,
   RefreshCw,
-  Loader2,
+  AlertTriangle,
+  Phone,
+  Calendar,
 } from "lucide-react"
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from "recharts"
 import { toast } from "sonner"
 import { adminService } from "@/services/adminService"
 import type { AdminDashboardData } from "@/types/admin"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Empty, EmptyTitle, EmptyDescription } from "@/components/ui/empty"
+import { Empty, EmptyTitle, EmptyDescription, EmptyMedia } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Table,
@@ -26,14 +35,30 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table"
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart"
 import { getOrderStatusBadge } from "@/utils/orderStatus"
+
+const chartConfig = {
+  revenue: {
+    label: "Chiffre d'affaires",
+    color: "#C9A227",
+  },
+  orders: {
+    label: "Commandes",
+    color: "#111111",
+  },
+} satisfies ChartConfig
 
 export default function AdminDashboardPage() {
   const [data, setData] = useState<AdminDashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [period, setPeriod] = useState<string>("month")
   const [isPending, startTransition] = useTransition()
-  const [confirmingOrderId, setConfirmingOrderId] = useState<number | null>(null)
   const navigate = useNavigate()
 
   const loadData = async (selectedPeriod: string) => {
@@ -58,7 +83,7 @@ export default function AdminDashboardPage() {
     })
   }
 
-  // Currency Formatter
+  // Formatage monétaire
   const formatMAD = (amount: string | number | undefined) => {
     if (amount === undefined || amount === null) return "0 MAD"
     const num = typeof amount === "string" ? parseFloat(amount) : amount
@@ -71,21 +96,6 @@ export default function AdminDashboardPage() {
     if (val === undefined || val === null) return 0
     const n = typeof val === "string" ? parseFloat(val) : val
     return isNaN(n) ? 0 : n
-  }
-
-  // Quick order confirmation
-  const handleConfirmOrder = async (e: React.MouseEvent, orderId: number) => {
-    e.stopPropagation()
-    try {
-      setConfirmingOrderId(orderId)
-      await adminService.updateOrderStatus(orderId, "confirmed", "Commande confirmée depuis le dashboard")
-      toast.success("Commande confirmée avec succès.")
-      await loadData(period)
-    } catch {
-      toast.error("Impossible de confirmer la commande.")
-    } finally {
-      setConfirmingOrderId(null)
-    }
   }
 
   // Date Header Formatter in French
@@ -104,17 +114,12 @@ export default function AdminDashboardPage() {
   const currentMonthYearCapitalized =
     currentMonthYear.charAt(0).toUpperCase() + currentMonthYear.slice(1)
 
-  // Computed Real KPIs
+  // Données calculées réelles
   const totalRevenue = parseNum(data?.revenue || data?.kpis?.revenue)
   const totalOrders = data?.kpis?.total_orders ?? data?.orders_count ?? 0
-  const averageBasket = totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0
-  const toCollectRevenue = parseNum(data?.kpis?.amount_to_collect)
-  const pendingOrdersCount = data?.kpis?.pending_orders ?? 0
-
-  // Real pending orders list for "À traiter maintenant" (strictly pending)
-  const ordersToProcess = (data?.recent_orders || []).filter(
-    (order) => order.status === "pending"
-  )
+  const totalProducts = data?.kpis?.total_products ?? 0
+  const activeProducts = data?.kpis?.active_products ?? 0
+  const activeCategories = data?.kpis?.active_categories ?? 0
 
   // Top products from API
   const topProducts = data?.charts?.top_products || []
@@ -126,56 +131,38 @@ export default function AdminDashboardPage() {
   // Stock alerts
   const stockAlerts = data?.stock_alerts || []
 
-  // Daily activity for the smooth curve area chart
-  const activity = data?.activity_7_days || []
-  const maxDayRevenue = Math.max(...activity.map((d) => parseNum(d.revenue)), 0)
+  // Données formatées pour le graphique Recharts
+  const activityData = (data?.activity_7_days || []).map((day) => {
+    let formattedDate = day.date
+    try {
+      const parts = day.date.split("-")
+      if (parts.length === 3) {
+        formattedDate = `${parts[2]}/${parts[1]}`
+      }
+    } catch {
+      // fallback
+    }
 
-  // Dynamic SVG curve generation from real activity data
-  const chartPoints = activity.map((day, idx) => {
-    const x = activity.length > 1 ? (idx / (activity.length - 1)) * 560 + 20 : 300
-    const rev = parseNum(day.revenue)
-    const y = maxDayRevenue > 0 ? 140 - (rev / maxDayRevenue) * 90 : 130
-    return { x, y, rev, day }
+    return {
+      date: day.date,
+      formattedDate,
+      revenue: parseNum(day.revenue),
+      orders: day.orders_count,
+    }
   })
 
-  const peakPoint = chartPoints.reduce(
-    (max, pt) => (pt.rev > max.rev ? pt : max),
-    chartPoints[0] || { x: 500, y: 70, rev: 0, day: { date: "", orders_count: 0, revenue: "0" } }
-  )
-
-  const generateSmoothPath = () => {
-    if (chartPoints.length === 0) return ""
-    if (chartPoints.length === 1) return `M ${chartPoints[0].x} ${chartPoints[0].y}`
-
-    let d = `M ${chartPoints[0].x} ${chartPoints[0].y}`
-    for (let i = 0; i < chartPoints.length - 1; i++) {
-      const p0 = chartPoints[i]
-      const p1 = chartPoints[i + 1]
-      const cpX = (p0.x + p1.x) / 2
-      d += ` C ${cpX} ${p0.y}, ${cpX} ${p1.y}, ${p1.x} ${p1.y}`
-    }
-    return d
-  }
-
-  const smoothPath = generateSmoothPath()
-  const areaPath =
-    chartPoints.length > 1
-      ? `${smoothPath} L ${chartPoints[chartPoints.length - 1].x} 160 L ${chartPoints[0].x} 160 Z`
-      : ""
+  const hasActivityData = activityData.some((d) => d.revenue > 0 || d.orders > 0)
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-10">
-      {/* 1. Header du Dashboard */}
+      {/* Header du Dashboard */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
             Tableau de bord
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-            Vue d'ensemble en temps réel · {todayCapitalized} ·{" "}
-            <span className="font-semibold text-foreground">
-              {pendingOrdersCount} commande{pendingOrdersCount > 1 ? "s" : ""} à traiter
-            </span>
+            Vue d'ensemble en temps réel · {todayCapitalized} · El Bahli Store
           </p>
         </div>
 
@@ -207,19 +194,24 @@ export default function AdminDashboardPage() {
             title="Rafraîchir"
           >
             <RefreshCw
-              className={`w-4 h-4 ${
-                loading ? "animate-spin text-[#C9A227]" : "text-muted-foreground"
-              }`}
+              className={`w-4 h-4 ${loading ? "animate-spin text-[#C9A227]" : "text-muted-foreground"
+                }`}
             />
           </Button>
         </div>
       </div>
 
-      {/* 2. Cartes Statistiques KPI (Ligne de 4 cartes blanches minimalistes) */}
+      {/* =========================================================================
+          PREMIÈRE SECTION : 4 CARTES KPI (Conformes à la section 3.3)
+          1. Chiffre d'affaires
+          2. Nombre de commandes
+          3. Nombre de produits
+          4. Nombre de catégories
+         ========================================================================= */}
       {loading && !data ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <Card key={i} className="p-5 border-border rounded-2xl shadow-2xs bg-white">
+            <Card key={`kpi-skeleton-${i}`} className="p-5 border-border rounded-2xl shadow-2xs bg-white">
               <Skeleton className="h-4 w-24 mb-3" />
               <Skeleton className="h-8 w-32 mb-2" />
               <Skeleton className="h-3 w-28" />
@@ -230,463 +222,222 @@ export default function AdminDashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* KPI 1 : Chiffre d'affaires */}
           <Card className="border-border bg-white rounded-2xl shadow-2xs p-5 hover:border-border/90 transition-colors">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">
+            <CardHeader className="p-0 flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Chiffre d'affaires
-              </span>
+              </CardTitle>
               <div className="w-8 h-8 rounded-xl bg-muted/40 flex items-center justify-center text-muted-foreground">
-                <TrendingUp className="w-4 h-4" />
+                <TrendingUp className="w-4 h-4 text-[#C9A227]" />
               </div>
-            </div>
-            <div className="mt-2">
-              <div className="text-2xl font-bold tracking-tight text-foreground">
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
                 {formatMAD(totalRevenue)}
               </div>
-              <div className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                <span>Commandes confirmées &amp; livrées</span>
-              </div>
-            </div>
+              <CardDescription className="mt-1.5 text-[11px] text-muted-foreground">
+                Commandes confirmées &amp; livrées
+              </CardDescription>
+            </CardContent>
           </Card>
 
-          {/* KPI 2 : Commandes */}
+          {/* KPI 2 : Nombre de commandes */}
           <Card className="border-border bg-white rounded-2xl shadow-2xs p-5 hover:border-border/90 transition-colors">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">
+            <CardHeader className="p-0 flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Commandes
-              </span>
+              </CardTitle>
               <div className="w-8 h-8 rounded-xl bg-muted/40 flex items-center justify-center text-muted-foreground">
-                <ShoppingBag className="w-4 h-4" />
+                <ShoppingBag className="w-4 h-4 text-foreground" />
               </div>
-            </div>
-            <div className="mt-2">
-              <div className="text-2xl font-bold tracking-tight text-foreground">
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
                 {totalOrders}
               </div>
-              <div className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                <span>Sur la période sélectionnée</span>
-              </div>
-            </div>
+              <CardDescription className="mt-1.5 text-[11px] text-muted-foreground">
+                Sur la période sélectionnée
+              </CardDescription>
+            </CardContent>
           </Card>
 
-          {/* KPI 3 : Panier moyen */}
+          {/* KPI 3 : Nombre de produits */}
           <Card className="border-border bg-white rounded-2xl shadow-2xs p-5 hover:border-border/90 transition-colors">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">
-                Panier moyen
-              </span>
+            <CardHeader className="p-0 flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Produits au catalogue
+              </CardTitle>
               <div className="w-8 h-8 rounded-xl bg-muted/40 flex items-center justify-center text-muted-foreground">
-                <ShoppingCart className="w-4 h-4" />
+                <Package className="w-4 h-4 text-foreground" />
               </div>
-            </div>
-            <div className="mt-2">
-              <div className="text-2xl font-bold tracking-tight text-foreground">
-                {formatMAD(averageBasket)}
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+                {totalProducts}
               </div>
-              <div className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                <span>Moyenne par commande réalisée</span>
-              </div>
-            </div>
+              <CardDescription className="mt-1.5 text-[11px] text-muted-foreground">
+                {activeProducts} article{activeProducts > 1 ? "s" : ""} actif{activeProducts > 1 ? "s" : ""} en boutique
+              </CardDescription>
+            </CardContent>
           </Card>
 
-          {/* KPI 4 : À encaisser */}
+          {/* KPI 4 : Nombre de catégories */}
           <Card className="border-border bg-white rounded-2xl shadow-2xs p-5 hover:border-border/90 transition-colors">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">
-                À encaisser
-              </span>
-              <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
-                <Banknote className="w-4 h-4" />
+            <CardHeader className="p-0 flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Catégories
+              </CardTitle>
+              <div className="w-8 h-8 rounded-xl bg-muted/40 flex items-center justify-center text-muted-foreground">
+                <Layers className="w-4 h-4 text-foreground" />
               </div>
-            </div>
-            <div className="mt-2">
-              <div className="text-2xl font-bold tracking-tight text-foreground">
-                {formatMAD(toCollectRevenue)}
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+                {activeCategories}
               </div>
-              <div className="mt-2 flex items-center gap-1.5 text-[11px]">
-                <span className="px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-700 font-semibold">
-                  À la livraison
-                </span>
-                <span className="text-muted-foreground">Espèces attendues (COD)</span>
-              </div>
-            </div>
+              <CardDescription className="mt-1.5 text-[11px] text-muted-foreground">
+                Rayons streetwear organisés
+              </CardDescription>
+            </CardContent>
           </Card>
         </div>
       )}
 
-      {/* 3. Section Centrale : Graphique des Ventes + À traiter maintenant */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-        {/* Colonne Gauche (approx. 65% : 8 cols) : Graphique des Ventes */}
-        <Card className="lg:col-span-8 border-border bg-white rounded-2xl shadow-2xs p-6 flex flex-col justify-between">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4">
-            <div>
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">
-                Ventes
-              </span>
-              <div className="flex items-baseline gap-2.5 mt-1">
-                <span className="text-2xl sm:text-3xl font-extrabold text-foreground">
-                  {formatMAD(totalRevenue)}
-                </span>
-                <span className="text-xs font-medium text-muted-foreground">
-                  {period === "week" ? "7 derniers jours" : period === "month" ? currentMonthYearCapitalized : "Année en cours"}
-                </span>
-              </div>
+      {/* =========================================================================
+          DEUXIÈME SECTION : GRAPHIQUE DES VENTES (Recharts + Chart shadcn/ui)
+         ========================================================================= */}
+      <Card className="border-border bg-white rounded-2xl shadow-2xs p-6">
+        <CardHeader className="p-0 pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <CardTitle className="text-base sm:text-lg font-bold text-foreground">
+              Graphique des ventes
+            </CardTitle>
+            <CardDescription className="text-xs text-muted-foreground mt-0.5">
+              Évolution du chiffre d'affaires sur la période sélectionnée ({period === "week" ? "7 derniers jours" : period === "month" ? currentMonthYearCapitalized : "Année en cours"})
+            </CardDescription>
+          </div>
+
+          {/* Sélecteur de période shadcn segmenté & Affichage du Chiffre d'Affaires */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="px-3.5 py-1.5 rounded-xl bg-amber-50/80 border border-amber-200/80 text-xs flex items-center gap-2">
+              <span className="text-muted-foreground text-[11px]">Total période :</span>
+              <span className="font-extrabold text-sm text-[#C9A227]">{formatMAD(totalRevenue)}</span>
             </div>
 
-            {/* Onglets de période (7 jours, Ce mois, Année) */}
-            <div className="inline-flex items-center rounded-xl bg-muted/40 p-1 border border-border/60 text-xs font-medium">
+            <div className="inline-flex items-center rounded-xl bg-muted/50 p-1 border border-border/70 text-xs font-medium self-start sm:self-auto">
               {[
-                { id: "week", label: "7 jours" },
+                { id: "week", label: "7 derniers jours" },
                 { id: "month", label: "Ce mois" },
-                { id: "all", label: "Année" },
+                { id: "all", label: "Cette année" },
               ].map((tab) => (
                 <Button
-                  key={tab.id}
+                  key={`period-tab-${tab.id}`}
                   variant="ghost"
                   size="sm"
                   onClick={() => handlePeriodChange(tab.id)}
                   disabled={loading || isPending}
-                  className={`px-3 py-1 h-auto rounded-lg text-xs ${
-                    period === tab.id
-                      ? "bg-[#111111] text-white font-bold shadow-xs hover:bg-[#222222]"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
+                  className={`px-3 py-1.5 h-auto rounded-lg text-xs font-semibold cursor-pointer transition-all ${period === tab.id
+                    ? "bg-[#18181B] text-white shadow-xs hover:bg-[#27272A]"
+                    : "text-muted-foreground hover:text-foreground hover:bg-transparent"
+                    }`}
                 >
                   {tab.label}
                 </Button>
               ))}
             </div>
           </div>
+        </CardHeader>
 
-          {/* Graphique courbe fluide SVG basé sur les données réelles */}
-          <div className="pt-4 flex-1 flex flex-col justify-end">
-            <div className="relative h-48 w-full flex items-end">
-              <svg
-                viewBox="0 0 600 160"
-                className="w-full h-full overflow-visible"
-                preserveAspectRatio="none"
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="h-[280px] w-full flex items-center justify-center">
+              <Skeleton className="h-full w-full rounded-xl" />
+            </div>
+          ) : hasActivityData ? (
+            <ChartContainer config={chartConfig} className="h-[290px] w-full">
+              <AreaChart
+                data={activityData}
+                margin={{ top: 15, right: 25, left: 20, bottom: 5 }}
               >
                 <defs>
-                  <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#111111" stopOpacity="0.12" />
-                    <stop offset="100%" stopColor="#111111" stopOpacity="0.0" />
+                  <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#C9A227" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#C9A227" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
-
-                {/* Filled Area Under Curve */}
-                {areaPath ? (
-                  <path
-                    d={areaPath}
-                    fill="url(#salesGradient)"
-                  />
-                ) : (
-                  <path
-                    d="M 20 140 L 580 140 L 580 160 L 20 160 Z"
-                    fill="url(#salesGradient)"
-                  />
-                )}
-
-                {/* Curved Smooth Line */}
-                {smoothPath ? (
-                  <path
-                    d={smoothPath}
-                    fill="none"
-                    stroke="#111111"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                  />
-                ) : (
-                  <path
-                    d="M 20 140 L 580 140"
-                    fill="none"
-                    stroke="#111111"
-                    strokeWidth="2"
-                    strokeDasharray="4 4"
-                  />
-                )}
-
-                {/* Active Tooltip Dot on Peak */}
-                {peakPoint && peakPoint.rev > 0 && (
-                  <circle cx={peakPoint.x} cy={peakPoint.y} r="5" fill="#C9A227" stroke="#111111" strokeWidth="2" />
-                )}
-              </svg>
-
-              {/* Floating Tooltip Pill */}
-              {peakPoint && peakPoint.rev > 0 ? (
-                <div
-                  style={{
-                    left: `${Math.min(Math.max((peakPoint.x / 600) * 100, 10), 85)}%`,
-                    top: `${Math.max((peakPoint.y / 160) * 100 - 20, 5)}%`,
-                  }}
-                  className="absolute bg-[#111111] text-white text-[11px] font-bold py-1 px-2.5 rounded-lg shadow-md pointer-events-none transform -translate-x-1/2"
-                >
-                  {formatMAD(peakPoint.rev)}
-                </div>
-              ) : null}
-            </div>
-
-            {/* X-Axis Real Dates */}
-            <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-3 border-t border-border/50">
-              {activity.length > 0 ? (
-                activity.map((d) => {
-                  const dateObj = new Date(d.date)
-                  const dayName = isNaN(dateObj.getTime())
-                    ? d.date
-                    : dateObj.toLocaleDateString("fr-FR", { weekday: "short", day: "numeric" })
-                  return (
-                    <span key={d.date} className="capitalize">
-                      {dayName}
-                    </span>
-                  )
-                })
-              ) : (
-                <span>Aucune activité enregistrée</span>
-              )}
-            </div>
-          </div>
-        </Card>
-
-        {/* Colonne Droite (approx. 35% : 4 cols) : À traiter maintenant */}
-        <Card className="lg:col-span-4 border-border bg-white rounded-2xl shadow-2xs p-6 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between pb-4 border-b border-border/50">
-              <CardTitle className="text-sm font-bold text-foreground">
-                À traiter maintenant
-              </CardTitle>
-              <Badge
-                variant="outline"
-                className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] font-bold px-2 py-0.5 rounded-full"
-              >
-                {pendingOrdersCount} en attente
-              </Badge>
-            </div>
-
-            {/* Liste des commandes à traiter */}
-            <div className="divide-y divide-border/50">
-              {ordersToProcess.length > 0 ? (
-                ordersToProcess.map((order) => (
-                  <div
-                    key={order.id}
-                    onClick={() => navigate(`/admin/orders/${order.id}`)}
-                    className="py-3 flex items-center justify-between gap-2 hover:bg-muted/30 px-1 rounded-lg transition-colors cursor-pointer group"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold text-foreground truncate">
-                        {order.customer_name}{" "}
-                        <span className="text-[10px] text-muted-foreground font-mono font-normal">
-                          {order.reference}
-                        </span>
-                      </p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
-                        {order.city || "Maroc"} ·{" "}
-                        <span className="font-semibold text-foreground">
-                          {formatMAD(order.total)}
-                        </span>{" "}
-                        ·{" "}
-                        <span>
-                          {order.created_at
-                            ? new Date(order.created_at).toLocaleDateString("fr-FR", {
-                                day: "numeric",
-                                month: "short",
-                              })
-                            : "Récemment"}
-                        </span>
-                      </p>
-                    </div>
-
-                    <Button
-                      size="sm"
-                      onClick={(e) => handleConfirmOrder(e, order.id)}
-                      disabled={confirmingOrderId === order.id}
-                      className="h-8 px-3 text-[11px] font-semibold bg-[#111111] hover:bg-[#222222] text-white rounded-full shrink-0 shadow-2xs cursor-pointer"
-                    >
-                      {confirmingOrderId === order.id ? (
-                        <Loader2 className="w-3 h-3 animate-spin text-white" />
-                      ) : (
-                        <span>Confirmer</span>
-                      )}
-                    </Button>
-                  </div>
-                ))
-              ) : (
-                <div className="py-8 text-center">
-                  <Empty className="border-none py-4">
-                    <EmptyTitle className="text-xs">Toutes les commandes sont traitées</EmptyTitle>
-                    <EmptyDescription className="text-[11px]">
-                      Aucune nouvelle commande en attente de confirmation immédiate.
-                    </EmptyDescription>
-                  </Empty>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <Link
-            to="/admin/orders"
-            className="pt-4 text-xs font-semibold text-foreground hover:text-[#C9A227] flex items-center gap-1 transition-colors border-t border-border/50 mt-4"
-          >
-            <span>Ouvrir toutes les commandes</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </Card>
-      </div>
-
-      {/* 4. Section Inférieure : 3 Cartes (Ventes par catégorie, Produits les plus vendus, Stock à surveiller) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-        {/* Carte 1 : Ventes par catégorie */}
-        <Card className="border-border bg-white rounded-2xl shadow-2xs p-6 flex flex-col justify-between">
-          <CardHeader className="p-0 pb-4">
-            <CardTitle className="text-sm font-bold text-foreground">
-              Ventes par catégorie
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0 flex-1 space-y-3.5">
-            {topCategories.length > 0 ? (
-              topCategories.slice(0, 5).map((cat) => {
-                const catRev = parseNum(cat.revenue)
-                const pct =
-                  totalCatRevenue > 0
-                    ? Math.max(Math.round((catRev / totalCatRevenue) * 100), 5)
-                    : 20
-
-                return (
-                  <div key={cat.id || cat.name} className="space-y-1">
-                    <div className="flex items-center justify-between text-xs font-medium">
-                      <span className="text-foreground">{cat.name}</span>
-                      <span className="font-bold text-foreground">{pct}%</span>
-                    </div>
-                    <Progress
-                      value={pct}
-                      indicatorClassName="bg-[#111111]"
-                      className="h-2 bg-muted/60"
+                <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-muted/60" />
+                <XAxis
+                  dataKey="formattedDate"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={10}
+                  className="text-xs font-medium fill-muted-foreground"
+                />
+                <YAxis
+                  width={75}
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={10}
+                  tickFormatter={(v) => `${Number(v).toLocaleString("fr-FR")} DH`}
+                  className="text-xs font-bold fill-foreground"
+                />
+                <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      indicator="dot"
+                      labelFormatter={(val) => `Date : ${val}`}
+                      formatter={(val) => [
+                        <span key="val-tip" className="font-bold text-sm text-[#C9A227]">
+                          {Number(val).toLocaleString("fr-FR")} MAD
+                        </span>,
+                        "Recettes",
+                      ]}
                     />
-                  </div>
-                )
-              })
-            ) : (
+                  }
+                />
+                <Area
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="#C9A227"
+                  strokeWidth={3}
+                  fillOpacity={1}
+                  fill="url(#fillRevenue)"
+                />
+              </AreaChart>
+            </ChartContainer>
+          ) : (
+            <div className="h-[240px] flex items-center justify-center">
               <Empty className="border-none py-6">
-                <EmptyTitle className="text-xs">Aucune vente par catégorie</EmptyTitle>
-                <EmptyDescription className="text-[11px]">
-                  Les parts de vente s'afficheront dès la livraison des commandes.
+                <EmptyMedia>
+                  <Calendar className="w-8 h-8 text-muted-foreground" />
+                </EmptyMedia>
+                <EmptyTitle className="text-sm">Aucune donnée de ventes</EmptyTitle>
+                <EmptyDescription className="text-xs">
+                  Aucun chiffre d'affaires n'a été enregistré pour la période sélectionnée.
                 </EmptyDescription>
               </Empty>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Carte 2 : Produits les plus vendus */}
-        <Card className="border-border bg-white rounded-2xl shadow-2xs p-6 flex flex-col justify-between">
-          <CardHeader className="p-0 pb-4">
-            <CardTitle className="text-sm font-bold text-foreground">
-              Produits les plus vendus
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0 flex-1 space-y-3">
-            {topProducts.length > 0 ? (
-              topProducts.slice(0, 4).map((prod, idx) => (
-                <div key={prod.product_id} className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                    <div
-                      className={`w-5 h-5 rounded-md flex items-center justify-center font-bold text-[10px] shrink-0 ${
-                        idx === 0
-                          ? "bg-[#111111] text-white"
-                          : "bg-muted/60 text-muted-foreground border border-border/60"
-                      }`}
-                    >
-                      {idx + 1}
-                    </div>
-                    <span className="font-medium text-foreground truncate">
-                      {prod.product_name}
-                    </span>
-                  </div>
-                  <span className="text-[11px] text-muted-foreground font-semibold shrink-0">
-                    {prod.units_sold} vendus
-                  </span>
-                </div>
-              ))
-            ) : (
-              <Empty className="border-none py-6">
-                <EmptyTitle className="text-xs">Aucun produit vendu</EmptyTitle>
-                <EmptyDescription className="text-[11px]">
-                  Le classement des meilleures ventes s'affichera ici au fur et à mesure.
-                </EmptyDescription>
-              </Empty>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Carte 3 : Stock à surveiller */}
-        <Card className="border-border bg-white rounded-2xl shadow-2xs p-6 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between pb-4">
-              <CardTitle className="text-sm font-bold text-foreground">
-                Stock à surveiller
-              </CardTitle>
-              <Link
-                to="/admin/inventory"
-                className="text-[11px] font-semibold text-muted-foreground hover:text-foreground"
-              >
-                Voir le stock &rarr;
-              </Link>
             </div>
+          )}
+        </CardContent>
+      </Card>
 
-            <div className="space-y-3">
-              {stockAlerts.length > 0 ? (
-                stockAlerts.slice(0, 3).map((alert) => (
-                  <div
-                    key={alert.variant_id}
-                    onClick={() =>
-                      navigate(`/admin/inventory?search=${encodeURIComponent(alert.product_name)}`)
-                    }
-                    className="flex items-center justify-between text-xs py-1 cursor-pointer hover:opacity-80 transition-opacity"
-                  >
-                    <div className="min-w-0 pr-2">
-                      <p className="font-bold text-foreground truncate">{alert.product_name}</p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {alert.size ? `Taille ${alert.size}` : "Variante"} ·{" "}
-                        {alert.stock === 0 ? "0 restant" : `${alert.stock} restantes`}
-                      </p>
-                    </div>
-                    <Badge
-                      variant="outline"
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
-                        alert.stock === 0
-                          ? "bg-rose-50 text-rose-700 border-rose-200"
-                          : "bg-amber-50 text-amber-700 border-amber-200"
-                      }`}
-                    >
-                      {alert.stock === 0 ? "Rupture" : "Faible"}
-                    </Badge>
-                  </div>
-                ))
-              ) : (
-                <Empty className="border-none py-6">
-                  <EmptyTitle className="text-xs">Stocks sous contrôle</EmptyTitle>
-                  <EmptyDescription className="text-[11px]">
-                    Aucune variante en rupture ou sous le seuil d'alerte.
-                  </EmptyDescription>
-                </Empty>
-              )}
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* 5. Section : Dernières commandes passées sur la boutique */}
+      {/* =========================================================================
+          TROISIÈME SECTION : DERNIÈRES COMMANDES (Table shadcn/ui)
+         ========================================================================= */}
       <Card className="border-border bg-white rounded-2xl shadow-2xs overflow-hidden">
         <CardHeader className="p-5 pb-3 border-b border-border/50 flex flex-row items-center justify-between">
           <div>
             <CardTitle className="text-sm font-bold text-foreground">
               Dernières commandes enregistrées
             </CardTitle>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Historique récent des commandes passées par les clients
-            </p>
+            <CardDescription className="text-xs text-muted-foreground mt-0.5">
+              Historique récent des commandes passées par les clients sur la boutique
+            </CardDescription>
           </div>
           <Button
             variant="outline"
             size="sm"
             onClick={() => navigate("/admin/orders")}
-            className="text-xs rounded-xl h-8 border-border"
+            className="text-xs rounded-xl h-8 border-border hover:border-[#C9A227] hover:text-[#C9A227]"
           >
             Toutes les commandes &rarr;
           </Button>
@@ -697,6 +448,7 @@ export default function AdminDashboardPage() {
               <TableRow className="border-b border-border/60 bg-muted/20 text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
                 <TableHead className="py-2.5 px-4 font-bold">Référence</TableHead>
                 <TableHead className="py-2.5 px-4 font-bold">Client</TableHead>
+                <TableHead className="py-2.5 px-4 font-bold">Téléphone</TableHead>
                 <TableHead className="py-2.5 px-4 font-bold">Ville</TableHead>
                 <TableHead className="py-2.5 px-4 font-bold">Date</TableHead>
                 <TableHead className="py-2.5 px-4 font-bold">Montant</TableHead>
@@ -705,10 +457,23 @@ export default function AdminDashboardPage() {
               </TableRow>
             </TableHeader>
             <TableBody className="text-xs divide-y divide-border/50">
-              {data?.recent_orders && data.recent_orders.length > 0 ? (
+              {loading ? (
+                [...Array(5)].map((_, idx) => (
+                  <TableRow key={`order-skeleton-${idx}`}>
+                    <TableCell className="py-3 px-4"><Skeleton className="h-4 w-20" /></TableCell>
+                    <TableCell className="py-3 px-4"><Skeleton className="h-4 w-28" /></TableCell>
+                    <TableCell className="py-3 px-4"><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell className="py-3 px-4"><Skeleton className="h-4 w-16" /></TableCell>
+                    <TableCell className="py-3 px-4"><Skeleton className="h-4 w-20" /></TableCell>
+                    <TableCell className="py-3 px-4"><Skeleton className="h-4 w-16" /></TableCell>
+                    <TableCell className="py-3 px-4"><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
+                    <TableCell className="py-3 px-4 text-right"><Skeleton className="h-7 w-16 ml-auto rounded-md" /></TableCell>
+                  </TableRow>
+                ))
+              ) : data?.recent_orders && data.recent_orders.length > 0 ? (
                 data.recent_orders.slice(0, 5).map((order) => (
                   <TableRow
-                    key={order.id}
+                    key={`order-row-${order.id}`}
                     onClick={() => navigate(`/admin/orders/${order.id}`)}
                     className="hover:bg-muted/30 transition-colors cursor-pointer"
                   >
@@ -718,16 +483,26 @@ export default function AdminDashboardPage() {
                     <TableCell className="py-3 px-4 font-semibold text-foreground">
                       {order.customer_name}
                     </TableCell>
+                    <TableCell className="py-3 px-4 text-muted-foreground font-mono text-[11px]">
+                      {order.customer_phone ? (
+                        <span className="inline-flex items-center gap-1">
+                          <Phone className="w-3 h-3 text-muted-foreground/60" />
+                          {order.customer_phone}
+                        </span>
+                      ) : (
+                        "—"
+                      )}
+                    </TableCell>
                     <TableCell className="py-3 px-4 text-muted-foreground">
-                      {order.city || "Maroc"}
+                      {order.city || order.customer_city || "Maroc"}
                     </TableCell>
                     <TableCell className="py-3 px-4 text-muted-foreground">
                       {order.created_at
                         ? new Date(order.created_at).toLocaleDateString("fr-FR", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })
                         : "Récemment"}
                     </TableCell>
                     <TableCell className="py-3 px-4 font-bold text-foreground">
@@ -753,8 +528,13 @@ export default function AdminDashboardPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-8 text-center text-muted-foreground text-xs">
-                    Aucune commande récente enregistrée.
+                  <TableCell colSpan={8} className="py-8 text-center">
+                    <Empty className="border-none py-4">
+                      <EmptyTitle className="text-xs">Aucune commande récente</EmptyTitle>
+                      <EmptyDescription className="text-[11px]">
+                        Les commandes passées par les clients s'afficheront ici.
+                      </EmptyDescription>
+                    </Empty>
                   </TableCell>
                 </TableRow>
               )}
@@ -762,6 +542,189 @@ export default function AdminDashboardPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* =========================================================================
+          QUATRIÈME SECTION : INFORMATIONS COMPLÉMENTAIRES (3 Cartes)
+          1. Produits les plus vendus
+          2. Alertes de stock
+          3. Répartition des ventes par catégorie (AVEC CLÉ UNIQUE CORRIGÉE)
+         ========================================================================= */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+        {/* Carte 1 : Produits les plus vendus */}
+        <Card className="border-border bg-white rounded-2xl shadow-2xs p-6 flex flex-col justify-between">
+          <CardHeader className="p-0 pb-4">
+            <CardTitle className="text-sm font-bold text-foreground">
+              Produits les plus vendus
+            </CardTitle>
+            <CardDescription className="text-xs text-muted-foreground">
+              Articles les plus commandés
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-0 flex-1 space-y-3">
+            {topProducts.length > 0 ? (
+              topProducts.slice(0, 4).map((prod, idx) => (
+                <div
+                  key={`top-product-${prod.product_id ?? idx}`}
+                  className="flex items-center justify-between text-xs"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                    <div
+                      className={`w-5 h-5 rounded-md flex items-center justify-center font-bold text-[10px] shrink-0 ${idx === 0
+                        ? "bg-[#111111] text-white"
+                        : "bg-muted/60 text-muted-foreground border border-border/60"
+                        }`}
+                    >
+                      {idx + 1}
+                    </div>
+                    <span className="font-medium text-foreground truncate">
+                      {prod.product_name}
+                    </span>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className="font-bold text-foreground block">
+                      {formatMAD(prod.revenue)}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {prod.units_sold} vente{prod.units_sold > 1 ? "s" : ""}
+                    </span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <Empty className="border-none py-6">
+                <EmptyTitle className="text-xs">Aucune vente enregistrée</EmptyTitle>
+                <EmptyDescription className="text-[11px]">
+                  Le classement s'établira dès la confirmation des commandes.
+                </EmptyDescription>
+              </Empty>
+            )}
+          </CardContent>
+          <div className="pt-4 border-t border-border/50 mt-4">
+            <Link
+              to="/admin/products"
+              className="text-xs font-semibold text-foreground hover:text-[#C9A227] flex items-center justify-between transition-colors"
+            >
+              <span>Gérer le catalogue</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </Card>
+
+        {/* Carte 2 : Alertes de stock */}
+        <Card className="border-border bg-white rounded-2xl shadow-2xs p-6 flex flex-col justify-between">
+          <CardHeader className="p-0 pb-4">
+            <CardTitle className="text-sm font-bold text-foreground flex items-center gap-1.5">
+              <AlertTriangle className="w-4 h-4 text-amber-500" />
+              <span>Stocks à surveiller</span>
+            </CardTitle>
+            <CardDescription className="text-xs text-muted-foreground">
+              Ruptures et stocks &le; 5 unités
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-0 flex-1">
+            <div className="space-y-2.5">
+              {stockAlerts.length > 0 ? (
+                stockAlerts.slice(0, 4).map((alert, idx) => (
+                  <div
+                    key={`stock-alert-${alert.product_id}-${alert.variant_id ?? idx}`}
+                    onClick={() => navigate(`/admin/inventory?search=${encodeURIComponent(alert.product_name)}`)}
+                    className="flex items-center justify-between text-xs py-1 cursor-pointer hover:opacity-80 transition-opacity"
+                  >
+                    <div className="min-w-0 pr-2">
+                      <p className="font-bold text-foreground truncate">{alert.product_name}</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {alert.size ? `Taille ${alert.size}` : "Variante"}
+                        {alert.color && alert.color !== "Standard" ? ` (${alert.color})` : ""} ·{" "}
+                        {alert.stock === 0 ? "0 restant" : `${alert.stock} restantes`}
+                      </p>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${alert.stock === 0
+                        ? "bg-rose-50 text-rose-700 border-rose-200"
+                        : "bg-amber-50 text-amber-700 border-amber-200"
+                        }`}
+                    >
+                      {alert.stock === 0 ? "Rupture" : "Faible"}
+                    </Badge>
+                  </div>
+                ))
+              ) : (
+                <Empty className="border-none py-6">
+                  <EmptyTitle className="text-xs">Stocks sous contrôle</EmptyTitle>
+                  <EmptyDescription className="text-[11px]">
+                    Aucune variante en rupture ou sous le seuil d'alerte.
+                  </EmptyDescription>
+                </Empty>
+              )}
+            </div>
+          </CardContent>
+          <div className="pt-4 border-t border-border/50 mt-4">
+            <Link
+              to="/admin/inventory"
+              className="text-xs font-semibold text-foreground hover:text-[#C9A227] flex items-center justify-between transition-colors"
+            >
+              <span>Ouvrir l'inventaire</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </Card>
+
+        {/* Carte 3 : Répartition des ventes par catégorie (AVEC CLÉ UNIQUE CORRIGÉE) */}
+        <Card className="border-border bg-white rounded-2xl shadow-2xs p-6 flex flex-col justify-between">
+          <CardHeader className="p-0 pb-4">
+            <CardTitle className="text-sm font-bold text-foreground">
+              Ventes par catégorie
+            </CardTitle>
+            <CardDescription className="text-xs text-muted-foreground">
+              Part de chiffre d'affaires
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-0 flex-1 space-y-3.5">
+            {topCategories.length > 0 ? (
+              topCategories.slice(0, 5).map((cat, idx) => {
+                const catId = cat.category_id ?? cat.id ?? idx
+                const catName = cat.category_name || cat.name || `Catégorie #${catId}`
+                const catRev = parseNum(cat.revenue)
+                const pct =
+                  totalCatRevenue > 0
+                    ? Math.max(Math.round((catRev / totalCatRevenue) * 100), 5)
+                    : 20
+
+                return (
+                  <div key={`category-row-${catId}`} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs font-medium">
+                      <span className="text-foreground font-semibold">{catName}</span>
+                      <span className="font-bold text-foreground">{pct}%</span>
+                    </div>
+                    <Progress
+                      value={pct}
+                      indicatorClassName="bg-[#C9A227]"
+                      className="h-2 bg-muted/60"
+                    />
+                  </div>
+                )
+              })
+            ) : (
+              <Empty className="border-none py-6">
+                <EmptyTitle className="text-xs">Aucune vente par catégorie</EmptyTitle>
+                <EmptyDescription className="text-[11px]">
+                  Les parts de vente s'afficheront dès la livraison des commandes.
+                </EmptyDescription>
+              </Empty>
+            )}
+          </CardContent>
+          <div className="pt-4 border-t border-border/50 mt-4">
+            <Link
+              to="/admin/categories"
+              className="text-xs font-semibold text-foreground hover:text-[#C9A227] flex items-center justify-between transition-colors"
+            >
+              <span>Voir les catégories</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </Card>
+      </div>
     </div>
   )
 }

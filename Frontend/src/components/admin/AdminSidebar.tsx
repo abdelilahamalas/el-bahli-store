@@ -5,7 +5,6 @@ import {
   ShoppingBag,
   Boxes,
   FolderTree,
-  Settings,
   Plus,
   LogOut,
   ExternalLink,
@@ -64,12 +63,6 @@ export default function AdminSidebar({ onNavClick }: AdminSidebarProps) {
       label: "Mouvements de stock",
       to: "/admin/inventory/movements",
       icon: History,
-      end: true,
-    },
-    {
-      label: "Paramètres",
-      to: "/admin/settings",
-      icon: Settings,
       end: true,
     },
   ]

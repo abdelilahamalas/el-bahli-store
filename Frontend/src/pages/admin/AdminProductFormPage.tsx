@@ -246,11 +246,11 @@ export default function AdminProductFormPage() {
     const selectedCat = categories.find((c) => c.id === categoryId)
     const catName = selectedCat?.name?.toLowerCase() || ""
 
-    // Jeans & pantalons → tailles numériques
-    if (catName.includes("jean") || catName.includes("pantalon")) {
+    // RÈGLE MÉTIER STRICTE : Les tailles numériques s'appliquent UNIQUEMENT aux Jeans
+    if (catName.includes("jean")) {
       return {
-        sizes: ["30", "31", "32", "33", "34", "36", "38", "40", "42", "44", "46"],
-        label: "Tailles numériques (30-46)",
+        sizes: ["30", "31", "32", "33", "34", "35", "36", "38", "40", "42", "44", "46"],
+        label: "Tailles Jeans numériques (30-46)",
       }
     }
     // Chaussures → pointures
@@ -267,7 +267,7 @@ export default function AdminProductFormPage() {
         label: "Taille unique",
       }
     }
-    // Hauts, vestes, ensembles, etc. → lettres
+    // Pantalons classe, hauts, vestes, ensembles, sweat-shirts, polos, t-shirts → tailles standards
     return {
       sizes: ["S", "M", "L", "XL", "XXL"],
       label: "Tailles standards (S-XXL)",
@@ -638,6 +638,45 @@ export default function AdminProductFormPage() {
               </div>
             </CardHeader>
             <CardContent>
+              {/* Puces de sélection individuelle rapide selon la catégorie */}
+              <div className="flex flex-wrap items-center gap-1.5 pb-3">
+                <span className="text-[11px] font-semibold text-muted-foreground mr-1">
+                  Tailles disponibles :
+                </span>
+                {getQuickSizes().sizes.map((sz) => {
+                  const alreadyAdded = variants.some((v) => v.size === sz)
+                  return (
+                    <Button
+                      key={`quick-sz-${sz}`}
+                      type="button"
+                      variant={alreadyAdded ? "secondary" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        if (alreadyAdded) {
+                          if (variants.length > 1) {
+                            setVariants((prev) => prev.filter((v) => v.size !== sz))
+                          } else {
+                            toast.warning("Conservez au moins une taille pour ce produit.")
+                          }
+                        } else {
+                          setVariants((prev) => [
+                            ...prev,
+                            { size: sz, color: "Standard", stock: 10, is_active: true },
+                          ])
+                        }
+                      }}
+                      className={`h-7 px-2.5 text-xs font-bold rounded-md transition-all ${
+                        alreadyAdded
+                          ? "bg-[#111111] text-white hover:bg-[#222222]"
+                          : "border-border hover:border-[#C9A227] text-foreground"
+                      }`}
+                    >
+                      {sz} {alreadyAdded ? "✓" : "+"}
+                    </Button>
+                  )
+                })}
+              </div>
+
               <div className="overflow-x-auto border border-border rounded-lg">
                 <Table>
                   <TableHeader>
