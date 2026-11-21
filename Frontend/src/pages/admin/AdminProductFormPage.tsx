@@ -20,6 +20,21 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 
 interface VariantRow {
   id?: number
@@ -461,37 +476,40 @@ export default function AdminProductFormPage() {
                   <Label htmlFor="category" className="text-xs font-semibold">
                     Catégorie <span className="text-rose-500">*</span>
                   </Label>
-                  <select
-                    id="category"
-                    value={categoryId}
-                    onChange={(e) => setCategoryId(Number(e.target.value))}
+                  <Select
+                    value={categoryId ? String(categoryId) : ""}
+                    onValueChange={(val) => setCategoryId(Number(val))}
                     required
-                    className="w-full h-9 px-3 text-xs bg-white border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
                   >
-                    <option value="" disabled>
-                      Sélectionner une catégorie
-                    </option>
-                    {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger id="category" className="h-9 text-xs">
+                      <SelectValue placeholder="Sélectionner une catégorie" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat.id} value={String(cat.id)} className="text-xs">
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-1.5">
                   <Label htmlFor="status" className="text-xs font-semibold">
                     Statut de publication
                   </Label>
-                  <select
-                    id="status"
+                  <Select
                     value={isActive ? "1" : "0"}
-                    onChange={(e) => setIsActive(e.target.value === "1")}
-                    className="w-full h-9 px-3 text-xs bg-white border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
+                    onValueChange={(val) => setIsActive(val === "1")}
                   >
-                    <option value="1">Actif (Visible en boutique)</option>
-                    <option value="0">Masqué (Brouillon)</option>
-                  </select>
+                    <SelectTrigger id="status" className="h-9 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1" className="text-xs">Actif (Visible en boutique)</SelectItem>
+                      <SelectItem value="0" className="text-xs">Masqué (Brouillon)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -584,21 +602,21 @@ export default function AdminProductFormPage() {
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto border border-border rounded-lg">
-                <table className="w-full text-xs text-left">
-                  <thead className="bg-muted/50 border-b border-border text-muted-foreground uppercase text-[10px] font-semibold">
-                    <tr>
-                      <th className="py-2.5 px-3">Taille</th>
-                      <th className="py-2.5 px-3">Couleur / Modèle</th>
-                      <th className="py-2.5 px-3">Stock initial</th>
-                      <th className="py-2.5 px-3">Actif</th>
-                      <th className="py-2.5 px-3 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50 border-b border-border hover:bg-muted/50">
+                      <TableHead className="py-2.5 px-3 text-[10px] font-semibold uppercase text-muted-foreground">Taille</TableHead>
+                      <TableHead className="py-2.5 px-3 text-[10px] font-semibold uppercase text-muted-foreground">Couleur / Modèle</TableHead>
+                      <TableHead className="py-2.5 px-3 text-[10px] font-semibold uppercase text-muted-foreground">Stock initial</TableHead>
+                      <TableHead className="py-2.5 px-3 text-[10px] font-semibold uppercase text-muted-foreground">Actif</TableHead>
+                      <TableHead className="py-2.5 px-3 text-right text-[10px] font-semibold uppercase text-muted-foreground">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {variants.map((v, idx) => (
-                      <tr key={idx} className="hover:bg-muted/20">
+                      <TableRow key={idx} className="hover:bg-muted/20">
                         {/* Size */}
-                        <td className="py-2 px-3">
+                        <TableCell className="py-2 px-3">
                           <Input
                             value={v.size}
                             onChange={(e) => handleUpdateVariant(idx, "size", e.target.value)}
@@ -606,20 +624,20 @@ export default function AdminProductFormPage() {
                             className="h-8 text-xs w-24"
                             required
                           />
-                        </td>
+                        </TableCell>
 
                         {/* Color */}
-                        <td className="py-2 px-3">
+                        <TableCell className="py-2 px-3">
                           <Input
                             value={v.color}
                             onChange={(e) => handleUpdateVariant(idx, "color", e.target.value)}
                             placeholder="Ex. Noir"
                             className="h-8 text-xs w-32"
                           />
-                        </td>
+                        </TableCell>
 
                         {/* Stock */}
-                        <td className="py-2 px-3">
+                        <TableCell className="py-2 px-3">
                           <Input
                             type="number"
                             min="0"
@@ -630,32 +648,34 @@ export default function AdminProductFormPage() {
                             className="h-8 text-xs w-24"
                             required
                           />
-                        </td>
+                        </TableCell>
 
                         {/* Active toggle */}
-                        <td className="py-2 px-3">
+                        <TableCell className="py-2 px-3">
                           <Checkbox
                             checked={v.is_active}
                             onCheckedChange={(checked) =>
                               handleUpdateVariant(idx, "is_active", checked === true)
                             }
                           />
-                        </td>
+                        </TableCell>
 
                         {/* Delete */}
-                        <td className="py-2 px-3 text-right">
-                          <button
+                        <TableCell className="py-2 px-3 text-right">
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="icon"
                             onClick={() => handleRemoveVariant(idx)}
-                            className="p-1 text-muted-foreground hover:text-rose-600 rounded transition-colors"
+                            className="h-7 w-7 text-muted-foreground hover:text-rose-600"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </td>
-                      </tr>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             </CardContent>
           </Card>
@@ -740,14 +760,16 @@ export default function AdminProductFormPage() {
                                 Principale
                               </Badge>
                             )}
-                            <button
+                            <Button
                               type="button"
+                              variant="ghost"
+                              size="icon"
                               onClick={() => removeSelectedFile(idx)}
-                              className="absolute top-1.5 right-1.5 p-1 bg-black/70 text-white rounded-md hover:bg-rose-600 transition-colors"
+                              className="absolute top-1.5 right-1.5 h-6 w-6 bg-black/70 text-white rounded-md hover:bg-rose-600"
                               title="Retirer ce fichier"
                             >
                               <Trash2 className="w-3 h-3" />
-                            </button>
+                            </Button>
                           </div>
 
                           {!isEditMode && !isDesignatedMain && (
@@ -807,15 +829,17 @@ export default function AdminProductFormPage() {
                               </Badge>
                             )}
 
-                            <button
+                            <Button
                               type="button"
+                              variant="ghost"
+                              size="icon"
                               onClick={() => handleDeleteExistingImage(img.id)}
                               disabled={isImageActionLoading}
-                              className="absolute top-1.5 right-1.5 p-1 bg-black/70 text-white rounded-md hover:bg-rose-600 transition-colors disabled:opacity-50"
+                              className="absolute top-1.5 right-1.5 h-6 w-6 bg-black/70 text-white rounded-md hover:bg-rose-600 disabled:opacity-50"
                               title="Supprimer cette photo"
                             >
                               <Trash2 className="w-3 h-3" />
-                            </button>
+                            </Button>
                           </div>
 
                           {!img.is_main && (

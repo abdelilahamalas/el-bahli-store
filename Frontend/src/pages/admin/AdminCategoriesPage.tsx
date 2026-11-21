@@ -267,13 +267,15 @@ export default function AdminCategoriesPage() {
                       {/* Actions */}
                       <TableCell className="py-3 px-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="sm"
                             onClick={() => handleStartEdit(cat)}
-                            className="text-xs font-semibold text-foreground hover:text-[#C9A227] px-2 py-1 rounded hover:bg-muted/60 transition-colors cursor-pointer"
+                            className="text-xs font-semibold text-foreground hover:text-[#C9A227] px-2 h-7"
                           >
                             Modifier
-                          </button>
+                          </Button>
 
                           <Link
                             to={`/admin/products?category=${cat.id}`}
@@ -283,14 +285,16 @@ export default function AdminCategoriesPage() {
                             <ArrowRight className="w-3 h-3" />
                           </Link>
 
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="icon"
                             onClick={() => setDeletingCategory(cat)}
-                            className="text-muted-foreground hover:text-rose-600 p-1 rounded hover:bg-rose-50 transition-colors"
+                            className="h-7 w-7 text-muted-foreground hover:text-rose-600 hover:bg-rose-50"
                             title="Supprimer"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -310,13 +314,15 @@ export default function AdminCategoriesPage() {
                   {editingCategory ? "Modifier la catégorie" : "Ajouter une catégorie"}
                 </CardTitle>
                 {editingCategory && (
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     onClick={handleStartCreate}
-                    className="text-xs font-semibold text-muted-foreground hover:text-foreground"
+                    className="text-xs font-semibold text-muted-foreground hover:text-foreground h-7"
                   >
                     Annuler
-                  </button>
+                  </Button>
                 )}
               </div>
             </CardHeader>

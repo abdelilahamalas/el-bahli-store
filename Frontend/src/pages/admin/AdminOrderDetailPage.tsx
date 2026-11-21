@@ -49,6 +49,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { getOrderStatusBadge } from "@/utils/orderStatus"
 
 export default function AdminOrderDetailPage() {
@@ -589,16 +597,20 @@ export default function AdminOrderDetailPage() {
                 </div>
 
                 <div className="pt-2">
-                  <select
+                  <Select
                     value={order.payment_status}
                     disabled={isUpdatingPayment}
-                    onChange={(e) => handlePaymentChange(e.target.value as PaymentStatusValue)}
-                    className="w-full h-8 px-2 text-xs bg-white border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-[#C9A227] cursor-pointer"
+                    onValueChange={(val) => handlePaymentChange(val as PaymentStatusValue)}
                   >
-                    <option value="pending">En attente (Non payé)</option>
-                    <option value="paid">Payé / Encaissé</option>
-                    <option value="refunded">Remboursé</option>
-                  </select>
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending" className="text-xs">En attente (Non payé)</SelectItem>
+                      <SelectItem value="paid" className="text-xs">Payé / Encaissé</SelectItem>
+                      <SelectItem value="refunded" className="text-xs">Remboursé</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </CardContent>
@@ -660,10 +672,10 @@ export default function AdminOrderDetailPage() {
             </AlertDialogHeader>
 
             <div className="py-2 space-y-1.5">
-              <label className="text-xs font-semibold text-foreground">
+              <Label className="text-xs font-semibold text-foreground">
                 Motif ou commentaire d'opération{" "}
                 <span className="text-muted-foreground font-normal">(Optionnel)</span>
-              </label>
+              </Label>
               <Textarea
                 value={transitionReason}
                 onChange={(e) => setTransitionReason(e.target.value)}

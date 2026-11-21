@@ -56,6 +56,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export default function AdminProductsPage() {
   const navigate = useNavigate()
@@ -245,35 +252,43 @@ export default function AdminProductsPage() {
         {/* Dropdowns */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
           {/* Category Filter */}
-          <select
+          <Select
             value={selectedCategory}
-            onChange={(e) => {
-              setSelectedCategory(e.target.value)
+            onValueChange={(val) => {
+              setSelectedCategory(val)
               setCurrentPage(1)
             }}
-            className="h-9 px-3 text-xs bg-white border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
           >
-            <option value="all">Toutes les catégories</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="h-9 w-auto min-w-[160px] text-xs">
+              <SelectValue placeholder="Toutes les catégories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="text-xs">Toutes les catégories</SelectItem>
+              {categories.map((cat) => (
+                <SelectItem key={cat.id} value={String(cat.id)} className="text-xs">
+                  {cat.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           {/* Status Filter */}
-          <select
+          <Select
             value={selectedStatus}
-            onChange={(e) => {
-              setSelectedStatus(e.target.value)
+            onValueChange={(val) => {
+              setSelectedStatus(val)
               setCurrentPage(1)
             }}
-            className="h-9 px-3 text-xs bg-white border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
           >
-            <option value="all">Tous les statuts</option>
-            <option value="active">Actifs (En ligne)</option>
-            <option value="inactive">Inactifs (Masqués)</option>
-          </select>
+            <SelectTrigger className="h-9 w-auto min-w-[140px] text-xs">
+              <SelectValue placeholder="Tous les statuts" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="text-xs">Tous les statuts</SelectItem>
+              <SelectItem value="active" className="text-xs">Actifs (En ligne)</SelectItem>
+              <SelectItem value="inactive" className="text-xs">Inactifs (Masqués)</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

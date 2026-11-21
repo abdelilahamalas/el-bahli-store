@@ -143,13 +143,14 @@ export default function AdminSidebar({ onNavClick }: AdminSidebarProps) {
           <span>Voir la boutique ↗</span>
         </a>
 
-        <button
+        <Button
+          variant="ghost"
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3.5 py-2 text-xs font-medium text-[#888888] hover:text-rose-400 hover:bg-[#151515] rounded-xl transition-colors cursor-pointer text-left"
+          className="w-full flex items-center justify-start gap-3 px-3.5 py-2 text-xs font-medium text-[#888888] hover:text-rose-400 hover:bg-[#151515] rounded-xl h-auto"
         >
           <LogOut className="w-4 h-4 text-[#666666]" />
           <span>Déconnexion</span>
-        </button>
+        </Button>
 
         {/* Copyright conforme à la maquette */}
         <div className="pt-3 pb-1 text-center text-[10px] text-[#555555]">

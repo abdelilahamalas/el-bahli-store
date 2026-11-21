@@ -23,6 +23,13 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export default function AdminStockMovementsPage() {
   const navigate = useNavigate()
@@ -122,21 +129,25 @@ export default function AdminStockMovementsPage() {
         </div>
 
         {/* Filter Type */}
-        <select
-          value={selectedType}
-          onChange={(e) => {
-            setSelectedType(e.target.value)
+        <Select
+          value={selectedType || "__all__"}
+          onValueChange={(val) => {
+            setSelectedType(val === "__all__" ? "" : val)
             setCurrentPage(1)
           }}
-          className="h-9 px-3 text-xs bg-white border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
         >
-          <option value="">Tous les types d'opération</option>
-          <option value="initial_stock">Stock initial</option>
-          <option value="manual_adjustment">Ajustement manuel</option>
-          <option value="order_placed">Sortie commande</option>
-          <option value="order_cancelled">Restitution annulation</option>
-          <option value="return">Retour marchandise</option>
-        </select>
+          <SelectTrigger className="h-9 w-auto min-w-[200px] text-xs">
+            <SelectValue placeholder="Tous les types d'opération" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__all__" className="text-xs">Tous les types d'opération</SelectItem>
+            <SelectItem value="initial_stock" className="text-xs">Stock initial</SelectItem>
+            <SelectItem value="manual_adjustment" className="text-xs">Ajustement manuel</SelectItem>
+            <SelectItem value="order_placed" className="text-xs">Sortie commande</SelectItem>
+            <SelectItem value="order_cancelled" className="text-xs">Restitution annulation</SelectItem>
+            <SelectItem value="return" className="text-xs">Retour marchandise</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Movements Table */}

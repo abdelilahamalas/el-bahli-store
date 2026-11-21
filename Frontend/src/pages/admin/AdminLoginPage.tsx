@@ -200,14 +200,16 @@ export default function AdminLoginPage() {
                     required
                     className="h-10 pr-20 text-xs bg-white border-border rounded-xl focus-visible:ring-[#C9A227] focus-visible:border-[#C9A227]"
                   />
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setShowPassword(!showPassword)}
                     tabIndex={-1}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#C9A227] hover:text-[#B38F1E] cursor-pointer"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#C9A227] hover:text-[#B38F1E] h-8 px-2"
                   >
                     {showPassword ? "Masquer" : "Afficher"}
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -226,13 +228,15 @@ export default function AdminLoginPage() {
                   </Label>
                 </div>
 
-                <button
+                <Button
                   type="button"
+                  variant="link"
+                  size="sm"
                   onClick={() => toast.info("Contactez l'administrateur principal pour réinitialiser vos identifiants.")}
-                  className="text-[#C9A227] hover:underline font-semibold"
+                  className="text-[#C9A227] hover:underline font-semibold text-xs h-auto p-0"
                 >
                   Mot de passe oublié ?
-                </button>
+                </Button>
               </div>
 
               <Button

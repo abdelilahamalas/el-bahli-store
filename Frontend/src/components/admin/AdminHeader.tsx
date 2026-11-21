@@ -128,14 +128,16 @@ export default function AdminHeader() {
               className="pl-9 pr-8 h-9 text-xs bg-white border-border/80 rounded-xl focus-visible:ring-[#C9A227] focus-visible:border-[#C9A227] transition-all w-full"
             />
             {searchQuery && (
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded cursor-pointer"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:text-foreground"
               >
                 <X className="w-3.5 h-3.5" />
                 <span className="sr-only">Effacer la recherche</span>
-              </button>
+              </Button>
             )}
           </div>
         </form>
@@ -168,7 +170,7 @@ export default function AdminHeader() {
       <div className="flex items-center gap-3 shrink-0">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full hover:bg-muted/80 transition-colors cursor-pointer select-none border border-border/60 bg-white shadow-2xs">
+            <Button variant="ghost" className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full hover:bg-muted/80 border border-border/60 bg-white shadow-2xs h-auto">
               <div className="w-7 h-7 rounded-full bg-[#111111] text-white flex items-center justify-center font-extrabold text-xs">
                 {user?.name ? user.name.charAt(0).toUpperCase() : "A"}
               </div>
@@ -176,7 +178,7 @@ export default function AdminHeader() {
                 {user?.name || "Admin"}
               </span>
               <span className="text-[10px] text-muted-foreground">▾</span>
-            </button>
+            </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56 p-1">
             <DropdownMenuLabel className="font-normal px-2 py-1.5">

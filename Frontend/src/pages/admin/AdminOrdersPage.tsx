@@ -136,22 +136,24 @@ export default function AdminOrdersPage() {
         {statusTabs.map((tab) => {
           const isActive = selectedStatus === tab.id
           return (
-            <button
+            <Button
               key={tab.id}
+              variant={isActive ? "default" : "outline"}
+              size="sm"
               onClick={() => {
                 startTransition(() => {
                   setSelectedStatus(tab.id)
                   setCurrentPage(1)
                 })
               }}
-              className={`px-3 py-1.5 rounded-xl whitespace-nowrap transition-colors cursor-pointer text-xs font-semibold ${
+              className={`h-8 px-3 rounded-xl text-xs font-semibold ${
                 isActive
-                  ? "bg-[#111111] text-white shadow-2xs"
-                  : "bg-white text-muted-foreground hover:text-foreground border border-border/70 hover:bg-muted/40"
+                  ? "bg-[#111111] text-white shadow-2xs hover:bg-[#222222]"
+                  : "bg-white text-muted-foreground hover:text-foreground border-border/70 hover:bg-muted/40"
               }`}
             >
               {tab.label}
-            </button>
+            </Button>
           )
         })}
       </div>

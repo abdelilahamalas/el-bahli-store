@@ -39,6 +39,13 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export default function AdminInventoryPage() {
   const [searchParams] = useSearchParams()
@@ -232,36 +239,44 @@ export default function AdminInventoryPage() {
 
         <div className="flex items-center gap-2 overflow-x-auto">
           {/* Category Filter */}
-          <select
-            value={selectedCategory}
-            onChange={(e) => {
-              setSelectedCategory(e.target.value)
+          <Select
+            value={selectedCategory || "__all__"}
+            onValueChange={(val) => {
+              setSelectedCategory(val === "__all__" ? "" : val)
               setCurrentPage(1)
             }}
-            className="h-9 px-3 text-xs bg-white border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
           >
-            <option value="">Toutes les catégories</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="h-9 w-auto min-w-[160px] text-xs">
+              <SelectValue placeholder="Toutes les catégories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__" className="text-xs">Toutes les catégories</SelectItem>
+              {categories.map((c) => (
+                <SelectItem key={c.id} value={String(c.id)} className="text-xs">
+                  {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           {/* Stock Status Filter */}
-          <select
-            value={selectedStockStatus}
-            onChange={(e) => {
-              setSelectedStockStatus(e.target.value)
+          <Select
+            value={selectedStockStatus || "__all__"}
+            onValueChange={(val) => {
+              setSelectedStockStatus(val === "__all__" ? "" : val)
               setCurrentPage(1)
             }}
-            className="h-9 px-3 text-xs bg-white border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-[#C9A227]"
           >
-            <option value="">Tous les états de stock</option>
-            <option value="in_stock">En stock (&gt; 5)</option>
-            <option value="low_stock">Stock faible (&le; 5)</option>
-            <option value="out_of_stock">Rupture (0)</option>
-          </select>
+            <SelectTrigger className="h-9 w-auto min-w-[160px] text-xs">
+              <SelectValue placeholder="Tous les états de stock" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__" className="text-xs">Tous les états de stock</SelectItem>
+            <SelectItem value="in_stock" className="text-xs">En stock (&gt; 5)</SelectItem>
+              <SelectItem value="low_stock" className="text-xs">Stock faible (≤ 5)</SelectItem>
+              <SelectItem value="out_of_stock" className="text-xs">Rupture (0)</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

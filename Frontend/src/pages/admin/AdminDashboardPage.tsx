@@ -333,18 +333,20 @@ export default function AdminDashboardPage() {
                 { id: "month", label: "Ce mois" },
                 { id: "all", label: "Année" },
               ].map((tab) => (
-                <button
+                <Button
                   key={tab.id}
+                  variant="ghost"
+                  size="sm"
                   onClick={() => handlePeriodChange(tab.id)}
                   disabled={loading || isPending}
-                  className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
+                  className={`px-3 py-1 h-auto rounded-lg text-xs ${
                     period === tab.id
-                      ? "bg-[#111111] text-white font-bold shadow-xs"
+                      ? "bg-[#111111] text-white font-bold shadow-xs hover:bg-[#222222]"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   {tab.label}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
