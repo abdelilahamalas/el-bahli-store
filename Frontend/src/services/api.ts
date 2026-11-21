@@ -16,15 +16,22 @@ export const api = axios.create({
 const TOKEN_STORAGE_KEY = "el_bahli_token"
 
 export const getAuthToken = (): string | null => {
-  return localStorage.getItem(TOKEN_STORAGE_KEY)
+  return localStorage.getItem(TOKEN_STORAGE_KEY) || sessionStorage.getItem(TOKEN_STORAGE_KEY)
 }
 
-export const setAuthToken = (token: string): void => {
-  localStorage.setItem(TOKEN_STORAGE_KEY, token)
+export const setAuthToken = (token: string, remember: boolean = false): void => {
+  if (remember) {
+    localStorage.setItem(TOKEN_STORAGE_KEY, token)
+    sessionStorage.removeItem(TOKEN_STORAGE_KEY)
+  } else {
+    sessionStorage.setItem(TOKEN_STORAGE_KEY, token)
+    localStorage.removeItem(TOKEN_STORAGE_KEY)
+  }
 }
 
 export const removeAuthToken = (): void => {
   localStorage.removeItem(TOKEN_STORAGE_KEY)
+  sessionStorage.removeItem(TOKEN_STORAGE_KEY)
 }
 
 // Intercepteur de requête : injection automatique du jeton Bearer

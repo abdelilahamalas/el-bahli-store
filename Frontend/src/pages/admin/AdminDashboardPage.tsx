@@ -18,6 +18,15 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Empty, EmptyTitle, EmptyDescription } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table"
+import { getOrderStatusBadge } from "@/utils/orderStatus"
 
 export default function AdminDashboardPage() {
   const [data, setData] = useState<AdminDashboardData | null>(null)
@@ -156,14 +165,14 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-10">
-      {/* 1. Header du Dashboard (Identique à la maquette de référence) */}
+      {/* 1. Header du Dashboard */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-            Bonjour, Admin
+            Tableau de bord
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-            {todayCapitalized} ·{" "}
+            Vue d'ensemble en temps réel · {todayCapitalized} ·{" "}
             <span className="font-semibold text-foreground">
               {pendingOrdersCount} commande{pendingOrdersCount > 1 ? "s" : ""} à traiter
             </span>
@@ -317,11 +326,8 @@ export default function AdminDashboardPage() {
                 <span className="text-2xl sm:text-3xl font-extrabold text-foreground">
                   {formatMAD(totalRevenue)}
                 </span>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">
-                  +12%
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {currentMonthYearCapitalized}
+                <span className="text-xs font-medium text-muted-foreground">
+                  {period === "week" ? "7 derniers jours" : period === "month" ? currentMonthYearCapitalized : "Année en cours"}
                 </span>
               </div>
             </div>
@@ -664,6 +670,98 @@ export default function AdminDashboardPage() {
           </div>
         </Card>
       </div>
+
+      {/* 5. Section : Dernières commandes passées sur la boutique */}
+      <Card className="border-border bg-white rounded-2xl shadow-2xs overflow-hidden">
+        <CardHeader className="p-5 pb-3 border-b border-border/50 flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-sm font-bold text-foreground">
+              Dernières commandes enregistrées
+            </CardTitle>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Historique récent des commandes passées par les clients
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/admin/orders")}
+            className="text-xs rounded-xl h-8 border-border"
+          >
+            Toutes les commandes &rarr;
+          </Button>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-b border-border/60 bg-muted/20 text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
+                <TableHead className="py-2.5 px-4 font-bold">Référence</TableHead>
+                <TableHead className="py-2.5 px-4 font-bold">Client</TableHead>
+                <TableHead className="py-2.5 px-4 font-bold">Ville</TableHead>
+                <TableHead className="py-2.5 px-4 font-bold">Date</TableHead>
+                <TableHead className="py-2.5 px-4 font-bold">Montant</TableHead>
+                <TableHead className="py-2.5 px-4 font-bold">Statut</TableHead>
+                <TableHead className="py-2.5 px-4 text-right font-bold">Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className="text-xs divide-y divide-border/50">
+              {data?.recent_orders && data.recent_orders.length > 0 ? (
+                data.recent_orders.slice(0, 5).map((order) => (
+                  <TableRow
+                    key={order.id}
+                    onClick={() => navigate(`/admin/orders/${order.id}`)}
+                    className="hover:bg-muted/30 transition-colors cursor-pointer"
+                  >
+                    <TableCell className="py-3 px-4 font-mono font-bold text-foreground">
+                      {order.reference}
+                    </TableCell>
+                    <TableCell className="py-3 px-4 font-semibold text-foreground">
+                      {order.customer_name}
+                    </TableCell>
+                    <TableCell className="py-3 px-4 text-muted-foreground">
+                      {order.city || "Maroc"}
+                    </TableCell>
+                    <TableCell className="py-3 px-4 text-muted-foreground">
+                      {order.created_at
+                        ? new Date(order.created_at).toLocaleDateString("fr-FR", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })
+                        : "Récemment"}
+                    </TableCell>
+                    <TableCell className="py-3 px-4 font-bold text-foreground">
+                      {formatMAD(order.total)}
+                    </TableCell>
+                    <TableCell className="py-3 px-4">
+                      {getOrderStatusBadge(order.status)}
+                    </TableCell>
+                    <TableCell className="py-3 px-4 text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          navigate(`/admin/orders/${order.id}`)
+                        }}
+                        className="h-7 text-xs font-semibold text-muted-foreground hover:text-foreground"
+                      >
+                        Détails &rarr;
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={7} className="py-8 text-center text-muted-foreground text-xs">
+                    Aucune commande récente enregistrée.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   )
 }

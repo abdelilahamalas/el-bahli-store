@@ -4,13 +4,12 @@ import {
   Menu,
   ExternalLink,
   LogOut,
-  Settings,
   Search,
   X,
 } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -116,30 +115,34 @@ export default function AdminHeader() {
           </SheetContent>
         </Sheet>
 
-        {/* Global Functional Search Bar — Placeholder « Rechercher… », Lucide Search at left-3 */}
+        {/* Global Functional Search Bar — InputGroup shadcn */}
         <form onSubmit={handleSearchSubmit} className="relative w-full max-w-xs sm:max-w-sm md:max-w-md">
-          <div className="relative">
-            <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <Input
+          <InputGroup>
+            <InputGroupAddon>
+              <Search className="w-4 h-4 text-muted-foreground" />
+            </InputGroupAddon>
+            <InputGroupInput
               type="search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Rechercher…"
-              className="pl-9 pr-8 h-9 text-xs bg-white border-border/80 rounded-xl focus-visible:ring-[#C9A227] focus-visible:border-[#C9A227] transition-all w-full"
+              aria-label="Recherche globale"
             />
             {searchQuery && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => setSearchQuery("")}
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:text-foreground"
-              >
-                <X className="w-3.5 h-3.5" />
-                <span className="sr-only">Effacer la recherche</span>
-              </Button>
+              <InputGroupAddon align="end">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSearchQuery("")}
+                  className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                  aria-label="Effacer la recherche"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </Button>
+              </InputGroupAddon>
             )}
-          </div>
+          </InputGroup>
         </form>
 
         {/* Official Shadcn/UI Breadcrumb Navigation (sur écrans moyens et grands) */}
@@ -188,12 +191,6 @@ export default function AdminHeader() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link to="/admin/settings" className="cursor-pointer text-xs">
-                <Settings className="w-4 h-4 mr-2 text-muted-foreground" />
-                Paramètres
-              </Link>
-            </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <a href="/" target="_blank" rel="noopener noreferrer" className="cursor-pointer text-xs">
                 <ExternalLink className="w-4 h-4 mr-2 text-muted-foreground" />

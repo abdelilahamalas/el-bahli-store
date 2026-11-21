@@ -12,13 +12,14 @@ import {
   CheckCircle2,
   AlertCircle,
   XCircle,
+  X,
 } from "lucide-react"
 import { toast } from "sonner"
 import { adminService } from "@/services/adminService"
 import type { AdminProduct, AdminCategory } from "@/types/admin"
 import type { PaginationMeta } from "@/types/api"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
@@ -68,6 +69,7 @@ export default function AdminProductsPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const urlSearch = searchParams.get("search") || ""
+  const urlCategory = searchParams.get("category_id") || searchParams.get("category") || "all"
 
   const [products, setProducts] = useState<AdminProduct[]>([])
   const [categories, setCategories] = useState<AdminCategory[]>([])
@@ -76,14 +78,23 @@ export default function AdminProductsPage() {
 
   // Filters
   const [search, setSearch] = useState(urlSearch)
-  const [selectedCategory, setSelectedCategory] = useState<string>("all")
+  const [selectedCategory, setSelectedCategory] = useState<string>(urlCategory)
   const [selectedStatus, setSelectedStatus] = useState<string>("all")
   const [currentPage, setCurrentPage] = useState(1)
 
   useEffect(() => {
     const q = searchParams.get("search") || ""
+    const cat = searchParams.get("category_id") || searchParams.get("category") || "all"
+    let changed = false
     if (q !== search) {
       setSearch(q)
+      changed = true
+    }
+    if (cat !== selectedCategory) {
+      setSelectedCategory(cat)
+      changed = true
+    }
+    if (changed) {
       setCurrentPage(1)
     }
   }, [searchParams])
@@ -239,15 +250,31 @@ export default function AdminProductsPage() {
       {/* Filters Toolbar */}
       <div className="bg-white p-3.5 rounded-lg border border-border shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         {/* Search Input */}
-        <div className="relative flex-1 max-w-sm">
-          <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
-          <Input
+        <InputGroup className="flex-1 max-w-sm">
+          <InputGroupAddon>
+            <Search className="w-4 h-4 text-muted-foreground" />
+          </InputGroupAddon>
+          <InputGroupInput
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher un produit..."
-            className="pl-9 h-9 text-xs bg-muted/30 border-border focus:bg-white"
+            aria-label="Rechercher un produit"
           />
-        </div>
+          {search && (
+            <InputGroupAddon align="end">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => setSearch("")}
+                className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                aria-label="Effacer la recherche"
+              >
+                <X className="w-3.5 h-3.5" />
+              </Button>
+            </InputGroupAddon>
+          )}
+        </InputGroup>
 
         {/* Dropdowns */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">

@@ -20,13 +20,14 @@ class AuthController extends ApiController
         $validated = $request->validate([
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
+            'remember' => ['nullable', 'boolean'],
         ], [
             'email.required' => 'L’adresse email est obligatoire.',
             'email.email' => 'L’adresse email est invalide.',
             'password.required' => 'Le mot de passe est obligatoire.',
         ]);
 
-        $throttleKey = 'admin_api_login|'.strtolower((string) $validated['email']).'|'.$request->ip();
+        $throttleKey = 'admin_api_login|' . strtolower((string) $validated['email']) . '|' . $request->ip();
 
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
             $seconds = RateLimiter::availableIn($throttleKey);
@@ -40,13 +41,13 @@ class AuthController extends ApiController
 
         $user = User::where('email', strtolower((string) $validated['email']))->first();
 
-        if (! $user || ! Hash::check($validated['password'], $user->password)) {
+        if (!$user || !Hash::check($validated['password'], $user->password)) {
             RateLimiter::hit($throttleKey, 300);
 
             return $this->error('Identifiants de connexion incorrects.', null, 401);
         }
 
-        if (! $user->isAdmin()) {
+        if (!$user->isAdmin()) {
             RateLimiter::hit($throttleKey, 300);
 
             return $this->error('Accès refusé. Ce compte ne possède pas les privilèges administrateur.', null, 403);
@@ -54,14 +55,17 @@ class AuthController extends ApiController
 
         RateLimiter::clear($throttleKey);
 
+        $remember = $request->boolean('remember');
+
         // Stateful session support if request is from a stateful domain
         if ($request->hasSession()) {
-            Auth::guard('web')->login($user);
+            Auth::guard('web')->login($user, $remember);
             $request->session()->regenerate();
         }
 
-        // Generate Sanctum Bearer token for decoupled SPA / mobile
-        $token = $user->createToken('admin-api-token', ['admin'])->plainTextToken;
+        // Generate Sanctum Bearer token for decoupled SPA / mobile with appropriate expiry
+        $expiresAt = $remember ? now()->addDays(30) : now()->addHours(12);
+        $token = $user->createToken('admin-api-token', ['admin'], $expiresAt)->plainTextToken;
 
         return $this->success([
             'token' => $token,

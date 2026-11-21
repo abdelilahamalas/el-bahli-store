@@ -10,7 +10,7 @@ interface AuthContextType {
   token: string | null
   isAuthenticated: boolean
   isLoading: boolean
-  login: (token: string, user: AdminUser) => void
+  login: (token: string, user: AdminUser, remember?: boolean) => void
   logout: () => void
 }
 
@@ -19,7 +19,7 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AdminUser | null>(() => {
     try {
-      const stored = localStorage.getItem(USER_STORAGE_KEY)
+      const stored = localStorage.getItem(USER_STORAGE_KEY) || sessionStorage.getItem(USER_STORAGE_KEY)
       return stored ? JSON.parse(stored) : null
     } catch {
       return null
@@ -39,11 +39,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const adminUser = await adminService.getMe()
         setUser(adminUser)
-        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(adminUser))
+        if (localStorage.getItem(USER_STORAGE_KEY)) {
+          localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(adminUser))
+        } else {
+          sessionStorage.setItem(USER_STORAGE_KEY, JSON.stringify(adminUser))
+        }
       } catch {
         // Token invalid or expired
         removeAuthToken()
         localStorage.removeItem(USER_STORAGE_KEY)
+        sessionStorage.removeItem(USER_STORAGE_KEY)
         setTokenState(null)
         setUser(null)
       } finally {
@@ -54,17 +59,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     verifyAuth()
   }, [])
 
-  const login = (newToken: string, newUser: AdminUser) => {
-    setAuthToken(newToken)
+  const login = (newToken: string, newUser: AdminUser, remember: boolean = false) => {
+    setAuthToken(newToken, remember)
     setTokenState(newToken)
     setUser(newUser)
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(newUser))
+    if (remember) {
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(newUser))
+      sessionStorage.removeItem(USER_STORAGE_KEY)
+    } else {
+      sessionStorage.setItem(USER_STORAGE_KEY, JSON.stringify(newUser))
+      localStorage.removeItem(USER_STORAGE_KEY)
+    }
   }
 
   const logout = () => {
     adminService.logout().catch(() => {})
     removeAuthToken()
     localStorage.removeItem(USER_STORAGE_KEY)
+    sessionStorage.removeItem(USER_STORAGE_KEY)
     setTokenState(null)
     setUser(null)
   }

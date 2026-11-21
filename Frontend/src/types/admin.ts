@@ -314,26 +314,45 @@ export interface AdminCategory {
 // Inventaire & Mouvements
 // ----------------------------------------------------------------------------
 
-export interface InventoryItem {
+export interface InventoryVariantItem {
   id: number
-  product_id: number
-  product_name: string
-  category_id: number
-  category_name: string
   size: string
   color: string
   stock: number
   is_active: boolean
-  product_is_active: boolean
-  stock_status: "out_of_stock" | "low_stock" | "in_stock"
+  is_low_stock: boolean
+  is_out_of_stock: boolean
+}
+
+export interface InventoryItem {
+  id: number
+  name: string
+  slug: string
+  category_id: number
+  category_name?: string
+  price: string
+  is_active: boolean
+  image_url: string | null
+  thumbnail_url: string | null
+  total_stock: number
+  stock_status: "disponible" | "stock_faible" | "rupture" | "out_of_stock" | "low_stock" | "in_stock"
+  stock_status_label: string
+  variants: InventoryVariantItem[]
 }
 
 export interface InventoryStats {
   total_units: number
+  total_stock: number
+  total_products: number
   total_variants: number
   in_stock_count: number
   low_stock_count: number
   out_of_stock_count: number
+  products_out_of_stock: number
+  products_low_stock: number
+  estimated_stock_value?: string
+  pending_orders?: number
+  confirmed_orders?: number
 }
 
 export interface StockMovementItem {

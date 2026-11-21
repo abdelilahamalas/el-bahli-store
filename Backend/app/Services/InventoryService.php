@@ -324,6 +324,9 @@ class InventoryService
         $totalProducts = Product::count();
         $totalVariants = ProductSize::count();
         $totalStock = (int) ProductSize::sum('stock');
+        $outOfStockCount = ProductSize::where('stock', '<=', 0)->count();
+        $lowStockCount = ProductSize::where('stock', '>', 0)->where('stock', '<=', $lowThreshold)->count();
+        $inStockCount = ProductSize::where('stock', '>', $lowThreshold)->count();
 
         // Products with total variant stock = 0
         $productsOutOfStock = Product::whereDoesntHave('sizes', function ($query) {
@@ -337,15 +340,25 @@ class InventoryService
             $query->where('stock', '>', 0)->where('stock', '<=', $lowThreshold);
         })->count();
 
+        $estimatedStockValue = (float) DB::table('product_sizes')
+            ->join('products', 'products.id', '=', 'product_sizes.product_id')
+            ->selectRaw('COALESCE(SUM(products.price * product_sizes.stock), 0) as val')
+            ->value('val');
+
         $pendingOrders = Order::where('status', 'pending')->count();
         $confirmedOrders = Order::where('status', 'confirmed')->count();
 
         return [
+            'total_units' => $totalStock,
+            'total_stock' => $totalStock,
             'total_products' => $totalProducts,
             'total_variants' => $totalVariants,
-            'total_stock' => $totalStock,
+            'in_stock_count' => $inStockCount,
+            'low_stock_count' => $lowStockCount,
+            'out_of_stock_count' => $outOfStockCount,
             'products_out_of_stock' => $productsOutOfStock,
             'products_low_stock' => $productsLowStock,
+            'estimated_stock_value' => number_format($estimatedStockValue, 2, '.', ''),
             'pending_orders' => $pendingOrders,
             'confirmed_orders' => $confirmedOrders,
             'low_stock_threshold' => $lowThreshold,
@@ -427,6 +440,7 @@ class InventoryService
                     'size' => $v->size,
                     'color' => $v->color,
                     'stock' => (int) $v->stock,
+                    'is_active' => (bool) ($v->is_active ?? true),
                     'is_low_stock' => (int) $v->stock > 0 && (int) $v->stock <= $lowThreshold,
                     'is_out_of_stock' => (int) $v->stock <= 0,
                 ])->values(),

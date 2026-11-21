@@ -47,12 +47,32 @@ export default function VariantSelector({
     (v) => (v.color || "Standard") === selectedColor
   )
 
-  // Tailles pour cette couleur
-  const sizesForColor = colorVariants.map((v) => ({
-    size: v.size,
-    variant: v,
-    isAvailable: v.stock > 0 && v.is_active,
-  }))
+  // Ordre canonique des tailles streetwear standard
+  const standardSizeOrder: Record<string, number> = {
+    TU: 1, "TAILLE UNIQUE": 1, "ONE SIZE": 1,
+    XS: 2, S: 3, M: 4, L: 5, XL: 6, XXL: 7, "2XL": 7, "3XL": 8, "4XL": 9,
+  }
+
+  // Tailles pour cette couleur triées logiquement (numérique croissant ex: 30, 32, 34 ou XS, S, M, L, XL, XXL)
+  const sizesForColor = colorVariants
+    .map((v) => ({
+      size: v.size,
+      variant: v,
+      isAvailable: v.stock > 0 && v.is_active,
+    }))
+    .sort((a, b) => {
+      const numA = parseInt(a.size, 10)
+      const numB = parseInt(b.size, 10)
+      if (!isNaN(numA) && !isNaN(numB)) {
+        return numA - numB
+      }
+      const ordA = standardSizeOrder[a.size.trim().toUpperCase()] ?? 99
+      const ordB = standardSizeOrder[b.size.trim().toUpperCase()] ?? 99
+      if (ordA !== ordB) {
+        return ordA - ordB
+      }
+      return a.size.localeCompare(b.size)
+    })
 
   // Synchronisation automatique de la variante sélectionnée
   useEffect(() => {
@@ -217,6 +237,40 @@ export default function VariantSelector({
                       </TableRow>
                     </TableBody>
                   </Table>
+                </div>
+
+                <div className="pt-2">
+                  <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground mb-2">
+                    Jeans & Pantalons (Tailles standard US / Numériques)
+                  </h4>
+                  <div className="rounded-xl border overflow-hidden">
+                    <Table>
+                      <TableHeader className="bg-muted/50">
+                        <TableRow>
+                          <TableHead className="font-bold text-center">Taille US</TableHead>
+                          <TableHead className="font-bold text-center">Tour de taille (cm)</TableHead>
+                          <TableHead className="font-bold text-center">Bassin (cm)</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        <TableRow>
+                          <TableCell className="font-bold text-center">30 - 32</TableCell>
+                          <TableCell className="text-center">76 - 82</TableCell>
+                          <TableCell className="text-center">92 - 98</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="font-bold text-center">34 - 36</TableCell>
+                          <TableCell className="text-center">84 - 92</TableCell>
+                          <TableCell className="text-center">100 - 108</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="font-bold text-center">38 - 42</TableCell>
+                          <TableCell className="text-center">94 - 106</TableCell>
+                          <TableCell className="text-center">110 - 120</TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
               </div>
             </DialogContent>

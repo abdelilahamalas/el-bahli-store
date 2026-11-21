@@ -98,6 +98,19 @@ class InventoryController extends ApiController
             $query->where('type', $request->input('type'));
         }
 
+        if ($request->filled('search')) {
+            $search = trim((string) $request->input('search'));
+            $query->where(function ($q) use ($search) {
+                $q->where('reason', 'like', "%{$search}%")
+                    ->orWhereHas('variant.product', function ($pQuery) use ($search) {
+                        $pQuery->where('name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('order', function ($oQuery) use ($search) {
+                        $oQuery->where('reference', 'like', "%{$search}%");
+                    });
+            });
+        }
+
         $perPage = min(max((int) $request->input('per_page', 20), 1), 100);
         $movements = $query->latest()->paginate($perPage);
 

@@ -5,11 +5,14 @@ import {
   ArrowRight,
   Loader2,
   Trash2,
+  Search,
+  X,
 } from "lucide-react"
 import { toast } from "sonner"
 import { adminService } from "@/services/adminService"
 import type { AdminCategory } from "@/types/admin"
 import { Button } from "@/components/ui/button"
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import {
   Table,
   TableHeader,
@@ -41,7 +44,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function AdminCategoriesPage() {
   const [searchParams] = useSearchParams()
-  const searchQuery = searchParams.get("search") || ""
+  const [search, setSearch] = useState(searchParams.get("search") || "")
+  const searchQuery = search
 
   const [categories, setCategories] = useState<AdminCategory[]>([])
   const [loading, setLoading] = useState(true)
@@ -193,9 +197,37 @@ export default function AdminCategoriesPage() {
       {/* 2. Grille à 2 colonnes : Tableau à gauche, Formulaire à droite */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Colonne Gauche : Tableau des catégories (7 colonnes sur lg) */}
-        <div className="lg:col-span-7 bg-white rounded-2xl border border-border/70 shadow-2xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <Table>
+        <div className="lg:col-span-7 space-y-3">
+          {/* Barre de recherche catégorie */}
+          <InputGroup className="w-full">
+            <InputGroupAddon>
+              <Search className="w-4 h-4 text-muted-foreground" />
+            </InputGroupAddon>
+            <InputGroupInput
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Rechercher une catégorie..."
+              aria-label="Rechercher une catégorie"
+            />
+            {search && (
+              <InputGroupAddon align="end">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSearch("")}
+                  className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                  aria-label="Effacer la recherche"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </Button>
+              </InputGroupAddon>
+            )}
+          </InputGroup>
+
+          <div className="bg-white rounded-2xl border border-border/70 shadow-2xs overflow-hidden">
+            <div className="overflow-x-auto">
+              <Table>
               <TableHeader>
                 <TableRow className="border-b border-border/60 hover:bg-transparent">
                   <TableHead className="text-muted-foreground uppercase text-[10px] font-semibold">Nom</TableHead>
@@ -278,7 +310,7 @@ export default function AdminCategoriesPage() {
                           </Button>
 
                           <Link
-                            to={`/admin/products?category=${cat.id}`}
+                            to={`/admin/products?category_id=${cat.id}`}
                             className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-0.5 px-2 py-1 rounded hover:bg-muted/60 transition-colors"
                           >
                             <span>Produits</span>
@@ -304,6 +336,7 @@ export default function AdminCategoriesPage() {
             </Table>
           </div>
         </div>
+      </div>
 
         {/* Colonne Droite : Formulaire d'ajout / modification (5 colonnes sur lg - Exactement comme dans la maquette) */}
         <div className="lg:col-span-5">

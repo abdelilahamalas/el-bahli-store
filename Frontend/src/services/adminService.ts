@@ -20,7 +20,7 @@ export const adminService = {
   // --------------------------------------------------------------------------
   // Authentification
   // --------------------------------------------------------------------------
-  async login(credentials: { email: string; password: string }): Promise<AdminLoginResponse> {
+  async login(credentials: { email: string; password: string; remember?: boolean }): Promise<AdminLoginResponse> {
     const response = await api.post<ApiResponse<AdminLoginResponse>>("/admin/login", credentials)
     return response.data.data
   },

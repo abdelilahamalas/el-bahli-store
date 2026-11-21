@@ -5,12 +5,13 @@ import {
   ShoppingBag,
   RefreshCw,
   Banknote,
+  X,
 } from "lucide-react"
 import { toast } from "sonner"
 import { adminService } from "@/services/adminService"
 import type { AdminOrder } from "@/types/admin"
 import type { PaginationMeta } from "@/types/api"
-import { Input } from "@/components/ui/input"
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import { Button } from "@/components/ui/button"
 import {
   Table,
@@ -158,33 +159,38 @@ export default function AdminOrdersPage() {
         })}
       </div>
 
-      {/* 3. Barre de recherche avec Input shadcn et indicateur COD */}
-      <Card className="border-border/70 shadow-2xs rounded-2xl bg-white p-3">
+      {/* 3. Barre de recherche avec InputGroup shadcn et indicateur COD */}
+      <Card className="border border-border/80 shadow-2xs rounded-2xl bg-white p-3.5">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <Input
+          <InputGroup className="max-w-md">
+            <InputGroupAddon>
+              <Search className="w-4 h-4 text-muted-foreground" />
+            </InputGroupAddon>
+            <InputGroupInput
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Rechercher par référence, nom client, téléphone..."
-              className="pl-9.5 h-9 text-xs"
+              placeholder="Rechercher par référence, client, téléphone..."
+              aria-label="Rechercher une commande"
             />
-          </div>
+            {search && (
+              <InputGroupAddon align="end">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSearch("")}
+                  className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                  aria-label="Effacer la recherche"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </Button>
+              </InputGroupAddon>
+            )}
+          </InputGroup>
 
           <div className="flex items-center gap-2 self-start sm:self-auto">
-            {search && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSearch("")}
-                className="text-xs text-muted-foreground hover:text-foreground h-8"
-              >
-                Effacer
-              </Button>
-            )}
-
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50/70 border border-amber-200 text-amber-900 text-xs font-semibold">
-              <Banknote className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-50/80 border border-amber-200 text-amber-900 text-xs font-semibold">
+              <Banknote className="w-4 h-4 text-amber-600 shrink-0" />
               <span>À encaisser (page) :</span>
               <span className="font-extrabold text-foreground">{formatMAD(totalToCollectOnPage)}</span>
             </div>

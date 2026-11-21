@@ -5,16 +5,24 @@ import {
   Search,
   History,
   Edit3,
+  X,
+  Package,
+  AlertTriangle,
+  XCircle,
+  Coins,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
 } from "lucide-react"
 import { toast } from "sonner"
 import { adminService } from "@/services/adminService"
-import type { InventoryItem, InventoryStats, AdminCategory } from "@/types/admin"
+import type { InventoryItem, InventoryVariantItem, InventoryStats, AdminCategory } from "@/types/admin"
 import type { PaginationMeta } from "@/types/api"
 import { Input } from "@/components/ui/input"
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
-import { Switch } from "@/components/ui/switch"
 import {
   Empty,
   EmptyMedia,
@@ -72,7 +80,8 @@ export default function AdminInventoryPage() {
   }, [searchParams])
 
   // Adjust stock modal state
-  const [adjustingItem, setAdjustingItem] = useState<InventoryItem | null>(null)
+  const [adjustingProduct, setAdjustingProduct] = useState<InventoryItem | null>(null)
+  const [selectedVariant, setSelectedVariant] = useState<InventoryVariantItem | null>(null)
   const [newStockValue, setNewStockValue] = useState<number>(0)
   const [adjustReason, setAdjustReason] = useState<string>("")
   const [isSubmittingAdjust, setIsSubmittingAdjust] = useState(false)
@@ -113,14 +122,26 @@ export default function AdminInventoryPage() {
     return () => clearTimeout(timer)
   }, [search])
 
-  const handleOpenAdjust = (item: InventoryItem) => {
-    setAdjustingItem(item)
-    setNewStockValue(item.stock)
+  const handleOpenAdjust = (product: InventoryItem, variant?: InventoryVariantItem) => {
+    setAdjustingProduct(product)
+    const targetVariant = variant || (product.variants && product.variants.length > 0 ? product.variants[0] : null)
+    setSelectedVariant(targetVariant)
+    setNewStockValue(targetVariant ? targetVariant.stock : 0)
     setAdjustReason("")
   }
 
+  const handleVariantChange = (variantIdStr: string) => {
+    if (!adjustingProduct) return
+    const vId = Number(variantIdStr)
+    const found = adjustingProduct.variants.find((v) => v.id === vId)
+    if (found) {
+      setSelectedVariant(found)
+      setNewStockValue(found.stock)
+    }
+  }
+
   const handleConfirmAdjust = async () => {
-    if (!adjustingItem) return
+    if (!adjustingProduct || !selectedVariant) return
     if (newStockValue < 0) {
       toast.error("La quantité de stock ne peut pas être négative.")
       return
@@ -129,35 +150,20 @@ export default function AdminInventoryPage() {
     setIsSubmittingAdjust(true)
     try {
       await adminService.adjustStock(
-        adjustingItem.id,
+        selectedVariant.id,
         newStockValue,
         adjustReason.trim() || undefined
       )
       toast.success(
-        `Stock mis à jour à ${newStockValue} pour « ${adjustingItem.product_name} (${adjustingItem.size}) »`
+        `Stock mis à jour à ${newStockValue} pour « ${adjustingProduct.name} » (${selectedVariant.size}${selectedVariant.color !== "Standard" ? ` - ${selectedVariant.color}` : ""})`
       )
-      setAdjustingItem(null)
+      setAdjustingProduct(null)
+      setSelectedVariant(null)
       fetchInventory()
     } catch {
       toast.error("Impossible d'ajuster le stock.")
     } finally {
       setIsSubmittingAdjust(false)
-    }
-  }
-
-  const handleToggleVariant = async (item: InventoryItem) => {
-    try {
-      const res = await adminService.toggleVariant(item.id)
-      setItems((prev) =>
-        prev.map((it) => (it.id === item.id ? { ...it, is_active: res.is_active } : it))
-      )
-      toast.success(
-        res.is_active
-          ? `La variante (${item.size} - ${item.color}) est réactivée.`
-          : `La variante (${item.size} - ${item.color}) a été désactivée.`
-      )
-    } catch {
-      toast.error("Impossible de modifier le statut de la variante.")
     }
   }
 
@@ -170,14 +176,14 @@ export default function AdminInventoryPage() {
             Inventaire & Contrôle des stocks
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Suivi des quantités par variante, alertes de réapprovisionnement et ajustements manuels.
+            Suivi des quantités par variante, alertes de réapprovisionnement et ajustements manuels certifiés.
           </p>
         </div>
 
         <Button
           variant="outline"
           asChild
-          className="text-xs font-semibold h-9 gap-2 border-border hover:border-[#C9A227]"
+          className="text-xs font-semibold h-9 gap-2 border-border hover:border-[#C9A227] hover:text-[#C9A227]"
         >
           <Link to="/admin/inventory/movements">
             <History className="w-4 h-4 text-[#C9A227]" />
@@ -188,37 +194,62 @@ export default function AdminInventoryPage() {
 
       {/* Inventory KPI Cards */}
       {stats && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
           <Card className="border-border bg-white shadow-xs p-4">
-            <span className="text-[11px] font-semibold text-muted-foreground uppercase">
-              Total pièces en stock
-            </span>
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase">
+                Unités en stock
+              </span>
+              <Boxes className="w-4 h-4 text-muted-foreground" />
+            </div>
             <div className="text-2xl font-bold text-foreground mt-1">{stats.total_units}</div>
             <p className="text-[10px] text-muted-foreground mt-0.5">
-              Réparties sur {stats.total_variants} variantes
+              {stats.total_variants} variantes actives
             </p>
           </Card>
 
           <Card className="border-border bg-white shadow-xs p-4">
-            <span className="text-[11px] font-semibold text-muted-foreground uppercase">
-              Variantes en stock
-            </span>
-            <div className="text-2xl font-bold text-emerald-700 mt-1">{stats.in_stock_count}</div>
-            <p className="text-[10px] text-emerald-600 mt-0.5">Disponibilité optimale</p>
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase">
+                Valeur estimée
+              </span>
+              <Coins className="w-4 h-4 text-[#C9A227]" />
+            </div>
+            <div className="text-2xl font-bold text-foreground mt-1">
+              {stats.estimated_stock_value ? `${stats.estimated_stock_value} MAD` : "0.00 MAD"}
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-0.5">Au prix de vente actuel</p>
           </Card>
 
           <Card className="border-border bg-white shadow-xs p-4">
-            <span className="text-[11px] font-semibold text-muted-foreground uppercase">
-              Stock faible (&le; 5)
-            </span>
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase">
+                Disponibles
+              </span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            </div>
+            <div className="text-2xl font-bold text-emerald-700 mt-1">{stats.in_stock_count}</div>
+            <p className="text-[10px] text-emerald-600 mt-0.5">Variantes bien approvisionnées</p>
+          </Card>
+
+          <Card className="border-border bg-white shadow-xs p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase">
+                Stock faible (&le; 5)
+              </span>
+              <AlertTriangle className="w-4 h-4 text-amber-500" />
+            </div>
             <div className="text-2xl font-bold text-amber-600 mt-1">{stats.low_stock_count}</div>
             <p className="text-[10px] text-amber-600 mt-0.5">Réassort conseillé</p>
           </Card>
 
-          <Card className="border-border bg-white shadow-xs p-4">
-            <span className="text-[11px] font-semibold text-muted-foreground uppercase">
-              Ruptures de stock
-            </span>
+          <Card className="border-border bg-white shadow-xs p-4 col-span-2 lg:col-span-1">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase">
+                Ruptures
+              </span>
+              <XCircle className="w-4 h-4 text-rose-500" />
+            </div>
             <div className="text-2xl font-bold text-rose-600 mt-1">{stats.out_of_stock_count}</div>
             <p className="text-[10px] text-rose-600 mt-0.5">Articles indisponibles</p>
           </Card>
@@ -227,15 +258,31 @@ export default function AdminInventoryPage() {
 
       {/* Filters Toolbar */}
       <div className="bg-white p-3 rounded-lg border border-border shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
-          <Input
+        <InputGroup className="flex-1 max-w-sm">
+          <InputGroupAddon>
+            <Search className="w-4 h-4 text-muted-foreground" />
+          </InputGroupAddon>
+          <InputGroupInput
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher par article..."
-            className="pl-9 h-9 text-xs bg-muted/20 border-border"
+            placeholder="Rechercher par produit ou catégorie..."
+            aria-label="Rechercher un produit"
           />
-        </div>
+          {search && (
+            <InputGroupAddon align="end">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => setSearch("")}
+                className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                aria-label="Effacer la recherche"
+              >
+                <X className="w-3.5 h-3.5" />
+              </Button>
+            </InputGroupAddon>
+          )}
+        </InputGroup>
 
         <div className="flex items-center gap-2 overflow-x-auto">
           {/* Category Filter */}
@@ -246,7 +293,7 @@ export default function AdminInventoryPage() {
               setCurrentPage(1)
             }}
           >
-            <SelectTrigger className="h-9 w-auto min-w-[160px] text-xs">
+            <SelectTrigger className="h-9 w-auto min-w-[170px] text-xs">
               <SelectValue placeholder="Toutes les catégories" />
             </SelectTrigger>
             <SelectContent>
@@ -267,14 +314,14 @@ export default function AdminInventoryPage() {
               setCurrentPage(1)
             }}
           >
-            <SelectTrigger className="h-9 w-auto min-w-[160px] text-xs">
-              <SelectValue placeholder="Tous les états de stock" />
+            <SelectTrigger className="h-9 w-auto min-w-[170px] text-xs">
+              <SelectValue placeholder="Tous les statuts" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__all__" className="text-xs">Tous les états de stock</SelectItem>
-            <SelectItem value="in_stock" className="text-xs">En stock (&gt; 5)</SelectItem>
-              <SelectItem value="low_stock" className="text-xs">Stock faible (≤ 5)</SelectItem>
-              <SelectItem value="out_of_stock" className="text-xs">Rupture (0)</SelectItem>
+              <SelectItem value="__all__" className="text-xs">Tous les statuts</SelectItem>
+              <SelectItem value="disponible" className="text-xs">En stock (&gt; 5)</SelectItem>
+              <SelectItem value="stock_faible" className="text-xs">Stock faible (&le; 5)</SelectItem>
+              <SelectItem value="rupture" className="text-xs">Rupture de stock (0)</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -286,104 +333,190 @@ export default function AdminInventoryPage() {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/40 hover:bg-muted/40 border-b border-border">
-                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Article</TableHead>
-                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Catégorie</TableHead>
-                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Taille / Couleur</TableHead>
-                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Stock actuel</TableHead>
-                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">État</TableHead>
-                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Active</TableHead>
-                <TableHead className="text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Actions</TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground w-12 text-center">
+                  Aperçu
+                </TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground min-w-[200px]">
+                  Produit
+                </TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Catégorie
+                </TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground min-w-[220px]">
+                  Variantes & Stocks
+                </TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground text-center">
+                  Stock Total
+                </TableHead>
+                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  État
+                </TableHead>
+                <TableHead className="text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Actions
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 [...Array(6)].map((_, i) => (
                   <TableRow key={i} className="animate-pulse">
+                    <TableCell className="py-3.5"><Skeleton className="h-10 w-10 rounded-md" /></TableCell>
                     <TableCell className="py-3.5"><Skeleton className="h-4 w-36" /></TableCell>
                     <TableCell className="py-3.5"><Skeleton className="h-4 w-20" /></TableCell>
-                    <TableCell className="py-3.5"><Skeleton className="h-4 w-24" /></TableCell>
-                    <TableCell className="py-3.5"><Skeleton className="h-4 w-12" /></TableCell>
+                    <TableCell className="py-3.5"><Skeleton className="h-6 w-32 rounded-full" /></TableCell>
+                    <TableCell className="py-3.5 text-center"><Skeleton className="h-4 w-12 mx-auto" /></TableCell>
                     <TableCell className="py-3.5"><Skeleton className="h-5 w-20 rounded" /></TableCell>
-                    <TableCell className="py-3.5"><Skeleton className="h-4 w-6 rounded" /></TableCell>
-                    <TableCell className="py-3.5 text-right"><Skeleton className="h-7 w-20 rounded ml-auto" /></TableCell>
+                    <TableCell className="py-3.5 text-right"><Skeleton className="h-8 w-20 rounded ml-auto" /></TableCell>
                   </TableRow>
                 ))
               ) : items.length > 0 ? (
-                items.map((item) => (
-                  <TableRow key={item.id} className="hover:bg-muted/30 transition-colors">
-                    <TableCell className="py-3 font-semibold text-foreground">
-                      {item.product_name}
-                    </TableCell>
+                items.map((item) => {
+                  const imageUrl = item.thumbnail_url || item.image_url
 
-                    <TableCell className="py-3">
-                      <Badge variant="secondary" className="bg-muted text-muted-foreground font-normal text-[11px]">
-                        {item.category_name}
-                      </Badge>
-                    </TableCell>
+                  return (
+                    <TableRow key={item.id} className="hover:bg-muted/30 transition-colors">
+                      {/* Product Thumbnail */}
+                      <TableCell className="py-3 text-center">
+                        {imageUrl ? (
+                          <img
+                            src={imageUrl}
+                            alt={item.name}
+                            className="w-10 h-10 rounded-md object-cover border border-border bg-muted inline-block"
+                            onError={(e) => {
+                              // Fallback cleanly if image fails to load
+                              e.currentTarget.style.display = "none"
+                              if (e.currentTarget.nextElementSibling) {
+                                (e.currentTarget.nextElementSibling as HTMLElement).style.display = "flex"
+                              }
+                            }}
+                          />
+                        ) : null}
+                        <div
+                          className={`w-10 h-10 rounded-md border border-border bg-muted items-center justify-center text-muted-foreground mx-auto ${imageUrl ? "hidden" : "flex"}`}
+                        >
+                          <Package className="w-5 h-5" />
+                        </div>
+                      </TableCell>
 
-                    <TableCell className="py-3">
-                      <span className="font-bold text-foreground">{item.size}</span>
-                      <span className="text-muted-foreground"> · {item.color}</span>
-                    </TableCell>
-
-                    <TableCell className="py-3 font-bold text-foreground">
-                      {item.stock} pièce(s)
-                    </TableCell>
-
-                    <TableCell className="py-3 whitespace-nowrap">
-                      {item.stock === 0 ? (
-                        <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-200 text-[10px] font-bold">
-                          Rupture
-                        </Badge>
-                      ) : item.stock <= 5 ? (
-                        <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] font-bold">
-                          Faible ({item.stock})
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] font-medium">
-                          En stock
-                        </Badge>
-                      )}
-                    </TableCell>
-
-                    <TableCell className="py-3 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={item.is_active}
-                          onCheckedChange={() => handleToggleVariant(item)}
-                          aria-label={`Activer ou désactiver la variante ${item.size} ${item.color}`}
-                        />
-                        <span className="text-[11px] text-muted-foreground font-medium">
-                          {item.is_active ? "Active" : "Inactive"}
+                      {/* Product Name & Price */}
+                      <TableCell className="py-3">
+                        <Link
+                          to={`/admin/products/${item.id}/edit`}
+                          className="font-bold text-foreground hover:text-[#C9A227] hover:underline transition-colors block text-sm"
+                        >
+                          {item.name}
+                        </Link>
+                        <span className="text-[11px] text-muted-foreground font-mono">
+                          {item.price} MAD
                         </span>
-                      </div>
-                    </TableCell>
+                      </TableCell>
 
-                    <TableCell className="py-3 text-right whitespace-nowrap">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleOpenAdjust(item)}
-                        className="h-7 text-xs border-border hover:border-[#C9A227] hover:text-[#C9A227] gap-1"
-                      >
-                        <Edit3 className="w-3 h-3" />
-                        Ajuster
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
+                      {/* Category Badge */}
+                      <TableCell className="py-3">
+                        <Badge variant="secondary" className="bg-muted text-muted-foreground font-normal text-[11px]">
+                          {item.category_name || "Général"}
+                        </Badge>
+                      </TableCell>
+
+                      {/* Variants & Stock Pills */}
+                      <TableCell className="py-3">
+                        <div className="flex flex-wrap gap-1.5 max-w-sm">
+                          {item.variants && item.variants.length > 0 ? (
+                            item.variants.map((v) => {
+                              const isOutOfStock = v.stock <= 0
+                              const isLowStock = v.stock > 0 && v.stock <= 5
+
+                              return (
+                                <button
+                                  key={v.id}
+                                  type="button"
+                                  onClick={() => handleOpenAdjust(item, v)}
+                                  title={`Cliquer pour ajuster le stock de cette variante (${v.size} - ${v.color})`}
+                                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold border transition-all hover:scale-105 cursor-pointer ${
+                                    isOutOfStock
+                                      ? "bg-rose-50 text-rose-700 border-rose-200 line-through opacity-80"
+                                      : isLowStock
+                                      ? "bg-amber-50 text-amber-800 border-amber-200"
+                                      : "bg-emerald-50 text-emerald-800 border-emerald-200"
+                                  }`}
+                                >
+                                  <span>{v.size}</span>
+                                  {v.color !== "Standard" && (
+                                    <span className="text-[9px] opacity-75">({v.color})</span>
+                                  )}
+                                  <span className="font-extrabold ml-0.5">:{v.stock}</span>
+                                </button>
+                              )
+                            })
+                          ) : (
+                            <span className="text-xs text-muted-foreground italic">
+                              Aucune variante
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+
+                      {/* Total Stock */}
+                      <TableCell className="py-3 text-center font-extrabold text-foreground text-sm">
+                        {item.total_stock} pcs
+                      </TableCell>
+
+                      {/* Stock Status */}
+                      <TableCell className="py-3 whitespace-nowrap">
+                        {item.total_stock === 0 ? (
+                          <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-200 text-[10px] font-bold">
+                            Rupture
+                          </Badge>
+                        ) : item.total_stock <= 5 ? (
+                          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] font-bold">
+                            Faible ({item.total_stock})
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] font-medium">
+                            En stock
+                          </Badge>
+                        )}
+                      </TableCell>
+
+                      {/* Actions */}
+                      <TableCell className="py-3 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenAdjust(item)}
+                            className="h-8 text-xs border-border hover:border-[#C9A227] hover:text-[#C9A227] gap-1 font-semibold"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                            Ajuster
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            asChild
+                            className="h-8 text-xs text-muted-foreground hover:text-foreground"
+                          >
+                            <Link to={`/admin/inventory/movements?search=${encodeURIComponent(item.name)}`}>
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </Link>
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
               ) : (
                 <TableRow>
                   <TableCell colSpan={7} className="py-12 text-center">
                     <Empty className="border-none py-4">
                       <EmptyMedia>
-                        <Boxes className="w-5 h-5 text-muted-foreground" />
+                        <Boxes className="w-6 h-6 text-muted-foreground" />
                       </EmptyMedia>
-                      <EmptyTitle>Aucune variante trouvée</EmptyTitle>
+                      <EmptyTitle>Aucun article trouvé dans l'inventaire</EmptyTitle>
                       <EmptyDescription>
                         {search || selectedCategory || selectedStockStatus
                           ? "Aucun article ne correspond à vos filtres actuels."
-                          : "Les variantes d'articles s'afficheront ici."}
+                          : "Les articles enregistrés apparaîtront ici."}
                       </EmptyDescription>
                     </Empty>
                   </TableCell>
@@ -393,12 +526,12 @@ export default function AdminInventoryPage() {
           </Table>
         </div>
 
-        {/* Pagination Bar */}
+        {/* Segmented Shadcn Pagination Bar */}
         {pagination && pagination.last_page > 1 && (
-          <div className="py-3 px-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
+          <div className="py-3 px-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
             <span>
-              Affichage de {pagination.from || 1} à {pagination.to || items.length} sur{" "}
-              {pagination.total} variantes
+              Affichage de {((currentPage - 1) * 20) + 1} à {Math.min(currentPage * 20, pagination.total)} sur{" "}
+              {pagination.total} articles
             </span>
             <div className="flex items-center gap-1.5">
               <Button
@@ -406,21 +539,29 @@ export default function AdminInventoryPage() {
                 size="sm"
                 disabled={currentPage <= 1 || loading}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="h-8 text-xs"
+                className="h-8 text-xs gap-1 border-border"
               >
+                <ChevronLeft className="w-3.5 h-3.5" />
                 Précédent
               </Button>
-              <span className="px-2 font-medium text-foreground">
-                Page {currentPage} sur {pagination.last_page}
-              </span>
+              <div className="flex items-center gap-1 px-1">
+                <span className="h-8 min-w-[32px] px-2 rounded-md bg-[#111111] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                  {currentPage}
+                </span>
+                <span className="text-xs text-muted-foreground px-1">sur</span>
+                <span className="h-8 min-w-[32px] px-2 rounded-md border border-border bg-white text-foreground flex items-center justify-center font-semibold text-xs">
+                  {pagination.last_page}
+                </span>
+              </div>
               <Button
                 variant="outline"
                 size="sm"
                 disabled={currentPage >= pagination.last_page || loading}
                 onClick={() => setCurrentPage((p) => Math.min(pagination.last_page, p + 1))}
-                className="h-8 text-xs"
+                className="h-8 text-xs gap-1 border-border"
               >
                 Suivant
+                <ChevronRight className="w-3.5 h-3.5" />
               </Button>
             </div>
           </div>
@@ -428,76 +569,149 @@ export default function AdminInventoryPage() {
       </Card>
 
       {/* Stock Adjustment Dialog */}
-      <Dialog open={!!adjustingItem} onOpenChange={(open) => !open && setAdjustingItem(null)}>
+      <Dialog
+        open={!!adjustingProduct}
+        onOpenChange={(open) => {
+          if (!open) {
+            setAdjustingProduct(null)
+            setSelectedVariant(null)
+          }
+        }}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Boxes className="w-5 h-5 text-[#C9A227]" />
-              Ajustement manuel du stock
+            <DialogTitle className="text-base font-bold flex items-center gap-2">
+              <Boxes className="w-4 h-4 text-[#C9A227]" />
+              Ajustement manuel de stock
             </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground">
-              Modifiez la quantité en stock pour la variante sélectionnée. Un mouvement d'audit sera
-              automatiquement enregistré.
+            <DialogDescription className="text-xs">
+              Modifiez le stock d'une variante avec traçabilité complète dans le journal d'audit.
             </DialogDescription>
           </DialogHeader>
 
-          {adjustingItem && (
-            <div className="space-y-4 py-2 text-xs">
-              <div className="p-3 rounded-lg bg-muted/40 border border-border space-y-1">
-                <p className="font-bold text-foreground text-sm">{adjustingItem.product_name}</p>
-                <p className="text-muted-foreground">
-                  Taille : <span className="font-semibold text-foreground">{adjustingItem.size}</span> · Couleur :{" "}
-                  <span className="font-semibold text-foreground">{adjustingItem.color}</span>
-                </p>
-                <p className="text-muted-foreground">
-                  Stock actuel : <span className="font-bold text-foreground">{adjustingItem.stock}</span> pièces
-                </p>
+          {adjustingProduct && (
+            <div className="space-y-4 py-2">
+              {/* Product mini summary */}
+              <div className="p-3 bg-muted/40 rounded-lg border border-border flex items-center gap-3">
+                {adjustingProduct.thumbnail_url || adjustingProduct.image_url ? (
+                  <img
+                    src={adjustingProduct.thumbnail_url || adjustingProduct.image_url || ""}
+                    alt={adjustingProduct.name}
+                    className="w-11 h-11 rounded-md object-cover border border-border bg-muted"
+                  />
+                ) : (
+                  <div className="w-11 h-11 rounded-md border border-border bg-muted flex items-center justify-center text-muted-foreground">
+                    <Package className="w-5 h-5" />
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-xs text-foreground truncate">
+                    {adjustingProduct.name}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    Catégorie : {adjustingProduct.category_name || "Général"} · Prix : {adjustingProduct.price} MAD
+                  </p>
+                </div>
               </div>
 
+              {/* Variant Selector */}
               <div className="space-y-1.5">
-                <Label htmlFor="newStock" className="text-xs font-semibold">
-                  Nouvelle quantité en stock <span className="text-rose-500">*</span>
+                <Label className="text-xs font-semibold">Variante à ajuster</Label>
+                {adjustingProduct.variants && adjustingProduct.variants.length > 1 ? (
+                  <Select
+                    value={selectedVariant ? String(selectedVariant.id) : ""}
+                    onValueChange={handleVariantChange}
+                  >
+                    <SelectTrigger className="h-9 text-xs">
+                      <SelectValue placeholder="Sélectionnez une variante" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {adjustingProduct.variants.map((v) => (
+                        <SelectItem key={v.id} value={String(v.id)} className="text-xs">
+                          Taille {v.size} {v.color !== "Standard" ? `(${v.color})` : ""} — Stock actuel : {v.stock} pcs
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : selectedVariant ? (
+                  <div className="p-2.5 rounded-md border border-border bg-white text-xs font-medium">
+                    Taille : <span className="font-bold">{selectedVariant.size}</span> · Couleur : {selectedVariant.color} · Stock actuel : <span className="font-bold text-[#C9A227]">{selectedVariant.stock} pcs</span>
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">Aucune variante disponible</p>
+                )}
+              </div>
+
+              {/* New Stock Input */}
+              <div className="space-y-1.5">
+                <Label htmlFor="new-stock" className="text-xs font-semibold">
+                  Nouveau stock disponible (unités physiques)
                 </Label>
                 <Input
-                  id="newStock"
+                  id="new-stock"
                   type="number"
                   min="0"
                   value={newStockValue}
-                  onChange={(e) => setNewStockValue(Math.max(0, parseInt(e.target.value) || 0))}
-                  className="h-9 text-xs"
+                  onChange={(e) => setNewStockValue(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                  placeholder="0"
+                  className="h-9 text-sm font-bold font-mono"
                 />
+                {selectedVariant && (
+                  <p className="text-[11px] text-muted-foreground">
+                    Différence constatée :{" "}
+                    <span
+                      className={`font-bold ${
+                        newStockValue - selectedVariant.stock >= 0
+                          ? "text-emerald-600"
+                          : "text-rose-600"
+                      }`}
+                    >
+                      {newStockValue - selectedVariant.stock >= 0 ? "+" : ""}
+                      {newStockValue - selectedVariant.stock} unité(s)
+                    </span>
+                  </p>
+                )}
               </div>
 
+              {/* Reason Input */}
               <div className="space-y-1.5">
-                <Label htmlFor="adjustReason" className="text-xs font-semibold">
-                  Motif de l'ajustement <span className="text-muted-foreground font-normal">(Optionnel)</span>
+                <Label htmlFor="adjust-reason" className="text-xs font-semibold">
+                  Motif de l'ajustement (optionnel)
                 </Label>
                 <Input
-                  id="adjustReason"
+                  id="adjust-reason"
+                  type="text"
                   value={adjustReason}
                   onChange={(e) => setAdjustReason(e.target.value)}
-                  placeholder="Ex: Arrivage atelier, correction inventaire physique..."
+                  placeholder="Ex : Réassort atelier, inventaire de fin de mois, retour client..."
                   className="h-9 text-xs"
                 />
               </div>
             </div>
           )}
 
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-0">
             <Button
+              type="button"
               variant="outline"
+              size="sm"
+              onClick={() => {
+                setAdjustingProduct(null)
+                setSelectedVariant(null)
+              }}
               disabled={isSubmittingAdjust}
-              onClick={() => setAdjustingItem(null)}
-              className="text-xs h-9"
+              className="text-xs"
             >
               Annuler
             </Button>
             <Button
-              disabled={isSubmittingAdjust}
+              type="button"
+              size="sm"
               onClick={handleConfirmAdjust}
-              className="bg-[#111111] hover:bg-[#252525] text-white text-xs font-semibold h-9 shadow-xs"
+              disabled={isSubmittingAdjust || !selectedVariant}
+              className="bg-[#111111] hover:bg-[#0D0D0D] text-white text-xs font-bold gap-1.5"
             >
-              {isSubmittingAdjust ? "Enregistrement..." : "Appliquer l'ajustement"}
+              {isSubmittingAdjust ? "Enregistrement..." : "Enregistrer le stock"}
             </Button>
           </DialogFooter>
         </DialogContent>

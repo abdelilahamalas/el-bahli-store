@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { ArrowLeft, History, ArrowDown, ArrowUp, Minus, Calendar } from "lucide-react"
+import { ArrowLeft, History, ArrowDown, ArrowUp, Minus, Calendar, Search, X } from "lucide-react"
 import { toast } from "sonner"
 import { adminService } from "@/services/adminService"
 import type { StockMovementItem } from "@/types/admin"
@@ -8,6 +8,7 @@ import type { PaginationMeta } from "@/types/api"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import {
   Empty,
   EmptyMedia,
@@ -39,6 +40,7 @@ export default function AdminStockMovementsPage() {
 
   // Filters
   const [selectedType, setSelectedType] = useState<string>("")
+  const [search, setSearch] = useState<string>("")
   const [currentPage, setCurrentPage] = useState(1)
 
   const fetchMovements = async () => {
@@ -49,6 +51,7 @@ export default function AdminStockMovementsPage() {
         per_page: 20,
       }
       if (selectedType) params.type = selectedType
+      if (search.trim()) params.search = search.trim()
 
       const res = await adminService.getStockMovements(params)
       setMovements(res.movements)
@@ -62,7 +65,7 @@ export default function AdminStockMovementsPage() {
 
   useEffect(() => {
     fetchMovements()
-  }, [currentPage, selectedType])
+  }, [currentPage, selectedType, search])
 
   const renderTypeBadge = (type: string) => {
     switch (type) {
@@ -127,6 +130,41 @@ export default function AdminStockMovementsPage() {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Toolbar Filters: Search + Operation Type */}
+      <div className="bg-white p-3 rounded-xl border border-border shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <InputGroup className="flex-1 max-w-sm">
+          <InputGroupAddon>
+            <Search className="w-4 h-4 text-muted-foreground" />
+          </InputGroupAddon>
+          <InputGroupInput
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              setCurrentPage(1)
+            }}
+            placeholder="Rechercher par article, référence, motif..."
+            aria-label="Rechercher un mouvement"
+          />
+          {search && (
+            <InputGroupAddon align="end">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setSearch("")
+                  setCurrentPage(1)
+                }}
+                className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                aria-label="Effacer la recherche"
+              >
+                <X className="w-3.5 h-3.5" />
+              </Button>
+            </InputGroupAddon>
+          )}
+        </InputGroup>
 
         {/* Filter Type */}
         <Select

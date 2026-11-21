@@ -199,15 +199,6 @@ class OrderService
                 'reason' => $reason,
             ]);
 
-            // Log status history
-            OrderStatusHistory::create([
-                'order_id' => $lockedOrder->id,
-                'user_id' => $userId,
-                'from_status' => $oldStatus->value,
-                'to_status' => $newStatus->value,
-                'reason' => $reason,
-            ]);
-
             $this->auditService->log('order.status_transition', $lockedOrder, [
                 'reference' => $lockedOrder->reference,
                 'from_status' => $oldStatus->value,

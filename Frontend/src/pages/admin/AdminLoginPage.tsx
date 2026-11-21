@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react"
 import { useNavigate, useLocation, Navigate } from "react-router-dom"
-import { Check, Loader2, AlertCircle } from "lucide-react"
+import { Loader2, AlertCircle, Eye, EyeOff } from "lucide-react"
 import { toast } from "sonner"
 import { useAuth } from "@/hooks/useAuth"
 import { adminService } from "@/services/adminService"
@@ -45,9 +45,10 @@ export default function AdminLoginPage() {
       const response = await adminService.login({
         email: email.trim(),
         password,
+        remember: rememberMe,
       })
 
-      login(response.token, response.user)
+      login(response.token, response.user, rememberMe)
       toast.success(`Bienvenue, ${response.user.name}`)
 
       const destination = (location.state as { from?: { pathname: string } })?.from?.pathname || "/admin"
@@ -68,108 +69,47 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen w-full flex bg-[#F9F9F8]">
-      {/* 1. Colonne Gauche Sombre — Identique à la maquette de référence */}
-      <div className="hidden lg:flex lg:w-1/2 bg-[#0D0D0D] text-white p-12 xl:p-16 flex-col justify-between select-none relative overflow-hidden">
-        {/* Logo officiel en médaillon circulaire avec bordure or */}
-        <div className="flex items-center gap-3">
-          <div className="w-14 h-14 rounded-full overflow-hidden border border-[#C9A227]/70 bg-black flex items-center justify-center p-0.5 shadow-sm">
-            <img
-              src={logoImg}
-              alt="Logo officiel El Bahli Store"
-              className="w-full h-full object-cover rounded-full"
-            />
-          </div>
-          <div>
-            <span className="font-extrabold text-sm tracking-widest text-[#C9A227] uppercase block">
-              EL BAHLI
-            </span>
-            <span className="font-bold text-xs tracking-wider text-white uppercase block">
-              STORE
-            </span>
-          </div>
-        </div>
-
-        {/* Bloc central avec titre et checkmarks */}
-        <div className="max-w-md space-y-6 my-auto py-12">
-          <h1 className="text-3xl xl:text-4xl font-extrabold tracking-tight text-white leading-tight">
-            Espace administrateur
-          </h1>
-          <p className="text-sm text-neutral-400 leading-relaxed">
-            Gérez vos commandes, vos produits, vos catégories et votre stock depuis un seul endroit.
-          </p>
-
-          <div className="space-y-3.5 pt-2">
-            <div className="flex items-center gap-3 text-sm text-neutral-200">
-              <span className="w-5 h-5 rounded-full bg-[#C9A227]/20 text-[#C9A227] flex items-center justify-center shrink-0">
-                <Check className="w-3.5 h-3.5 stroke-[3]" />
-              </span>
-              <span>Voir et confirmer les commandes</span>
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#F5F5F5] p-4 sm:p-6 select-none">
+      <div className="w-full max-w-[420px] space-y-4">
+        {/* Card centrale unique */}
+        <Card className="rounded-2xl border border-border bg-white shadow-sm overflow-hidden">
+          <CardHeader className="items-center space-y-3 text-center pt-8 pb-4">
+            {/* Logo officiel circulaire avec anneau or */}
+            <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#C9A227] bg-black p-0.5 shadow-sm transition-transform hover:scale-105 duration-200">
+              <img
+                src={logoImg}
+                alt="Logo officiel El Bahli Store"
+                className="w-full h-full object-cover rounded-full"
+              />
             </div>
 
-            <div className="flex items-center gap-3 text-sm text-neutral-200">
-              <span className="w-5 h-5 rounded-full bg-[#C9A227]/20 text-[#C9A227] flex items-center justify-center shrink-0">
-                <Check className="w-3.5 h-3.5 stroke-[3]" />
-              </span>
-              <span>Ajouter ou supprimer des produits par catégorie</span>
+            <div>
+              <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
+                Connexion administrateur
+              </CardTitle>
+              <CardDescription className="text-xs text-muted-foreground mt-1">
+                Accédez à votre espace de gestion.
+              </CardDescription>
             </div>
-
-            <div className="flex items-center gap-3 text-sm text-neutral-200">
-              <span className="w-5 h-5 rounded-full bg-[#C9A227]/20 text-[#C9A227] flex items-center justify-center shrink-0">
-                <Check className="w-3.5 h-3.5 stroke-[3]" />
-              </span>
-              <span>Suivre le stock et les encaissements</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Copyright conforme à la maquette */}
-        <div className="text-xs text-neutral-500">
-          © 2026 El Bahli Store · Tous droits réservés
-        </div>
-      </div>
-
-      {/* 2. Colonne Droite Claire — Formulaire de connexion propre */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12">
-        <Card className="w-full max-w-md bg-white rounded-2xl border-border/70 shadow-xs">
-          <CardHeader className="space-y-1 pb-4">
-            {/* Mobile Header (Affiché uniquement sur petits écrans) */}
-            <div className="lg:hidden text-center pb-2">
-              <div className="w-14 h-14 mx-auto rounded-full overflow-hidden border border-[#C9A227]/70 bg-black flex items-center justify-center p-0.5 mb-2 shadow-sm">
-                <img
-                  src={logoImg}
-                  alt="Logo officiel El Bahli Store"
-                  className="w-full h-full object-cover rounded-full"
-                />
-              </div>
-              <span className="font-extrabold text-sm tracking-widest text-[#C9A227] uppercase">
-                EL BAHLI STORE
-              </span>
-            </div>
-
-            <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
-              Connexion
-            </CardTitle>
-            <CardDescription className="text-xs text-muted-foreground">
-              Entrez votre email et votre mot de passe administrateur.
-            </CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-4">
+          <CardContent className="px-6 sm:px-8 py-2">
+            {/* Message d'erreur en alerte shadcn/ui */}
             {errorMessage && (
-              <Alert variant="destructive" className="py-2.5 px-3">
-                <AlertCircle className="w-4 h-4 text-destructive shrink-0" />
-                <div className="ml-2">
-                  <AlertTitle className="text-xs font-bold">Erreur de connexion</AlertTitle>
-                  <AlertDescription className="text-xs">{errorMessage}</AlertDescription>
-                </div>
+              <Alert variant="destructive" className="mb-5 rounded-xl border-rose-200 bg-rose-50 text-rose-900">
+                <AlertCircle className="w-4 h-4 text-rose-600" />
+                <AlertTitle className="text-xs font-semibold">Erreur de connexion</AlertTitle>
+                <AlertDescription className="text-xs mt-0.5 text-rose-700">
+                  {errorMessage}
+                </AlertDescription>
               </Alert>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Champ Email */}
               <div className="space-y-1.5">
                 <Label htmlFor="email" className="text-xs font-semibold text-foreground">
-                  Email
+                  Adresse e-mail
                 </Label>
                 <Input
                   id="email"
@@ -184,10 +124,13 @@ export default function AdminLoginPage() {
                 />
               </div>
 
+              {/* Champ Mot de passe avec toggle Eye / EyeOff */}
               <div className="space-y-1.5">
-                <Label htmlFor="password" className="text-xs font-semibold text-foreground">
-                  Mot de passe
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password" className="text-xs font-semibold text-foreground">
+                    Mot de passe
+                  </Label>
+                </div>
                 <div className="relative">
                   <Input
                     id="password"
@@ -198,21 +141,27 @@ export default function AdminLoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={isLoading}
                     required
-                    className="h-10 pr-20 text-xs bg-white border-border rounded-xl focus-visible:ring-[#C9A227] focus-visible:border-[#C9A227]"
+                    className="h-10 pr-10 text-xs bg-white border-border rounded-xl focus-visible:ring-[#C9A227] focus-visible:border-[#C9A227]"
                   />
                   <Button
                     type="button"
                     variant="ghost"
-                    size="sm"
+                    size="icon"
                     onClick={() => setShowPassword(!showPassword)}
                     tabIndex={-1}
-                    className="absolute right-1 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#C9A227] hover:text-[#B38F1E] h-8 px-2"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground hover:text-foreground"
+                    aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                   >
-                    {showPassword ? "Masquer" : "Afficher"}
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="w-4 h-4 text-muted-foreground" />
+                    )}
                   </Button>
                 </div>
               </div>
 
+              {/* Se souvenir de moi & Mot de passe oublié */}
               <div className="flex items-center justify-between text-xs pt-1">
                 <div className="flex items-center space-x-2">
                   <Checkbox
@@ -232,18 +181,19 @@ export default function AdminLoginPage() {
                   type="button"
                   variant="link"
                   size="sm"
-                  onClick={() => toast.info("Contactez l'administrateur principal pour réinitialiser vos identifiants.")}
-                  className="text-[#C9A227] hover:underline font-semibold text-xs h-auto p-0"
+                  onClick={() => toast.info("Contactez l'administrateur système pour réinitialiser vos identifiants.")}
+                  className="text-xs text-[#C9A227] hover:underline p-0 h-auto font-medium"
                 >
                   Mot de passe oublié ?
                 </Button>
               </div>
 
+              {/* Bouton de connexion */}
               <Button
                 type="submit"
                 disabled={isLoading}
                 variant="gold"
-                className="w-full h-11 text-xs rounded-xl shadow-xs transition-colors mt-2 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full h-10 text-xs font-bold rounded-xl shadow-xs transition-all mt-3 flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isLoading ? (
                   <>
@@ -257,13 +207,18 @@ export default function AdminLoginPage() {
             </form>
           </CardContent>
 
-          <CardFooter className="pt-2 pb-6 border-t border-border/50 justify-center">
-            {/* Note de sécurité conforme à la maquette */}
+          <CardFooter className="px-6 sm:px-8 pt-4 pb-6 border-t border-border/50 justify-center">
+            {/* Note de sécurité officielle */}
             <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
               Accès réservé à l'administrateur. Après plusieurs tentatives échouées, la connexion est bloquée quelques minutes.
             </p>
           </CardFooter>
         </Card>
+
+        {/* Copyright discret en bas */}
+        <div className="text-center text-[11px] text-muted-foreground">
+          © 2026 El Bahli Store · Tous droits réservés
+        </div>
       </div>
     </div>
   )

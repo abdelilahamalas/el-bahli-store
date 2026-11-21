@@ -9,6 +9,7 @@ import {
   Plus,
   LogOut,
   ExternalLink,
+  History,
 } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { Button } from "@/components/ui/button"
@@ -27,10 +28,10 @@ export default function AdminSidebar({ onNavClick }: AdminSidebarProps) {
     navigate("/admin/login")
   }
 
-  // Les 6 rubriques officielles requises
+  // Navigation officielle requise (9 rubriques)
   const navItems = [
     {
-      label: "Vue d’ensemble",
+      label: "Dashboard",
       to: "/admin",
       icon: LayoutDashboard,
       end: true,
@@ -42,22 +43,28 @@ export default function AdminSidebar({ onNavClick }: AdminSidebarProps) {
       end: false,
     },
     {
+      label: "Catégories",
+      to: "/admin/categories",
+      icon: FolderTree,
+      end: false,
+    },
+    {
       label: "Commandes",
       to: "/admin/orders",
       icon: ShoppingBag,
       end: false,
     },
     {
-      label: "Gestion du stock",
+      label: "Inventaire",
       to: "/admin/inventory",
       icon: Boxes,
-      end: false,
+      end: true,
     },
     {
-      label: "Catégories",
-      to: "/admin/categories",
-      icon: FolderTree,
-      end: false,
+      label: "Mouvements de stock",
+      to: "/admin/inventory/movements",
+      icon: History,
+      end: true,
     },
     {
       label: "Paramètres",

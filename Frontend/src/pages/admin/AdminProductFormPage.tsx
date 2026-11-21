@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent, type ChangeEvent } from "react"
-import { useParams, useNavigate } from "react-router-dom"
+import { useParams, useNavigate, useSearchParams } from "react-router-dom"
 import {
   ArrowLeft,
   Upload,
@@ -46,12 +46,16 @@ interface VariantRow {
 
 export default function AdminProductFormPage() {
   const { id } = useParams<{ id: string }>()
+  const [searchParams] = useSearchParams()
+  const initialCatParam = searchParams.get("category_id")
   const isEditMode = Boolean(id)
   const navigate = useNavigate()
 
   // Base product fields
   const [name, setName] = useState("")
-  const [categoryId, setCategoryId] = useState<number | "">("")
+  const [categoryId, setCategoryId] = useState<number | "">(
+    initialCatParam ? Number(initialCatParam) : ""
+  )
   const [price, setPrice] = useState<string>("")
   const [promotionalPrice, setPromotionalPrice] = useState<string>("")
   const [description, setDescription] = useState("")
