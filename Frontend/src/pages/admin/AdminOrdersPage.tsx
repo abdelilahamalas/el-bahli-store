@@ -147,10 +147,10 @@ export default function AdminOrdersPage() {
                   setCurrentPage(1)
                 })
               }}
-              className={`h-8 px-3 rounded-xl text-xs font-semibold ${
+              className={`h-8 px-3.5 rounded-xl text-xs font-semibold cursor-pointer transition-colors duration-100 ${
                 isActive
-                  ? "bg-[#111111] text-white shadow-2xs hover:bg-[#222222]"
-                  : "bg-white text-muted-foreground hover:text-foreground border-border/70 hover:bg-muted/40"
+                  ? "bg-[#18181B] text-white border border-[#27272A] shadow-xs hover:bg-[#27272A]"
+                  : "bg-white text-zinc-600 hover:text-zinc-950 border border-zinc-200/80 hover:bg-zinc-50"
               }`}
             >
               {tab.label}
@@ -160,7 +160,7 @@ export default function AdminOrdersPage() {
       </div>
 
       {/* 3. Barre de recherche avec InputGroup shadcn et indicateur COD */}
-      <Card className="border border-border/80 shadow-2xs rounded-2xl bg-white p-3.5">
+      <Card className="border border-zinc-200/80 shadow-2xs rounded-2xl bg-white p-3.5">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <InputGroup className="max-w-md">
             <InputGroupAddon>
@@ -179,7 +179,7 @@ export default function AdminOrdersPage() {
                   variant="ghost"
                   size="icon"
                   onClick={() => setSearch("")}
-                  className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                  className="h-6 w-6 text-muted-foreground hover:text-foreground cursor-pointer"
                   aria-label="Effacer la recherche"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -189,31 +189,31 @@ export default function AdminOrdersPage() {
           </InputGroup>
 
           <div className="flex items-center gap-2 self-start sm:self-auto">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-50/80 border border-amber-200 text-amber-900 text-xs font-semibold">
+            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-amber-50/90 border border-amber-200 text-amber-900 text-xs font-semibold shadow-2xs">
               <Banknote className="w-4 h-4 text-amber-600 shrink-0" />
-              <span>À encaisser (page) :</span>
-              <span className="font-extrabold text-foreground">{formatMAD(totalToCollectOnPage)}</span>
+              <span className="text-zinc-600">À encaisser (page) :</span>
+              <span className="font-extrabold text-zinc-950">{formatMAD(totalToCollectOnPage)}</span>
             </div>
           </div>
         </div>
       </Card>
 
-      {/* 4. Tableau shadcn/ui officiel (Table, TableHeader, TableRow, TableHead, TableCell) */}
-      <Card className="border-border/70 shadow-2xs rounded-2xl bg-white overflow-hidden">
+      {/* 4. Tableau shadcn/ui moderne et épuré */}
+      <Card className="border border-zinc-200/80 shadow-2xs rounded-2xl bg-white overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow className="border-b border-border/70 bg-muted/30 text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
-              <TableHead className="py-3 px-4 font-bold">Référence</TableHead>
-              <TableHead className="py-3 px-4 font-bold">Client</TableHead>
-              <TableHead className="py-3 px-4 font-bold">Téléphone</TableHead>
-              <TableHead className="py-3 px-4 font-bold">Ville</TableHead>
-              <TableHead className="py-3 px-4 font-bold">Date</TableHead>
-              <TableHead className="py-3 px-4 font-bold">Montant total</TableHead>
-              <TableHead className="py-3 px-4 font-bold">Statut</TableHead>
-              <TableHead className="py-3 px-4 text-right font-bold">Actions</TableHead>
+            <TableRow className="border-b border-zinc-200/80 bg-zinc-50/80 text-[11px] uppercase font-bold tracking-wider text-zinc-500 hover:bg-zinc-50/80">
+              <TableHead className="py-3 px-4 font-bold text-zinc-500">Référence</TableHead>
+              <TableHead className="py-3 px-4 font-bold text-zinc-500">Client</TableHead>
+              <TableHead className="py-3 px-4 font-bold text-zinc-500">Téléphone</TableHead>
+              <TableHead className="py-3 px-4 font-bold text-zinc-500">Ville</TableHead>
+              <TableHead className="py-3 px-4 font-bold text-zinc-500">Date</TableHead>
+              <TableHead className="py-3 px-4 font-bold text-zinc-500">Montant total</TableHead>
+              <TableHead className="py-3 px-4 font-bold text-zinc-500">Statut</TableHead>
+              <TableHead className="py-3 px-4 text-right font-bold text-zinc-500">Actions</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody className="text-xs divide-y divide-border/50">
+          <TableBody className="text-xs divide-y divide-zinc-100">
             {loading ? (
               [...Array(6)].map((_, i) => (
                 <TableRow key={i}>
@@ -239,41 +239,38 @@ export default function AdminOrdersPage() {
                 return (
                   <TableRow
                     key={order.id}
-                    className="hover:bg-muted/30 transition-colors cursor-pointer group"
+                    className="hover:bg-zinc-50/70 transition-colors duration-150 cursor-pointer group"
                     onClick={() => navigate(`/admin/orders/${order.id}`)}
                   >
                     {/* Référence */}
-                    <TableCell className="py-3.5 px-4 font-mono font-bold text-foreground">
-                      <Link
-                        to={`/admin/orders/${order.id}`}
-                        className="hover:text-[#C9A227] transition-colors"
-                      >
+                    <TableCell className="py-3.5 px-4">
+                      <span className="font-mono font-bold text-xs bg-zinc-100 text-zinc-900 border border-zinc-200/80 px-2.5 py-1 rounded-lg group-hover:border-[#C9A227]/50 group-hover:text-[#C9A227] transition-colors">
                         {order.reference}
-                      </Link>
+                      </span>
                     </TableCell>
 
                     {/* Client */}
-                    <TableCell className="py-3.5 px-4 font-semibold text-foreground">
+                    <TableCell className="py-3.5 px-4 font-semibold text-zinc-900">
                       {order.customer_name}
                     </TableCell>
 
                     {/* Téléphone */}
-                    <TableCell className="py-3.5 px-4 font-mono text-muted-foreground">
-                      {order.customer_phone}
+                    <TableCell className="py-3.5 px-4 font-mono text-zinc-500">
+                      {order.customer_phone || "—"}
                     </TableCell>
 
                     {/* Ville */}
-                    <TableCell className="py-3.5 px-4 text-foreground font-medium">
+                    <TableCell className="py-3.5 px-4 text-zinc-700 font-medium">
                       {displayCity}
                     </TableCell>
 
                     {/* Date */}
-                    <TableCell className="py-3.5 px-4 text-muted-foreground">
+                    <TableCell className="py-3.5 px-4 text-zinc-500">
                       {dateStr}
                     </TableCell>
 
                     {/* Montant total */}
-                    <TableCell className="py-3.5 px-4 font-bold text-foreground">
+                    <TableCell className="py-3.5 px-4 font-extrabold text-sm text-zinc-950">
                       {formatMAD(order.total)}
                     </TableCell>
 
@@ -282,13 +279,12 @@ export default function AdminOrdersPage() {
                       {getOrderStatusBadge(order.status, order.status_label)}
                     </TableCell>
 
-                    {/* Actions */}
+                    {/* Actions : Bouton sombre pilule conforme à la référence */}
                     <TableCell className="py-3.5 px-4 text-right" onClick={(e) => e.stopPropagation()}>
                       <Button
                         size="sm"
-                        variant="outline"
                         asChild
-                        className="h-8 px-3 text-xs rounded-xl border-border/80 hover:border-[#C9A227] hover:text-[#C9A227] font-semibold"
+                        className="h-8 px-3.5 text-xs rounded-xl bg-[#18181B] text-white hover:bg-[#27272A] border border-[#27272A] font-semibold shadow-xs transition-colors duration-100 cursor-pointer"
                       >
                         <Link to={`/admin/orders/${order.id}`}>
                           <span>Détails</span>
@@ -318,11 +314,11 @@ export default function AdminOrdersPage() {
           </TableBody>
         </Table>
 
-        {/* Pagination fonctionnelle */}
+        {/* Pagination fonctionnelle moderne */}
         {pagination && pagination.last_page > 1 && (
-          <div className="p-4 border-t border-border/70 flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">
-              Page {pagination.current_page} sur {pagination.last_page} ({pagination.total} commandes)
+          <div className="p-4 border-t border-zinc-200/80 bg-zinc-50/40 flex items-center justify-between text-xs">
+            <span className="text-zinc-500 font-medium">
+              Page {pagination.current_page} sur {pagination.last_page} · {pagination.total} commandes
             </span>
             <div className="flex items-center gap-2">
               <Button
@@ -330,7 +326,7 @@ export default function AdminOrdersPage() {
                 size="sm"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage <= 1 || loading}
-                className="h-8 rounded-xl text-xs"
+                className="h-8 px-3 rounded-xl text-xs font-semibold border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100 cursor-pointer"
               >
                 Précédent
               </Button>
@@ -339,7 +335,7 @@ export default function AdminOrdersPage() {
                 size="sm"
                 onClick={() => setCurrentPage((p) => Math.min(pagination.last_page, p + 1))}
                 disabled={currentPage >= pagination.last_page || loading}
-                className="h-8 rounded-xl text-xs"
+                className="h-8 px-3 rounded-xl text-xs font-semibold border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100 cursor-pointer"
               >
                 Suivant
               </Button>

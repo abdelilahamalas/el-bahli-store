@@ -301,10 +301,9 @@ export default function AdminCategoriesPage() {
                         <div className="flex items-center justify-end gap-2">
                           <Button
                             type="button"
-                            variant="ghost"
                             size="sm"
                             onClick={() => handleStartEdit(cat)}
-                            className="text-xs font-semibold text-foreground hover:text-[#C9A227] px-2 h-7"
+                            className="h-7 px-3 rounded-lg bg-[#18181B] text-white hover:bg-[#27272A] border border-[#27272A] text-xs font-semibold shadow-xs transition-colors cursor-pointer"
                           >
                             Modifier
                           </Button>

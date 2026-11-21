@@ -481,12 +481,11 @@ export default function AdminInventoryPage() {
                       <TableCell className="py-3 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1.5">
                           <Button
-                            variant="outline"
                             size="sm"
                             onClick={() => handleOpenAdjust(item)}
-                            className="h-8 text-xs border-border hover:border-[#C9A227] hover:text-[#C9A227] gap-1 font-semibold"
+                            className="h-8 px-3 rounded-xl bg-[#18181B] text-white hover:bg-[#27272A] border border-[#27272A] text-xs font-semibold shadow-xs transition-colors gap-1.5 cursor-pointer"
                           >
-                            <Edit3 className="w-3.5 h-3.5" />
+                            <Edit3 className="w-3.5 h-3.5 text-[#C9A227]" />
                             Ajuster
                           </Button>
                           <Button

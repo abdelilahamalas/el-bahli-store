@@ -240,7 +240,7 @@ export default function AdminProductsPage() {
 
         <Button
           onClick={() => navigate("/admin/products/new")}
-          className="bg-[#111111] hover:bg-[#252525] text-white text-xs font-semibold h-9 px-4 gap-2 shadow-xs transition-colors"
+          className="bg-[#18181B] hover:bg-[#27272A] border border-[#27272A] text-white text-xs font-semibold h-9 px-4 rounded-xl gap-2 shadow-xs transition-colors cursor-pointer"
         >
           <Plus className="w-4 h-4 text-[#C9A227]" />
           Ajouter un produit

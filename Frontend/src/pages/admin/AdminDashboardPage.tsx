@@ -323,26 +323,30 @@ export default function AdminDashboardPage() {
               <span className="font-extrabold text-sm text-[#C9A227]">{formatMAD(totalRevenue)}</span>
             </div>
 
-            <div className="inline-flex items-center rounded-xl bg-muted/50 p-1 border border-border/70 text-xs font-medium self-start sm:self-auto">
+            {/* Sélecteur de période sans animation parasite au clic, simple hover fluide */}
+            <div className="inline-flex items-center rounded-xl bg-zinc-100 p-1 border border-zinc-200/80 text-xs font-medium self-start sm:self-auto">
               {[
                 { id: "week", label: "7 derniers jours" },
                 { id: "month", label: "Ce mois" },
                 { id: "all", label: "Cette année" },
-              ].map((tab) => (
-                <Button
-                  key={`period-tab-${tab.id}`}
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handlePeriodChange(tab.id)}
-                  disabled={loading || isPending}
-                  className={`px-3 py-1.5 h-auto rounded-lg text-xs font-semibold cursor-pointer transition-all ${period === tab.id
-                    ? "bg-[#18181B] text-white shadow-xs hover:bg-[#27272A]"
-                    : "text-muted-foreground hover:text-foreground hover:bg-transparent"
+              ].map((tab) => {
+                const isActive = period === tab.id
+                return (
+                  <button
+                    key={`period-tab-${tab.id}`}
+                    type="button"
+                    onClick={() => handlePeriodChange(tab.id)}
+                    disabled={loading || isPending}
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold select-none cursor-pointer transition-colors duration-150 ${
+                      isActive
+                        ? "bg-[#18181B] text-white shadow-xs"
+                        : "text-zinc-600 hover:text-zinc-950 hover:bg-zinc-200/70"
                     }`}
-                >
-                  {tab.label}
-                </Button>
-              ))}
+                  >
+                    {tab.label}
+                  </button>
+                )
+              })}
             </div>
           </div>
         </CardHeader>
@@ -513,15 +517,14 @@ export default function AdminDashboardPage() {
                     </TableCell>
                     <TableCell className="py-3 px-4 text-right">
                       <Button
-                        variant="ghost"
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation()
                           navigate(`/admin/orders/${order.id}`)
                         }}
-                        className="h-7 text-xs font-semibold text-muted-foreground hover:text-foreground"
+                        className="h-7 px-3 text-xs rounded-xl bg-[#18181B] text-white hover:bg-[#27272A] border border-[#27272A] font-semibold shadow-xs transition-colors duration-100 cursor-pointer"
                       >
-                        Détails &rarr;
+                        Détails
                       </Button>
                     </TableCell>
                   </TableRow>

@@ -6,15 +6,11 @@ import {
   Phone,
   MapPin,
   AlertCircle,
-  CheckCircle2,
   FileText,
   Save,
   Check,
-  Truck,
-  Clock,
   MessageCircle,
   Ban,
-  ShieldCheck,
   Package,
 } from "lucide-react"
 import { toast } from "sonner"
@@ -25,7 +21,7 @@ import type {
   PaymentStatusValue,
 } from "@/types/admin"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import {
@@ -37,7 +33,6 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table"
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -212,459 +207,396 @@ export default function AdminOrderDetailPage() {
   const displayCity = order.city || order.customer_city || "Ville non précisée"
   const displayAddress = order.address || order.customer_address || "Adresse non précisée"
   const displayNote = order.note || order.delivery_notes
-  const histories = order.status_history || order.status_histories || order.statusHistories || []
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-12">
-      {/* 1. SECTION : En-tête de la commande */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-xl border border-border shadow-xs">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => navigate("/admin/orders")}
-            className="h-9 w-9 border-border hover:bg-muted"
-            title="Retour à la liste des commandes"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
-          <div>
+      {/* 1. Navigation retour */}
+      <div className="flex items-center justify-between">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigate("/admin/orders")}
+          className="h-8 px-3 rounded-xl border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100 gap-1.5 text-xs font-semibold shadow-2xs cursor-pointer"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Retour aux commandes</span>
+        </Button>
+      </div>
+
+      {/* 2. En-tête de la commande */}
+      <Card className="border border-zinc-200/80 shadow-2xs rounded-2xl bg-white p-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1.5">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="text-xl sm:text-2xl font-bold font-mono tracking-tight text-foreground">
+              <span className="font-mono text-xl sm:text-2xl font-black text-zinc-950 tracking-tight">
                 {order.reference}
-              </h1>
+              </span>
               {getOrderStatusBadge(order.status, order.status_label)}
-              <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                Paiement à la livraison
+              <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/80">
+                Paiement à la livraison (COD)
               </span>
             </div>
-            <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5" />
-              Commande reçue le {formattedDate}
+            <p className="text-xs text-zinc-500 flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5 text-zinc-400" />
+              <span>Commande passée le {formattedDate}</span>
             </p>
           </div>
-        </div>
 
-        {/* 5. SECTION : Boutons d'Action Rapide de Statut */}
-        {allowedTransitions.length > 0 && (
-          <div className="flex items-center gap-2 flex-wrap">
-            {allowedTransitions.map((tr) => {
-              const isCancel = tr.value === "cancelled"
-              const explicitLabel = getActionLabel(tr.value, tr.label)
+          {/* Boutons d'action pour changer de statut */}
+          {allowedTransitions.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+              {allowedTransitions.map((tr) => {
+                const isCancel = tr.value === "cancelled"
+                const explicitLabel = getActionLabel(tr.value, tr.label)
 
-              return (
-                <Button
-                  key={tr.value}
-                  size="sm"
-                  onClick={() => {
-                    setTargetTransition(tr)
-                    setTransitionReason("")
-                  }}
-                  className={`text-xs h-9 px-3.5 font-bold transition-all shadow-xs ${isCancel
-                      ? "bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200"
-                      : "bg-[#111111] hover:bg-[#252525] text-white border border-[#222222] hover:border-[#C9A227]"
+                return (
+                  <Button
+                    key={tr.value}
+                    size="sm"
+                    onClick={() => {
+                      setTargetTransition(tr)
+                      setTransitionReason("")
+                    }}
+                    className={`h-9 px-4 rounded-xl text-xs font-semibold shadow-xs transition-colors duration-100 cursor-pointer ${
+                      isCancel
+                        ? "bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200"
+                        : "bg-[#18181B] hover:bg-[#27272A] text-white border border-[#27272A]"
                     }`}
-                >
-                  {isCancel ? (
-                    <Ban className="w-3.5 h-3.5 mr-1.5 text-rose-500" />
-                  ) : (
-                    <Check className="w-3.5 h-3.5 mr-1.5 text-[#C9A227]" />
-                  )}
-                  {explicitLabel}
-                </Button>
-              )
-            })}
-          </div>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Colonne Gauche (2 cols) : Fiche Client, Articles, Transport, Historique */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* 2. SECTION : Informations client & Contact */}
-          <Card className="border-border bg-white shadow-xs">
-            <CardHeader className="pb-3 border-b border-border/60">
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                2. Fiche Client & Coordonnées de Livraison
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-4 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                {/* Nom */}
-                <div className="p-3 rounded-lg bg-muted/30 border border-border space-y-1">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                    Nom du client
-                  </span>
-                  <p className="font-bold text-sm text-foreground">{order.customer_name}</p>
-                </div>
-
-                {/* Téléphone & Actions Directes */}
-                <div className="p-3 rounded-lg bg-muted/30 border border-border space-y-1">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                    Téléphone
-                  </span>
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="font-bold text-sm text-foreground">{order.customer_phone}</p>
-                    <div className="flex items-center gap-1.5">
-                      <a
-                        href={`tel:${cleanPhone}`}
-                        className="px-2 py-1 bg-white hover:bg-slate-50 border border-border rounded text-[11px] text-foreground font-semibold flex items-center gap-1 shadow-2xs"
-                      >
-                        <Phone className="w-3 h-3 text-[#C9A227]" /> Appeler
-                      </a>
-                      <a
-                        href={`https://wa.me/${whatsappClean}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded text-[11px] text-emerald-800 font-semibold flex items-center gap-1 shadow-2xs"
-                      >
-                        <MessageCircle className="w-3 h-3 text-emerald-600" /> WhatsApp
-                      </a>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Ville */}
-                <div className="p-3 rounded-lg bg-muted/30 border border-border space-y-1">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                    Ville de destination
-                  </span>
-                  <p className="font-bold text-sm text-foreground flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-[#C9A227] shrink-0" />
-                    {displayCity}
-                  </p>
-                </div>
-
-                {/* Adresse */}
-                <div className="p-3 rounded-lg bg-muted/30 border border-border space-y-1">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                    Adresse complète
-                  </span>
-                  <p className="font-medium text-foreground text-xs leading-relaxed">
-                    {displayAddress}
-                  </p>
-                </div>
-              </div>
-
-              {/* Instructions ou Note du Client */}
-              {displayNote && (
-                <Alert variant="warning" className="bg-amber-50/70 border-amber-200/80 text-amber-900">
-                  <AlertCircle className="w-4 h-4 text-amber-600" />
-                  <AlertTitle className="text-xs font-bold text-amber-900">
-                    Instructions particulières laissées par le client :
-                  </AlertTitle>
-                  <AlertDescription className="text-xs text-amber-800 leading-relaxed mt-1">
-                    {displayNote}
-                  </AlertDescription>
-                </Alert>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* 3. SECTION : Articles commandés */}
-          <Card className="border-border bg-white shadow-xs overflow-hidden">
-            <CardHeader className="pb-3 border-b border-border/60">
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
-                <span>3. Articles Commandés ({order.items?.length || 0})</span>
-                <span className="text-xs font-semibold text-foreground">
-                  Sous-total : {formatMAD(order.subtotal)}
-                </span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/40 hover:bg-muted/40 border-b border-border/60">
-                    <TableHead className="text-[11px] font-semibold text-muted-foreground uppercase">Article</TableHead>
-                    <TableHead className="text-[11px] font-semibold text-muted-foreground uppercase">Variante (Taille / Couleur)</TableHead>
-                    <TableHead className="text-center text-[11px] font-semibold text-muted-foreground uppercase">Quantité</TableHead>
-                    <TableHead className="text-right text-[11px] font-semibold text-muted-foreground uppercase">Prix unitaire</TableHead>
-                    <TableHead className="text-right text-[11px] font-semibold text-muted-foreground uppercase">Total</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {order.items?.map((item) => {
-                    const itemImage =
-                      item.product_image ||
-                      item.product?.images?.find((img) => img.is_main)?.image_url ||
-                      item.product?.images?.[0]?.image_url
-
-                    return (
-                      <TableRow key={item.id} className="hover:bg-muted/20">
-                        <TableCell className="py-3">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-md overflow-hidden bg-muted flex-shrink-0 border border-border">
-                              {itemImage ? (
-                                <img
-                                  src={itemImage}
-                                  alt={item.product_name}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-muted-foreground/40">
-                                  <Package className="w-4 h-4" />
-                                </div>
-                              )}
-                            </div>
-                            <span className="font-bold text-foreground">
-                              {item.product_name}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="py-3">
-                          <span className="font-bold text-foreground">{item.size}</span>
-                          <span className="text-muted-foreground"> · {item.color}</span>
-                        </TableCell>
-                        <TableCell className="py-3 text-center font-extrabold text-foreground">
-                          {item.quantity}
-                        </TableCell>
-                        <TableCell className="py-3 text-right text-muted-foreground">
-                          {formatMAD(item.unit_price)}
-                        </TableCell>
-                        <TableCell className="py-3 text-right font-bold text-foreground">
-                          {formatMAD(item.line_total)}
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                </TableBody>
-                {/* 4. SECTION : Récapitulatif financier */}
-                <TableFooter className="border-t-2 border-border/80 bg-muted/20 text-xs">
-                  <TableRow>
-                    <TableCell colSpan={3} className="py-2.5 text-muted-foreground">
-                      Sous-total articles
-                    </TableCell>
-                    <TableCell colSpan={2} className="py-2.5 text-right font-semibold">
-                      {formatMAD(order.subtotal)}
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell colSpan={3} className="py-2.5 text-muted-foreground">
-                      Frais de livraison (Tout le Royaume)
-                    </TableCell>
-                    <TableCell colSpan={2} className="py-2.5 text-right font-semibold text-emerald-600">
-                      0.00 MAD (Gratuit)
-                    </TableCell>
-                  </TableRow>
-                  <TableRow className="border-t border-border font-bold text-sm bg-muted/40">
-                    <TableCell colSpan={3} className="py-3 text-foreground font-bold">
-                      4. Total net à encaisser à la livraison
-                    </TableCell>
-                    <TableCell colSpan={2} className="py-3 text-right text-foreground font-extrabold">
-                      {formatMAD(order.total)}
-                    </TableCell>
-                  </TableRow>
-                </TableFooter>
-              </Table>
-            </CardContent>
-          </Card>
-
-          {/* 6. SECTION : Transport et Expédition */}
-          <Card className="border-border bg-white shadow-xs">
-            <CardHeader className="pb-3 border-b border-border/60">
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                <Truck className="w-4 h-4 text-[#C9A227]" />
-                6. Transport et Expédition
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-4 space-y-3 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="p-3 rounded-lg bg-muted/30 border border-border space-y-1">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase">
-                    Mode de livraison
-                  </span>
-                  <p className="font-semibold text-foreground">Livraison à domicile</p>
-                  <p className="text-[11px] text-emerald-600 font-medium">Gratuite partout au Maroc</p>
-                </div>
-
-                <div className="p-3 rounded-lg bg-muted/30 border border-border space-y-1">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase">
-                    Date d'expédition
-                  </span>
-                  <p className="font-semibold text-foreground">
-                    {order.shipped_at
-                      ? new Date(order.shipped_at).toLocaleDateString("fr-FR", {
-                        day: "numeric",
-                        month: "short",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
-                      : "Non encore expédiée"}
-                  </p>
-                </div>
-
-                <div className="p-3 rounded-lg bg-muted/30 border border-border space-y-1">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase">
-                    Date de remise client
-                  </span>
-                  <p className="font-semibold text-foreground">
-                    {order.delivered_at
-                      ? new Date(order.delivered_at).toLocaleDateString("fr-FR", {
-                        day: "numeric",
-                        month: "short",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
-                      : "En attente"}
-                  </p>
-                </div>
-              </div>
-
-              <Alert variant="info" className="bg-blue-50/60 border-blue-200/60 text-blue-900">
-                <ShieldCheck className="w-4 h-4 text-blue-600" />
-                <AlertDescription className="text-[11px] text-blue-900">
-                  Livraison assurée avec vérification du colis et encaissement en espèces lors de la remise.
-                </AlertDescription>
-              </Alert>
-            </CardContent>
-          </Card>
-
-          {/* 7. SECTION : Historique des changements de statut */}
-          {histories.length > 0 && (
-            <Card className="border-border bg-white shadow-xs">
-              <CardHeader className="pb-3 border-b border-border/60">
-                <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-[#C9A227]" />
-                  7. Historique des étapes et transitions
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-4">
-                <div className="space-y-4 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-border">
-                  {histories.map((h, i) => {
-                    const hDate = new Date(h.created_at).toLocaleDateString("fr-FR", {
-                      day: "2-digit",
-                      month: "short",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })
-
-                    return (
-                      <div key={i} className="flex items-start gap-4 relative z-10">
-                        <div className="w-6 h-6 rounded-full bg-white border-2 border-[#C9A227] flex items-center justify-center shrink-0 text-[#C9A227]">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                        </div>
-                        <div className="flex-1 text-xs">
-                          <div className="flex items-center justify-between">
-                            <span className="font-bold text-foreground capitalize">
-                              {h.to_status}
-                            </span>
-                            <span className="text-[11px] text-muted-foreground">{hDate}</span>
-                          </div>
-                          {h.reason && (
-                            <p className="text-muted-foreground mt-0.5 italic">« {h.reason} »</p>
-                          )}
-                          {h.user?.name && (
-                            <span className="text-[10px] text-muted-foreground">
-                              Par : {h.user.name}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </CardContent>
-            </Card>
+                  >
+                    {isCancel ? (
+                      <Ban className="w-3.5 h-3.5 mr-1.5 text-rose-500" />
+                    ) : (
+                      <Check className="w-3.5 h-3.5 mr-1.5 text-[#C9A227]" />
+                    )}
+                    {explicitLabel}
+                  </Button>
+                )
+              })}
+            </div>
           )}
         </div>
+      </Card>
 
-        {/* Colonne Droite (1 col) : Encaissement & Notes administratives */}
-        <div className="space-y-6">
-          {/* Encaissement COD */}
-          <Card className="border-border bg-white shadow-xs">
-            <CardHeader className="pb-3 border-b border-border/60">
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                Paiement à la Livraison (COD)
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-4 space-y-4">
-              <div className="p-3 rounded-lg bg-muted/30 border border-border space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground font-medium">Statut encaissement :</span>
-                  {order.payment_status === "paid" ? (
-                    <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs font-semibold">
-                      Encaissé (Payé)
-                    </Badge>
-                  ) : order.payment_status === "refunded" ? (
-                    <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs font-semibold">
-                      Remboursé
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-xs font-semibold">
-                      En attente de paiement
-                    </Badge>
-                  )}
-                </div>
+      {/* 3. Contenu principal en grille épurée à 2 colonnes */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        {/* Colonne Gauche (2 colonnes) : Client, Adresse & Articles commandés */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Card Client & Coordonnées */}
+          <Card className="border border-zinc-200/80 shadow-2xs rounded-2xl bg-white p-5">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-700">
+                Coordonnées du client
+              </h2>
+              <div className="flex items-center gap-2">
+                <a
+                  href={`tel:${cleanPhone}`}
+                  className="h-8 px-3 rounded-xl bg-[#18181B] hover:bg-[#27272A] text-white border border-[#27272A] text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                >
+                  <Phone className="w-3.5 h-3.5 text-[#C9A227]" />
+                  <span>Appeler</span>
+                </a>
+                <a
+                  href={`https://wa.me/${whatsappClean}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-8 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-600 text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  <span>WhatsApp</span>
+                </a>
+              </div>
+            </div>
 
-                <div className="pt-2">
-                  <Select
-                    value={order.payment_status}
-                    disabled={isUpdatingPayment}
-                    onValueChange={(val) => handlePaymentChange(val as PaymentStatusValue)}
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending" className="text-xs">En attente (Non payé)</SelectItem>
-                      <SelectItem value="paid" className="text-xs">Payé / Encaissé</SelectItem>
-                      <SelectItem value="refunded" className="text-xs">Remboursé</SelectItem>
-                    </SelectContent>
-                  </Select>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-4">
+              <div className="p-3.5 rounded-xl bg-zinc-50 border border-zinc-100 space-y-1">
+                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                  Nom du client
+                </span>
+                <p className="font-bold text-sm text-zinc-900">{order.customer_name}</p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-zinc-50 border border-zinc-100 space-y-1">
+                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                  Téléphone
+                </span>
+                <p className="font-mono font-bold text-sm text-zinc-900">{order.customer_phone}</p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-zinc-50 border border-zinc-100 space-y-1">
+                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                  Ville de destination
+                </span>
+                <p className="font-bold text-sm text-zinc-900 flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-[#C9A227] shrink-0" />
+                  {displayCity}
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-zinc-50 border border-zinc-100 space-y-1">
+                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                  Adresse de livraison
+                </span>
+                <p className="font-medium text-xs text-zinc-800 leading-relaxed">
+                  {displayAddress}
+                </p>
+              </div>
+            </div>
+
+            {/* Note ou consigne client */}
+            {displayNote && (
+              <div className="mt-4 p-3.5 rounded-xl bg-zinc-900 border border-zinc-800 text-white flex items-start gap-3 shadow-xs">
+                <AlertCircle className="w-4 h-4 text-[#C9A227] shrink-0 mt-0.5" />
+                <div className="space-y-0.5 text-xs">
+                  <span className="font-bold text-zinc-100">
+                    Instructions particulières laissées par le client :
+                  </span>
+                  <p className="text-zinc-300 leading-relaxed mt-0.5">{displayNote}</p>
                 </div>
               </div>
-            </CardContent>
+            )}
           </Card>
 
-          {/* 8. SECTION : Notes administratives internes */}
-          <Card className="border-border bg-white shadow-xs">
-            <CardHeader className="pb-3 border-b border-border/60">
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                <FileText className="w-4 h-4 text-[#C9A227]" />
-                8. Notes Administratives Privées
-              </CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">
-                Consignes internes invisibles pour le client.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-4 space-y-3">
-              <Textarea
-                value={adminNotes}
-                onChange={(e) => setAdminNotes(e.target.value)}
-                placeholder="Ex: Client joint au téléphone le 20/11 à 10h, confirmation de la taille L..."
-                rows={5}
-                className="text-xs resize-none"
-              />
-              <Button
-                type="button"
-                onClick={handleSaveNotes}
-                disabled={isSavingNotes}
-                className="w-full bg-[#111111] hover:bg-[#252525] text-white text-xs font-semibold h-8.5 shadow-xs transition-colors"
-              >
-                <Save className="w-3.5 h-3.5 mr-1.5 text-[#C9A227]" />
-                {isSavingNotes ? "Enregistrement..." : "Enregistrer la note"}
-              </Button>
-            </CardContent>
+          {/* Card Articles commandés & Récapitulatif financier */}
+          <Card className="border border-zinc-200/80 shadow-2xs rounded-2xl bg-white overflow-hidden">
+            <div className="p-5 pb-3 border-b border-zinc-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-700">
+                  Articles commandés
+                </h2>
+                <Badge variant="secondary" className="rounded-full px-2 py-0 text-xs font-semibold">
+                  {order.items?.length || 0}
+                </Badge>
+              </div>
+              <span className="text-xs font-bold text-zinc-500">
+                Sous-total : {formatMAD(order.subtotal)}
+              </span>
+            </div>
+
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-zinc-50/80 border-b border-zinc-200/80 text-[11px] uppercase font-bold text-zinc-500 hover:bg-zinc-50/80">
+                  <TableHead className="py-3 px-4 font-bold text-zinc-500">Article</TableHead>
+                  <TableHead className="py-3 px-4 font-bold text-zinc-500">Variante</TableHead>
+                  <TableHead className="py-3 px-4 text-center font-bold text-zinc-500">Quantité</TableHead>
+                  <TableHead className="py-3 px-4 text-right font-bold text-zinc-500">Prix unitaire</TableHead>
+                  <TableHead className="py-3 px-4 text-right font-bold text-zinc-500">Total</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="text-xs divide-y divide-zinc-100">
+                {order.items?.map((item) => {
+                  const itemImage =
+                    item.product_image ||
+                    item.product?.images?.find((img) => img.is_main)?.image_url ||
+                    item.product?.images?.[0]?.image_url
+
+                  return (
+                    <TableRow key={item.id} className="hover:bg-zinc-50/60 transition-colors">
+                      <TableCell className="py-3.5 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-xl overflow-hidden bg-zinc-100 flex-shrink-0 border border-zinc-200">
+                            {itemImage ? (
+                              <img
+                                src={itemImage}
+                                alt={item.product_name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-zinc-400">
+                                <Package className="w-5 h-5" />
+                              </div>
+                            )}
+                          </div>
+                          <span className="font-bold text-sm text-zinc-900">
+                            {item.product_name}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-3.5 px-4">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-mono font-bold text-xs bg-zinc-100 text-zinc-800 border border-zinc-200 px-2 py-0.5 rounded-md">
+                            {item.size}
+                          </span>
+                          <span className="text-zinc-500 text-xs">· {item.color}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-3.5 px-4 text-center font-black text-sm text-zinc-900">
+                        {item.quantity}
+                      </TableCell>
+                      <TableCell className="py-3.5 px-4 text-right font-medium text-zinc-600">
+                        {formatMAD(item.unit_price)}
+                      </TableCell>
+                      <TableCell className="py-3.5 px-4 text-right font-black text-sm text-zinc-950">
+                        {formatMAD(item.line_total)}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+              <TableFooter className="border-t-2 border-zinc-200/80 bg-zinc-50/60 text-xs">
+                <TableRow className="hover:bg-transparent">
+                  <TableCell colSpan={3} className="py-2.5 px-4 text-zinc-600">
+                    Sous-total articles
+                  </TableCell>
+                  <TableCell colSpan={2} className="py-2.5 px-4 text-right font-semibold text-zinc-900">
+                    {formatMAD(order.subtotal)}
+                  </TableCell>
+                </TableRow>
+                <TableRow className="hover:bg-transparent">
+                  <TableCell colSpan={3} className="py-2.5 px-4 text-zinc-600">
+                    Frais de livraison (Tout le Royaume)
+                  </TableCell>
+                  <TableCell colSpan={2} className="py-2.5 px-4 text-right font-semibold text-emerald-600">
+                    0.00 MAD (Gratuit)
+                  </TableCell>
+                </TableRow>
+                <TableRow className="border-t border-zinc-200 font-bold bg-zinc-100/70 hover:bg-zinc-100/70">
+                  <TableCell colSpan={3} className="py-3.5 px-4 text-zinc-950 font-bold text-sm">
+                    Total net à encaisser à la livraison (COD)
+                  </TableCell>
+                  <TableCell colSpan={2} className="py-3.5 px-4 text-right text-zinc-950 font-black text-base">
+                    {formatMAD(order.total)}
+                  </TableCell>
+                </TableRow>
+              </TableFooter>
+            </Table>
+          </Card>
+        </div>
+
+        {/* Colonne Droite (1 colonne) : Paiement COD, Expédition & Notes internes */}
+        <div className="space-y-6">
+          {/* Card Paiement à la livraison */}
+          <Card className="border border-zinc-200/80 shadow-2xs rounded-2xl bg-white p-5 space-y-4">
+            <div className="border-b border-zinc-100 pb-3">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-700">
+                Paiement à la livraison (COD)
+              </h2>
+              <p className="text-xs text-zinc-500 mt-0.5">
+                Encaissement en espèces lors de la remise.
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-zinc-50 border border-zinc-100 space-y-2.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-zinc-600 font-medium">Statut encaissement :</span>
+                {order.payment_status === "paid" ? (
+                  <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs font-semibold">
+                    Encaissé (Payé)
+                  </Badge>
+                ) : order.payment_status === "refunded" ? (
+                  <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs font-semibold">
+                    Remboursé
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-xs font-semibold">
+                    À encaisser
+                  </Badge>
+                )}
+              </div>
+
+              <div>
+                <Select
+                  value={order.payment_status}
+                  disabled={isUpdatingPayment}
+                  onValueChange={(val) => handlePaymentChange(val as PaymentStatusValue)}
+                >
+                  <SelectTrigger className="h-9 text-xs rounded-xl border-zinc-200 bg-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="pending" className="text-xs">En attente (Non payé)</SelectItem>
+                    <SelectItem value="paid" className="text-xs">Payé / Encaissé</SelectItem>
+                    <SelectItem value="refunded" className="text-xs">Remboursé</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Détails livraison */}
+            <div className="p-3.5 rounded-xl bg-zinc-50 border border-zinc-100 space-y-2 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-zinc-500">Mode :</span>
+                <span className="font-semibold text-zinc-800">Livraison à domicile</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-zinc-500">Frais :</span>
+                <span className="font-semibold text-emerald-600">0.00 MAD (Gratuit)</span>
+              </div>
+              {order.shipped_at && (
+                <div className="flex items-center justify-between border-t border-zinc-200/50 pt-1.5">
+                  <span className="text-zinc-500">Expédiée le :</span>
+                  <span className="font-semibold text-zinc-800">
+                    {new Date(order.shipped_at).toLocaleDateString("fr-FR", {
+                      day: "numeric",
+                      month: "short",
+                    })}
+                  </span>
+                </div>
+              )}
+              {order.delivered_at && (
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-500">Livrée le :</span>
+                  <span className="font-semibold text-zinc-800">
+                    {new Date(order.delivered_at).toLocaleDateString("fr-FR", {
+                      day: "numeric",
+                      month: "short",
+                    })}
+                  </span>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* Card Notes Administratives */}
+          <Card className="border border-zinc-200/80 shadow-2xs rounded-2xl bg-white p-5 space-y-3">
+            <div className="border-b border-zinc-100 pb-3 flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-700 flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-[#C9A227]" />
+                  Notes administratives
+                </h2>
+                <p className="text-xs text-zinc-500 mt-0.5">
+                  Consignes internes invisibles pour le client.
+                </p>
+              </div>
+            </div>
+
+            <Textarea
+              value={adminNotes}
+              onChange={(e) => setAdminNotes(e.target.value)}
+              placeholder="Ex: Client joint au téléphone, confirmation de la commande..."
+              rows={4}
+              className="text-xs resize-none rounded-xl border-zinc-200"
+            />
+
+            <Button
+              type="button"
+              onClick={handleSaveNotes}
+              disabled={isSavingNotes}
+              className="w-full bg-[#18181B] hover:bg-[#27272A] text-white border border-[#27272A] rounded-xl h-9 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+            >
+              <Save className="w-3.5 h-3.5 mr-1.5 text-[#C9A227]" />
+              {isSavingNotes ? "Enregistrement..." : "Enregistrer la note"}
+            </Button>
           </Card>
         </div>
       </div>
 
-      {/* Confirmation Dialog for Status Transitions */}
+      {/* Dialogue de confirmation de transition de statut */}
       {targetTransition && (
         <AlertDialog
           open={!!targetTransition}
           onOpenChange={(open) => !open && setTargetTransition(null)}
         >
-          <AlertDialogContent>
+          <AlertDialogContent className="rounded-2xl">
             <AlertDialogHeader>
               <AlertDialogTitle className="flex items-center gap-2">
                 <AlertCircle className="w-5 h-5 text-[#C9A227]" />
                 {getActionLabel(targetTransition.value, targetTransition.label)}
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-xs text-muted-foreground">
+              <AlertDialogDescription className="text-xs text-zinc-500">
                 Voulez-vous modifier le statut de la commande{" "}
-                <strong className="text-foreground">{order.reference}</strong> vers{" "}
-                <strong className="text-foreground">
+                <strong className="text-zinc-900">{order.reference}</strong> vers{" "}
+                <strong className="text-zinc-900">
                   {getActionLabel(targetTransition.value, targetTransition.label)}
                 </strong>{" "}
                 ?
@@ -672,27 +604,27 @@ export default function AdminOrderDetailPage() {
             </AlertDialogHeader>
 
             <div className="py-2 space-y-1.5">
-              <Label className="text-xs font-semibold text-foreground">
+              <Label className="text-xs font-semibold text-zinc-900">
                 Motif ou commentaire d'opération{" "}
-                <span className="text-muted-foreground font-normal">(Optionnel)</span>
+                <span className="text-zinc-400 font-normal">(Optionnel)</span>
               </Label>
               <Textarea
                 value={transitionReason}
                 onChange={(e) => setTransitionReason(e.target.value)}
                 placeholder="Ex: Confirmation téléphonique avec le client..."
                 rows={2}
-                className="text-xs resize-none"
+                className="text-xs resize-none rounded-xl border-zinc-200"
               />
             </div>
 
             <AlertDialogFooter>
-              <AlertDialogCancel disabled={isUpdatingStatus} className="text-xs">
+              <AlertDialogCancel disabled={isUpdatingStatus} className="text-xs rounded-xl">
                 Annuler
               </AlertDialogCancel>
               <AlertDialogAction
                 disabled={isUpdatingStatus}
                 onClick={handleTransitionConfirm}
-                className="bg-[#111111] hover:bg-[#222222] text-white text-xs font-semibold"
+                className="bg-[#18181B] hover:bg-[#27272A] text-white border border-[#27272A] text-xs font-semibold rounded-xl"
               >
                 {isUpdatingStatus ? "Traitement..." : "Confirmer"}
               </AlertDialogAction>
