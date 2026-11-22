@@ -132,13 +132,15 @@ export default function AdminProductsPage() {
       setProducts((prev) =>
         prev.map((p) => (p.id === product.id ? { ...p, is_active: res.is_active } : p))
       )
-      toast.success(
-        res.is_active
-          ? `Le produit « ${product.name} » est maintenant en ligne.`
-          : `Le produit « ${product.name} » a été désactivé.`
-      )
+      toast.success("Visibilité mise à jour", {
+        description: res.is_active
+          ? `Le produit « ${product.name} » est maintenant visible en boutique.`
+          : `Le produit « ${product.name} » a été masqué.`,
+      })
     } catch {
-      toast.error("Impossible de modifier la visibilité du produit.")
+      toast.error("Action impossible", {
+        description: "Impossible de modifier la visibilité du produit.",
+      })
     }
   }
 
@@ -147,7 +149,9 @@ export default function AdminProductsPage() {
     try {
       setIsDeleting(true)
       await adminService.deleteProduct(productToDelete.id)
-      toast.success(`Le produit « ${productToDelete.name} » a été supprimé.`)
+      toast.success("Produit supprimé", {
+        description: `Le produit « ${productToDelete.name} » a été supprimé de la boutique.`,
+      })
       setProductToDelete(null)
       fetchProducts()
     } catch (err: unknown) {
@@ -158,7 +162,9 @@ export default function AdminProductsPage() {
           msg = axErr.response.data.message
         }
       }
-      toast.error(msg)
+      toast.error("Suppression impossible", {
+        description: msg,
+      })
     } finally {
       setIsDeleting(false)
     }

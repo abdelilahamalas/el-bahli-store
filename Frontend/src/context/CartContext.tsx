@@ -105,8 +105,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
     })
 
-    toast.success(`${itemData.name} ajouté au panier !`, {
-      description: `Taille : ${itemData.size} | Couleur : ${targetColor}`,
+    toast.success("Produit ajouté au panier", {
+      description: `${itemData.name} · Taille ${itemData.size}${targetColor !== "Standard" ? ` · ${targetColor}` : ""}`,
     })
 
     // Ouverture automatique du tiroir pour fluidité
@@ -134,9 +134,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
           (item.color || "Standard") === targetColor
         ) {
           const maxLimit = item.maxStock ? Math.min(10, item.maxStock) : 10
+          if (quantity > maxLimit) {
+            toast.warning("Stock insuffisant", {
+              description: `Seulement ${maxLimit} unité(s) disponible(s) en stock pour cette taille.`,
+            })
+            return {
+              ...item,
+              quantity: maxLimit,
+            }
+          }
           return {
             ...item,
-            quantity: Math.min(maxLimit, quantity),
+            quantity,
           }
         }
         return item
@@ -154,7 +163,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
           (i.color || "Standard") === targetColor
       )
       if (removed) {
-        toast.info(`${removed.name} (${removed.size}) retiré du panier.`)
+        toast.info("Produit retiré du panier", {
+          description: `« ${removed.name} » (${removed.size}) a été retiré de votre sélection.`,
+        })
       }
       return prevItems.filter(
         (i) =>

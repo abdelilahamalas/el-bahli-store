@@ -75,13 +75,17 @@ export default function CheckoutPage() {
     setGeneralError(null)
 
     if (items.length === 0) {
-      toast.error("Votre panier est vide. Veuillez ajouter des articles avant de commander.")
+      toast.warning("Panier vide", {
+        description: "Votre panier est vide. Veuillez ajouter des articles avant de commander.",
+      })
       navigate("/products")
       return
     }
 
     if (!validateForm()) {
-      toast.error("Veuillez corriger les informations du formulaire de livraison.")
+      toast.warning("Formulaire incomplet", {
+        description: "Veuillez vérifier et renseigner correctement vos coordonnées de livraison.",
+      })
       return
     }
 
@@ -96,8 +100,8 @@ export default function CheckoutPage() {
       // Vider le panier UNIQUEMENT après la confirmation effective de Laravel
       clearCart()
 
-      toast.success("Votre commande a été enregistrée avec succès !", {
-        description: `Référence : ${orderResult.reference}`,
+      toast.success("Commande enregistrée avec succès", {
+        description: `Référence : ${orderResult.reference} · Paiement prévu à la livraison.`,
       })
 
       // Redirection vers la page de confirmation

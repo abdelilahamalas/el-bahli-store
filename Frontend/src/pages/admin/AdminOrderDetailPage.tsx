@@ -108,7 +108,9 @@ export default function AdminOrderDetailPage() {
     try {
       await adminService.updateOrderStatus(order.id, targetTransition.value)
       const config = getActionConfig(targetTransition.value, targetTransition.label)
-      toast.success(`Statut mis à jour : « ${config.label} ».`)
+      toast.success("Statut mis à jour", {
+        description: `La commande est passée à l'état « ${config.label} ».`,
+      })
       setTargetTransition(null)
       fetchOrderDetail()
     } catch (err: unknown) {
@@ -119,7 +121,9 @@ export default function AdminOrderDetailPage() {
           msg = axErr.response.data.message
         }
       }
-      toast.error(msg)
+      toast.error("Action impossible", {
+        description: msg,
+      })
     } finally {
       setIsUpdatingStatus(false)
     }
@@ -130,11 +134,15 @@ export default function AdminOrderDetailPage() {
     setIsUpdatingPayment(true)
     try {
       await adminService.updatePaymentStatus(order.id, "paid" as PaymentStatusValue)
-      toast.success("Commande marquée comme payée (encaissée).")
+      toast.success("Paiement enregistré", {
+        description: "La commande a été marquée comme payée (encaissée en espèces).",
+      })
       setShowPaymentConfirm(false)
       fetchOrderDetail()
     } catch {
-      toast.error("Impossible de mettre à jour le statut du paiement.")
+      toast.error("Action impossible", {
+        description: "Impossible de mettre à jour le statut du paiement.",
+      })
     } finally {
       setIsUpdatingPayment(false)
     }

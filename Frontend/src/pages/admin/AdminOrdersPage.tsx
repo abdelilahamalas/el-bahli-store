@@ -60,7 +60,9 @@ export default function AdminOrdersPage() {
       setOrders(res.orders)
       setPagination(res.pagination)
     } catch {
-      toast.error("Erreur lors de la récupération des commandes.")
+      toast.error("Chargement impossible", {
+        description: "Erreur lors de la récupération des commandes.",
+      })
     } finally {
       setLoading(false)
     }

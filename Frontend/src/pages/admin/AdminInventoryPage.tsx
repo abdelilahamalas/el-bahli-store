@@ -140,7 +140,9 @@ export default function AdminInventoryPage() {
   const handleConfirmAdjust = async () => {
     if (!adjustingProduct || !selectedVariant) return
     if (newStockValue < 0) {
-      toast.error("La quantité de stock ne peut pas être négative.")
+      toast.warning("Quantité invalide", {
+        description: "La quantité de stock ne peut pas être négative.",
+      })
       return
     }
 
@@ -151,14 +153,16 @@ export default function AdminInventoryPage() {
         newStockValue,
         adjustReason.trim() || undefined
       )
-      toast.success(
-        `Stock mis à jour à ${newStockValue} pour « ${adjustingProduct.name} » (${selectedVariant.size}${selectedVariant.color !== "Standard" ? ` - ${selectedVariant.color}` : ""})`
-      )
+      toast.success("Stock mis à jour", {
+        description: `Le stock a été fixé à ${newStockValue} pour « ${adjustingProduct.name} » (${selectedVariant.size}${selectedVariant.color !== "Standard" ? ` - ${selectedVariant.color}` : ""}).`,
+      })
       setAdjustingProduct(null)
       setSelectedVariant(null)
       fetchInventory()
     } catch {
-      toast.error("Impossible d'ajuster le stock.")
+      toast.error("Action impossible", {
+        description: "Impossible d'ajuster le stock pour ce produit.",
+      })
     } finally {
       setIsSubmittingAdjust(false)
     }

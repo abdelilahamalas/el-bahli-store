@@ -311,19 +311,27 @@ export default function AdminProductFormPage() {
     e.preventDefault()
 
     if (!name.trim()) {
-      toast.error("Veuillez renseigner le nom du vêtement.")
+      toast.warning("Champ obligatoire manquant", {
+        description: "Veuillez renseigner le nom du vêtement.",
+      })
       return
     }
     if (!categoryId) {
-      toast.error("Veuillez sélectionner une catégorie.")
+      toast.warning("Catégorie requise", {
+        description: "Veuillez sélectionner une catégorie pour ce produit.",
+      })
       return
     }
     if (!price || parseFloat(price) <= 0) {
-      toast.error("Veuillez indiquer un prix valide.")
+      toast.warning("Prix invalide", {
+        description: "Veuillez indiquer un prix de vente valide.",
+      })
       return
     }
     if (variants.length === 0) {
-      toast.error("Veuillez configurer au moins une variante / taille.")
+      toast.warning("Tailles requises", {
+        description: "Veuillez configurer au moins une variante ou taille.",
+      })
       return
     }
 
@@ -352,7 +360,9 @@ export default function AdminProductFormPage() {
           await adminService.uploadProductImages(id, selectedNewFiles)
         }
 
-        toast.success(`Le produit « ${name} » a été mis à jour avec succès.`)
+        toast.success("Produit modifié avec succès", {
+          description: `Le produit « ${name} » a été mis à jour.`,
+        })
         navigate("/admin/products")
       } else {
         // Create product via FormData
@@ -391,7 +401,9 @@ export default function AdminProductFormPage() {
         }
 
         await adminService.createProduct(formData)
-        toast.success(`Le produit « ${name} » a été créé avec succès.`)
+        toast.success("Produit ajouté avec succès", {
+          description: `Le produit « ${name} » a été enregistré dans la boutique.`,
+        })
         navigate("/admin/products")
       }
     } catch (err: unknown) {
@@ -405,7 +417,9 @@ export default function AdminProductFormPage() {
           msg = axErr.response.data.message
         }
       }
-      toast.error(msg)
+      toast.error("Impossible d'enregistrer le produit", {
+        description: msg,
+      })
     } finally {
       setIsSubmitting(false)
     }

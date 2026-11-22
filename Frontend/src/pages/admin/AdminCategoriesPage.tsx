@@ -111,14 +111,18 @@ export default function AdminCategoriesPage() {
           name: nameInput.trim(),
           is_active: isActiveInput,
         })
-        toast.success(`La catégorie « ${nameInput} » a été modifiée.`)
+        toast.success("Catégorie modifiée", {
+          description: `La catégorie « ${nameInput} » a été modifiée avec succès.`,
+        })
       } else {
         await adminService.createCategory({
           name: nameInput.trim(),
           is_active: isActiveInput,
           sort_order: categories.length + 1,
         })
-        toast.success(`La catégorie « ${nameInput} » a été créée avec succès.`)
+        toast.success("Catégorie créée", {
+          description: `La catégorie « ${nameInput} » a été ajoutée au catalogue.`,
+        })
       }
       handleStartCreate()
       fetchCategories()
@@ -130,7 +134,9 @@ export default function AdminCategoriesPage() {
           msg = axErr.response.data.message
         }
       }
-      toast.error(msg)
+      toast.error("Impossible d'enregistrer la catégorie", {
+        description: msg,
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -142,21 +148,23 @@ export default function AdminCategoriesPage() {
       setCategories((prev) =>
         prev.map((c) => (c.id === cat.id ? { ...c, is_active: res.is_active } : c))
       )
-      toast.success(
-        res.is_active
+      toast.success("Statut mis à jour", {
+        description: res.is_active
           ? `La catégorie « ${cat.name} » est maintenant active.`
-          : `La catégorie « ${cat.name} » est masquée.`
-      )
+          : `La catégorie « ${cat.name} » est désormais masquée.`,
+      })
     } catch {
-      toast.error("Impossible de modifier le statut de la catégorie.")
+      toast.error("Action impossible", {
+        description: "Impossible de modifier le statut de la catégorie.",
+      })
     }
   }
 
   const handleDeleteRequest = (cat: AdminCategory) => {
     if (cat.products_count && cat.products_count > 0) {
-      toast.error(
-        `Impossible de supprimer « ${cat.name} » : ${cat.products_count} produit(s) y sont rattachés.`
-      )
+      toast.error("Suppression refusée", {
+        description: `Impossible de supprimer « ${cat.name} » : ${cat.products_count} produit(s) y sont rattachés.`,
+      })
       return
     }
     setDeletingCategory(cat)
@@ -167,7 +175,9 @@ export default function AdminCategoriesPage() {
     setIsDeleting(true)
     try {
       await adminService.deleteCategory(deletingCategory.id)
-      toast.success(`La catégorie « ${deletingCategory.name} » a été supprimée.`)
+      toast.success("Catégorie supprimée", {
+        description: `La catégorie « ${deletingCategory.name} » a été supprimée du catalogue.`,
+      })
       setDeletingCategory(null)
       fetchCategories()
     } catch (err: unknown) {
@@ -178,7 +188,9 @@ export default function AdminCategoriesPage() {
           msg = axErr.response.data.message
         }
       }
-      toast.error(msg)
+      toast.error("Suppression impossible", {
+        description: msg,
+      })
     } finally {
       setIsDeleting(false)
     }

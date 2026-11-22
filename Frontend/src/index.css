@@ -97,3 +97,81 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
+
+/* ==========================================================================
+   STYLE DES NOTIFICATIONS EL BAHLI STORE (Inspiré de l'image de référence)
+   Fond sombre #18181B, coins arrondis 20px, typographie blanche et grise, bordures subtiles
+   ========================================================================== */
+[data-sonner-toaster] {
+  --normal-bg: #18181B !important;
+  --normal-border: #27272A !important;
+  --normal-text: #FFFFFF !important;
+}
+
+[data-sonner-toast] {
+  background-color: #18181B !important;
+  color: #FFFFFF !important;
+  border-radius: 20px !important;
+  padding: 16px 20px !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
+  font-family: inherit !important;
+  border: 1px solid #27272A !important;
+}
+
+/* Bordures fines adaptées selon le type */
+[data-sonner-toast][data-type="success"] {
+  border-color: rgba(16, 185, 129, 0.35) !important;
+}
+
+[data-sonner-toast][data-type="error"] {
+  border-color: rgba(244, 63, 94, 0.4) !important;
+}
+
+[data-sonner-toast][data-type="warning"] {
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+[data-sonner-toast][data-type="info"] {
+  border-color: rgba(59, 130, 246, 0.35) !important;
+}
+
+/* Titre blanc et bien lisible */
+[data-sonner-toast] [data-title] {
+  color: #FFFFFF !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  letter-spacing: -0.01em !important;
+  line-height: 1.35 !important;
+}
+
+/* Description en gris clair */
+[data-sonner-toast] [data-description] {
+  color: #A1A1AA !important;
+  font-size: 12.5px !important;
+  line-height: 1.5 !important;
+  font-weight: 400 !important;
+  margin-top: 4px !important;
+}
+
+/* Icône alignée à gauche */
+[data-sonner-toast] [data-icon] {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-right: 12px !important;
+  flex-shrink: 0 !important;
+}
+
+/* Bouton de fermeture discret */
+[data-sonner-toast] [data-close-button] {
+  background-color: #27272A !important;
+  color: #A1A1AA !important;
+  border: 1px solid #3F3F46 !important;
+  border-radius: 9999px !important;
+  transition: all 0.15s ease !important;
+}
+
+[data-sonner-toast] [data-close-button]:hover {
+  background-color: #3F3F46 !important;
+  color: #FFFFFF !important;
+}

@@ -49,7 +49,9 @@ export default function AdminLoginPage() {
       })
 
       login(response.token, response.user, rememberMe)
-      toast.success(`Bienvenue, ${response.user.name}`)
+      toast.success("Connexion réussie", {
+        description: `Bienvenue dans l'espace administration, ${response.user.name}.`,
+      })
 
       const destination = (location.state as { from?: { pathname: string } })?.from?.pathname || "/admin"
       navigate(destination, { replace: true })
@@ -62,7 +64,9 @@ export default function AdminLoginPage() {
         }
       }
       setErrorMessage(msg)
-      toast.error(msg)
+      toast.error("Erreur de connexion", {
+        description: msg,
+      })
     } finally {
       setIsLoading(false)
     }
@@ -96,10 +100,10 @@ export default function AdminLoginPage() {
           <CardContent className="px-6 sm:px-8 py-2">
             {/* Message d'erreur en alerte shadcn/ui */}
             {errorMessage && (
-              <Alert variant="destructive" className="mb-5 rounded-xl border-rose-200 bg-rose-50 text-rose-900">
-                <AlertCircle className="w-4 h-4 text-rose-600" />
-                <AlertTitle className="text-xs font-semibold">Erreur de connexion</AlertTitle>
-                <AlertDescription className="text-xs mt-0.5 text-rose-700">
+              <Alert variant="destructive" className="mb-5">
+                <AlertCircle className="w-4 h-4 text-rose-400" />
+                <AlertTitle>Erreur de connexion</AlertTitle>
+                <AlertDescription className="alert-desc">
                   {errorMessage}
                 </AlertDescription>
               </Alert>

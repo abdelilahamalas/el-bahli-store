@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { toast } from "sonner"
+import { notify } from "@/lib/notifications"
 import {
   Store,
   ShoppingBag,
@@ -109,16 +110,66 @@ export default function DevCheckPage() {
               icônes Lucide, toasts Sonner et connectivité Axios.
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 flex-wrap">
             <Button
-              variant="gold"
+              size="sm"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs"
               onClick={() =>
-                toast.success("Toast Sonner Opérationnel", {
-                  description: "Les notifications de la boutique fonctionnent parfaitement.",
-                })
+                notify.success(
+                  "Produit ajouté avec succès",
+                  "Le produit a été enregistré dans la boutique."
+                )
               }
             >
-              Tester Toast Sonner
+              Test Succès
+            </Button>
+            <Button
+              size="sm"
+              className="bg-rose-600 hover:bg-rose-700 text-white text-xs"
+              onClick={() =>
+                notify.error(
+                  "Impossible d'ajouter le produit",
+                  "Une erreur est survenue pendant l'enregistrement."
+                )
+              }
+            >
+              Test Erreur
+            </Button>
+            <Button
+              size="sm"
+              className="bg-rose-800 hover:bg-rose-900 text-white text-xs"
+              onClick={() =>
+                notify.refusal(
+                  "Action refusée",
+                  "Cette opération n'est pas autorisée pour cette commande."
+                )
+              }
+            >
+              Test Refus
+            </Button>
+            <Button
+              size="sm"
+              className="bg-amber-600 hover:bg-amber-700 text-white text-xs"
+              onClick={() =>
+                notify.warning(
+                  "Stock faible",
+                  "Il ne reste plus que 2 unités pour cette variante."
+                )
+              }
+            >
+              Test Avertissement
+            </Button>
+            <Button
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-xs"
+              onClick={() =>
+                notify.info(
+                  "Information",
+                  "Mise à jour des stocks en cours de synchronisation."
+                )
+              }
+            >
+              Test Information
             </Button>
           </div>
         </div>

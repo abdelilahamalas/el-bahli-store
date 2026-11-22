@@ -14,7 +14,7 @@ export default function App() {
         <CartProvider>
           <AppRoutes />
           <CartSheet />
-          <Toaster richColors position="top-right" />
+          <Toaster position="top-right" />
         </CartProvider>
       </AuthProvider>
     </BrowserRouter>

@@ -102,13 +102,17 @@ export default function ProductDetailPage() {
       })
     } else {
       navigator.clipboard.writeText(window.location.href)
-      toast.success("Lien copié dans le presse-papier !")
+      toast.success("Lien copié", {
+        description: "Le lien du produit a été copié dans votre presse-papier.",
+      })
     }
   }
 
   const handleAddToCart = () => {
     if (!product || !selectedVariant || selectedVariant.stock <= 0) {
-      toast.error("Veuillez sélectionner une taille disponible avant d'ajouter au panier.")
+      toast.warning("Taille non disponible", {
+        description: "Veuillez sélectionner une taille disponible avant d'ajouter au panier.",
+      })
       return
     }
 

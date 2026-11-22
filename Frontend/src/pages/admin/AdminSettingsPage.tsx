@@ -41,7 +41,9 @@ export default function AdminSettingsPage() {
       setStoreAddress(res.store_address || "Tanger, Maroc")
       setLowStockThreshold(res.low_stock_threshold || 5)
     } catch {
-      toast.error("Erreur lors de la récupération des paramètres.")
+      toast.error("Chargement impossible", {
+        description: "Erreur lors de la récupération des paramètres de la boutique.",
+      })
     } finally {
       setLoading(false)
     }
@@ -54,7 +56,9 @@ export default function AdminSettingsPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     if (!storeName.trim()) {
-      toast.error("Le nom de la boutique est obligatoire.")
+      toast.warning("Champ obligatoire", {
+        description: "Le nom de la boutique est obligatoire.",
+      })
       return
     }
 
@@ -72,9 +76,13 @@ export default function AdminSettingsPage() {
         low_stock_threshold: lowStockThreshold,
       })
       setSettings(updated)
-      toast.success("Paramètres de la boutique enregistrés avec succès.")
+      toast.success("Paramètres enregistrés", {
+        description: "Les paramètres de la boutique ont été mis à jour avec succès.",
+      })
     } catch {
-      toast.error("Impossible de sauvegarder les paramètres.")
+      toast.error("Enregistrement impossible", {
+        description: "Une erreur est survenue lors de la sauvegarde des paramètres.",
+      })
     } finally {
       setIsSubmitting(false)
     }

@@ -71,7 +71,9 @@ export default function AdminDashboardPage() {
       const res = await adminService.getDashboardStats(selectedPeriod)
       setData(res)
     } catch {
-      toast.error("Erreur lors de la récupération des données du dashboard.")
+      toast.error("Chargement impossible", {
+        description: "Erreur lors de la récupération des statistiques du tableau de bord.",
+      })
     } finally {
       setLoading(false)
     }
