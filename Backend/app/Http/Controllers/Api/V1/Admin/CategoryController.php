@@ -11,6 +11,7 @@ use App\Models\Category;
 use App\Services\AuditService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class CategoryController extends ApiController
@@ -135,6 +136,8 @@ class CategoryController extends ApiController
         foreach ($validated['categories'] as $item) {
             Category::where('id', $item['id'])->update(['sort_order' => $item['sort_order']]);
         }
+
+        Cache::forget('active_categories');
 
         $this->auditService->log('categories.reordered', null, [
             'count' => count($validated['categories']),

@@ -19,7 +19,7 @@ export default function ProtectedRoute() {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/admin/login" state={{ from: location }} replace />
+    return <Navigate to="/zakaria/admin/login" state={{ from: location }} replace />
   }
 
   return <Outlet />

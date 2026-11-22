@@ -19,7 +19,7 @@ export default function AdminSidebar({ onNavClick }: AdminSidebarProps) {
 
   const handleLogout = async () => {
     await logout()
-    navigate("/admin/login")
+    navigate("/zakaria/admin/login")
   }
 
   // Exactement les 4 pages + Déconnexion demandées

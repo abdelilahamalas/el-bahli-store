@@ -165,4 +165,30 @@ class SecuriteAccesAdminTest extends TestCase
         $response->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->assertHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
     }
+
+    public function test_zakaria_admin_web_redirect(): void
+    {
+        $response = $this->get('/zakaria/admin/login');
+        $response->assertRedirect();
+        $this->assertStringContainsString('/zakaria/admin/login', $response->headers->get('Location'));
+
+        $adminRedirect = $this->get('/admin/login');
+        $adminRedirect->assertRedirect();
+        $this->assertStringContainsString('/zakaria/admin/login', $adminRedirect->headers->get('Location'));
+    }
+
+    public function test_category_cache_is_invalidated_on_change(): void
+    {
+        \Illuminate\Support\Facades\Cache::put('active_categories', ['dummy_cached_data']);
+        $this->assertTrue(\Illuminate\Support\Facades\Cache::has('active_categories'));
+
+        $newCategory = Category::create([
+            'name' => 'Cache Test Category',
+            'slug' => 'cache-test-category',
+            'is_active' => true,
+            'sort_order' => 99,
+        ]);
+
+        $this->assertFalse(\Illuminate\Support\Facades\Cache::has('active_categories'));
+    }
 }

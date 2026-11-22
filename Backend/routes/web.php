@@ -27,10 +27,20 @@ Route::get('/dashboard', function () {
     return redirect()->route('home');
 })->name('dashboard');
 
-// Redirection vers le back-office React/Vite pour éviter les erreurs 404
+// Redirection de la nouvelle URL administrateur vers l'application frontend React
+Route::get('/zakaria/admin/{any?}', function (?string $any = null) {
+    $frontendUrl = rtrim((string) env('FRONTEND_URL', 'http://localhost:5173'), '/');
+    $path = $any ? "/zakaria/admin/{$any}" : '/zakaria/admin/login';
+    $query = request()->getQueryString();
+    $target = "{$frontendUrl}{$path}".($query ? "?{$query}" : '');
+
+    return redirect()->away($target);
+})->where('any', '.*')->name('zakaria.admin.web.redirect');
+
+// Redirection sécurisée des anciennes URLs /admin/* vers l'application frontend
 Route::get('/admin/{any?}', function (?string $any = null) {
     $frontendUrl = rtrim((string) env('FRONTEND_URL', 'http://localhost:5173'), '/');
-    $path = $any ? "/admin/{$any}" : '/admin/login';
+    $path = ($any && $any !== 'login') ? "/admin/{$any}" : '/zakaria/admin/login';
     $query = request()->getQueryString();
     $target = "{$frontendUrl}{$path}".($query ? "?{$query}" : '');
 

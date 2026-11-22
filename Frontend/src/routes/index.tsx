@@ -30,10 +30,12 @@ export default function AppRoutes() {
       <Route path="/cart" element={<CartPage />} />
       <Route path="/checkout" element={<CheckoutPage />} />
       <Route path="/order-success" element={<OrderSuccessPage />} />
-      <Route path="/dev-check" element={<DevCheckPage />} />
+      {/* Outils de développement uniquement en environnement local */}
+      {import.meta.env.DEV && <Route path="/dev-check" element={<DevCheckPage />} />}
 
       {/* Espace Administrateur — Authentification */}
-      <Route path="/admin/login" element={<AdminLoginPage />} />
+      <Route path="/zakaria/admin/login" element={<AdminLoginPage />} />
+      <Route path="/admin/login" element={<Navigate to="/zakaria/admin/login" replace />} />
 
       {/* Espace Administrateur — Protégé */}
       <Route element={<ProtectedRoute />}>
@@ -45,9 +47,6 @@ export default function AppRoutes() {
           <Route path="/admin/categories" element={<AdminCategoriesPage />} />
           <Route path="/admin/orders" element={<AdminOrdersPage />} />
           <Route path="/admin/orders/:id" element={<AdminOrderDetailPage />} />
-          <Route path="/admin/inventory" element={<Navigate to="/admin" replace />} />
-          <Route path="/admin/inventory/movements" element={<Navigate to="/admin" replace />} />
-          <Route path="/admin/settings" element={<Navigate to="/admin" replace />} />
         </Route>
       </Route>
 
