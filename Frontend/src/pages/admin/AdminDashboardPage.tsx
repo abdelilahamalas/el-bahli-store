@@ -338,15 +338,15 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Zone graphique Recharts avec barres bleues vibrantes (comme dans l'image !) */}
-        <div className="p-4 sm:p-5">
+        <div className="p-3 sm:p-4">
           {chartOrientation === "horizontal" ? (
-            /* Barres horizontales : Idéal pour 12 catégories sans chevauchement de texte */
-            <div className="h-[430px] w-full">
+            /* Barres horizontales : Taille moyenne équilibrée, labels 100% lisibles */
+            <div className="h-[290px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={categorySales}
                   layout="vertical"
-                  margin={{ top: 10, right: 30, left: 15, bottom: 5 }}
+                  margin={{ top: 8, right: 24, left: 10, bottom: 4 }}
                 >
                   <CartesianGrid
                     strokeDasharray="3 3"
@@ -358,39 +358,40 @@ export default function AdminDashboardPage() {
                     allowDecimals={false}
                     tickLine={false}
                     axisLine={{ stroke: "#E2E8F0" }}
-                    tickMargin={6}
+                    tickMargin={4}
+                    tick={{ fontSize: 11, fill: "#64748B" }}
                     tickFormatter={(v) =>
                       activeMetric === "units_sold"
                         ? `${v}`
                         : `${Number(v).toLocaleString("fr-FR")} DH`
                     }
-                    className="text-xs text-slate-500 font-medium"
                   />
                   <YAxis
                     type="category"
                     dataKey="name"
-                    width={130}
+                    width={125}
                     tickLine={false}
                     axisLine={false}
-                    className="text-xs font-medium text-slate-800"
+                    tickMargin={8}
+                    tick={{ fontSize: 11, fill: "#334155", fontWeight: 500 }}
                   />
                   <Tooltip content={<CustomCategorySalesTooltip />} />
                   <Bar
                     dataKey={activeMetric}
                     fill="#2563EB"
                     radius={[0, 4, 4, 0]}
-                    barSize={16}
+                    barSize={12}
                   />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           ) : (
-            /* Barres verticales : Présentation identique à l'image d'inspiration */
-            <div className="h-[360px] w-full">
+            /* Barres verticales : Taille moyenne, aucun texte tronqué grâce à height={70} sur XAxis */
+            <div className="h-[270px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={categorySales}
-                  margin={{ top: 15, right: 15, left: -5, bottom: 40 }}
+                  margin={{ top: 10, right: 15, left: -10, bottom: 6 }}
                 >
                   <CartesianGrid
                     strokeDasharray="3 3"
@@ -399,32 +400,33 @@ export default function AdminDashboardPage() {
                   />
                   <XAxis
                     dataKey="name"
+                    height={70}
                     tickLine={false}
                     axisLine={{ stroke: "#E2E8F0" }}
                     interval={0}
-                    angle={-30}
+                    angle={-35}
                     textAnchor="end"
-                    tickMargin={8}
-                    className="text-[11px] text-slate-600 font-medium"
+                    tickMargin={6}
+                    tick={{ fontSize: 11, fill: "#334155", fontWeight: 500 }}
                   />
                   <YAxis
                     allowDecimals={false}
                     tickLine={false}
                     axisLine={false}
-                    tickMargin={8}
+                    tickMargin={6}
+                    tick={{ fontSize: 11, fill: "#64748B" }}
                     tickFormatter={(v) =>
                       activeMetric === "units_sold"
                         ? `${v}`
                         : `${Number(v).toLocaleString("fr-FR")} DH`
                     }
-                    className="text-xs text-slate-500 font-medium"
                   />
                   <Tooltip content={<CustomCategorySalesTooltip />} />
                   <Bar
                     dataKey={activeMetric}
                     fill="#2563EB"
                     radius={[4, 4, 0, 0]}
-                    barSize={24}
+                    barSize={20}
                   />
                 </BarChart>
               </ResponsiveContainer>
