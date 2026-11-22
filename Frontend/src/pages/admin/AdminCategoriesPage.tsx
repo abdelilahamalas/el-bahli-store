@@ -10,6 +10,7 @@ import {
   AlertCircle,
   X,
   Edit,
+  RefreshCw,
 } from "lucide-react"
 import { toast } from "sonner"
 import { adminService } from "@/services/adminService"
@@ -69,6 +70,24 @@ export default function AdminCategoriesPage() {
       setCategories(res)
     } catch {
       toast.error("Erreur lors de la récupération des catégories.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleManualRefresh = async () => {
+    if (loading) return
+    try {
+      setLoading(true)
+      const res = await adminService.getCategories()
+      setCategories(res)
+      toast.success("Catégories actualisées", {
+        description: "La liste des catégories a été mise à jour avec succès.",
+      })
+    } catch {
+      toast.error("Actualisation impossible", {
+        description: "Erreur lors de la récupération des catégories.",
+      })
     } finally {
       setLoading(false)
     }
@@ -256,14 +275,26 @@ export default function AdminCategoriesPage() {
           </p>
         </div>
 
-        {/* White button standard */}
-        <Button
-          onClick={handleStartCreate}
-          className="h-9 px-4 rounded-lg bg-white hover:bg-slate-50 text-slate-900 border border-slate-200 text-xs font-semibold shadow-2xs inline-flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
-        >
-          <Plus className="w-3.5 h-3.5 text-slate-700" />
-          <span>Ajouter une catégorie</span>
-        </Button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          {/* White button standard : Actualiser */}
+          <Button
+            onClick={() => handleManualRefresh()}
+            disabled={loading}
+            className="h-9 px-4 rounded-lg bg-white hover:bg-slate-50 text-slate-900 border border-slate-200 text-xs font-semibold shadow-2xs inline-flex items-center gap-1.5 cursor-pointer"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-slate-600 ${loading ? "animate-spin" : ""}`} />
+            <span>Actualiser</span>
+          </Button>
+
+          {/* White button standard : Ajouter une catégorie */}
+          <Button
+            onClick={handleStartCreate}
+            className="h-9 px-4 rounded-lg bg-white hover:bg-slate-50 text-slate-900 border border-slate-200 text-xs font-semibold shadow-2xs inline-flex items-center gap-1.5 cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5 text-slate-700" />
+            <span>Ajouter une catégorie</span>
+          </Button>
+        </div>
       </div>
 
       {/* 2. Grille à 2 colonnes */}

@@ -10,6 +10,7 @@ import {
   Package,
   AlertCircle,
   X,
+  RefreshCw,
 } from "lucide-react"
 import { toast } from "sonner"
 import { adminService } from "@/services/adminService"
@@ -108,6 +109,34 @@ export default function AdminProductsPage() {
       setPagination(res.pagination)
     } catch {
       toast.error("Erreur lors de la récupération des produits.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleManualRefresh = async () => {
+    if (loading) return
+    try {
+      setLoading(true)
+      const params: Record<string, string | number | boolean> = {
+        page: currentPage,
+        per_page: 15,
+      }
+      if (search.trim()) params.search = search.trim()
+      if (selectedCategory !== "all") params.category_id = selectedCategory
+      if (selectedStatus === "active") params.is_active = true
+      if (selectedStatus === "inactive") params.is_active = false
+
+      const res = await adminService.getProducts(params)
+      setProducts(res.products)
+      setPagination(res.pagination)
+      toast.success("Produits actualisés", {
+        description: "La liste des produits a été mise à jour avec succès.",
+      })
+    } catch {
+      toast.error("Actualisation impossible", {
+        description: "Erreur lors de la récupération des produits.",
+      })
     } finally {
       setLoading(false)
     }
@@ -212,14 +241,26 @@ export default function AdminProductsPage() {
           </p>
         </div>
 
-        {/* White button standard */}
-        <Button
-          onClick={() => navigate("/admin/products/new")}
-          className="h-9 px-4 rounded-lg bg-white hover:bg-slate-50 text-slate-900 border border-slate-200 text-xs font-semibold shadow-2xs inline-flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
-        >
-          <Plus className="w-3.5 h-3.5 text-slate-700" />
-          <span>Ajouter un produit</span>
-        </Button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          {/* White button standard : Actualiser */}
+          <Button
+            onClick={() => handleManualRefresh()}
+            disabled={loading}
+            className="h-9 px-4 rounded-lg bg-white hover:bg-slate-50 text-slate-900 border border-slate-200 text-xs font-semibold shadow-2xs inline-flex items-center gap-1.5 cursor-pointer"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-slate-600 ${loading ? "animate-spin" : ""}`} />
+            <span>Actualiser</span>
+          </Button>
+
+          {/* White button standard : Ajouter un produit */}
+          <Button
+            onClick={() => navigate("/admin/products/new")}
+            className="h-9 px-4 rounded-lg bg-white hover:bg-slate-50 text-slate-900 border border-slate-200 text-xs font-semibold shadow-2xs inline-flex items-center gap-1.5 cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5 text-slate-700" />
+            <span>Ajouter un produit</span>
+          </Button>
+        </div>
       </div>
 
       {/* Main Card containing Filters and Table */}
