@@ -9,6 +9,7 @@ use App\Http\Requests\UpdateCategoryRequest;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use App\Services\AuditService;
+use App\Services\ImageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -17,7 +18,8 @@ use Illuminate\Support\Str;
 class CategoryController extends ApiController
 {
     public function __construct(
-        protected AuditService $auditService
+        protected AuditService $auditService,
+        protected ImageService $imageService
     ) {}
 
     /**
@@ -59,9 +61,15 @@ class CategoryController extends ApiController
 
         $maxSort = (int) Category::max('sort_order');
 
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $this->imageService->storeCategoryImage($request->file('image'));
+        }
+
         $category = Category::create([
             'name' => $name,
             'slug' => $slug,
+            'image' => $imagePath,
             'is_active' => $validated['is_active'] ?? true,
             'sort_order' => $validated['sort_order'] ?? ($maxSort + 1),
         ]);
@@ -88,12 +96,21 @@ class CategoryController extends ApiController
 
         $oldData = ['name' => $category->name, 'slug' => $category->slug];
 
-        $category->update([
+        $updateData = [
             'name' => $name,
             'slug' => $slug,
             'is_active' => $validated['is_active'] ?? $category->is_active,
             'sort_order' => $validated['sort_order'] ?? $category->sort_order,
-        ]);
+        ];
+
+        if ($request->hasFile('image')) {
+            if ($category->image) {
+                $this->imageService->deleteFile($category->image);
+            }
+            $updateData['image'] = $this->imageService->storeCategoryImage($request->file('image'));
+        }
+
+        $category->update($updateData);
 
         $this->auditService->log('category.updated', $category, [
             'old' => $oldData,
@@ -160,12 +177,17 @@ class CategoryController extends ApiController
         }
 
         $categoryName = $category->name;
+        $categoryImage = $category->image;
         $this->auditService->log('category.deleted', $category, [
             'name' => $categoryName,
             'slug' => $category->slug,
         ]);
 
         $category->delete();
+
+        if ($categoryImage) {
+            $this->imageService->deleteFile($categoryImage);
+        }
 
         return $this->success(null, "La catégorie « {$categoryName} » a été supprimée avec succès.");
     }

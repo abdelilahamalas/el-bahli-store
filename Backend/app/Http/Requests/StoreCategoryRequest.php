@@ -18,6 +18,7 @@ class StoreCategoryRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'min:2', 'max:100', 'unique:categories,name'],
+            'image' => ['nullable', 'file', 'image', 'mimes:jpeg,png,webp', 'max:4096'],
             'is_active' => ['nullable', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ];

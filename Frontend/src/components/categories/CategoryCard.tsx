@@ -9,7 +9,7 @@ interface CategoryCardProps {
 }
 
 export default function CategoryCard({ category }: CategoryCardProps) {
-  const image = getCategoryImage(category.slug)
+  const image = getCategoryImage(category.slug, category.image_url || category.image)
 
   return (
     <Link

@@ -28,6 +28,7 @@ class UpdateCategoryRequest extends FormRequest
                 'max:100',
                 Rule::unique('categories', 'name')->ignore($categoryId),
             ],
+            'image' => ['nullable', 'file', 'image', 'mimes:jpeg,png,webp', 'max:4096'],
             'is_active' => ['nullable', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ];

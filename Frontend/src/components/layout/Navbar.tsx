@@ -1,6 +1,7 @@
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { Search, ShoppingBag, ChevronDown } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { useCart } from "@/hooks/useCart"
 import type { Category } from "@/types/category"
 import { storeLogo, getCategoryImage } from "@/utils/categoryImages"
@@ -61,6 +62,43 @@ export default function Navbar({ categories, isLoading }: NavbarProps) {
   const { totalCount, openCart } = useCart()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+
+  // Gestion de l'ouverture fluide au survol et au clic pour les groupes de catégories
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null)
+  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const handleMouseEnter = (label: string) => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current)
+      hoverTimeoutRef.current = null
+    }
+    setOpenDropdown(label)
+  }
+
+  const handleMouseLeave = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current)
+    }
+    hoverTimeoutRef.current = setTimeout(() => {
+      setOpenDropdown(null)
+    }, 200)
+  }
+
+  const handleToggle = (label: string) => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current)
+      hoverTimeoutRef.current = null
+    }
+    setOpenDropdown((prev) => (prev === label ? null : label))
+  }
+
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current)
+      }
+    }
+  }, [])
 
   // Catégories correspondantes en temps réel dans le modal de recherche
   const matchingCategories = searchQuery.trim()
@@ -133,29 +171,60 @@ export default function Navbar({ categories, isLoading }: NavbarProps) {
                       if (groupCategories.length === 0) return null
 
                       return (
-                        <DropdownMenu key={group.label}>
-                          <DropdownMenuTrigger asChild>
-                            <button
-                              type="button"
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs xl:text-sm font-medium text-foreground/90 hover:text-brand-gold transition-colors focus:outline-hidden cursor-pointer"
-                            >
-                              <span>{group.label}</span>
-                              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform duration-200" />
-                            </button>
-                          </DropdownMenuTrigger>
+                        <DropdownMenu
+                          key={group.label}
+                          open={openDropdown === group.label}
+                          onOpenChange={(open) => {
+                            if (!open) {
+                              if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
+                              setOpenDropdown(null)
+                            } else {
+                              setOpenDropdown(group.label)
+                            }
+                          }}
+                        >
+                          <div
+                            className="inline-flex"
+                            onMouseEnter={() => handleMouseEnter(group.label)}
+                            onMouseLeave={handleMouseLeave}
+                          >
+                            <DropdownMenuTrigger asChild>
+                              <button
+                                type="button"
+                                onClick={() => handleToggle(group.label)}
+                                aria-expanded={openDropdown === group.label}
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs xl:text-sm font-medium text-foreground/90 hover:text-brand-gold transition-colors focus:outline-hidden cursor-pointer"
+                              >
+                                <span>{group.label}</span>
+                                <ChevronDown
+                                  className={cn(
+                                    "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
+                                    openDropdown === group.label && "rotate-180 text-brand-gold"
+                                  )}
+                                />
+                              </button>
+                            </DropdownMenuTrigger>
+                          </div>
                           <DropdownMenuContent
                             align="start"
+                            sideOffset={4}
+                            onMouseEnter={() => handleMouseEnter(group.label)}
+                            onMouseLeave={handleMouseLeave}
                             className="w-56 p-2 bg-background border border-border shadow-xl rounded-xl z-50 animate-in fade-in-80"
                           >
                             <div className="px-2 py-1 text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
                               Rayon {group.label}
                             </div>
                             {groupCategories.map((cat) => {
-                              const img = getCategoryImage(cat.slug)
+                              const img = getCategoryImage(cat.slug, cat.image_url || cat.image)
                               return (
                                 <DropdownMenuItem key={cat.id} asChild>
                                   <Link
                                     to={`/categories/${cat.slug}`}
+                                    onClick={() => {
+                                      if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
+                                      setOpenDropdown(null)
+                                    }}
                                     className="flex items-center gap-2.5 p-2 text-xs font-medium cursor-pointer rounded-lg hover:bg-muted focus:bg-muted"
                                   >
                                     {img && (

@@ -321,6 +321,8 @@ export interface AdminCategory {
   slug: string
   is_active: boolean
   sort_order: number
+  image?: string | null
+  image_url?: string | null
   products_count?: number
   created_at?: string
   updated_at?: string

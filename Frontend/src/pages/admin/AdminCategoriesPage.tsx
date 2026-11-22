@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner"
 import { adminService } from "@/services/adminService"
 import type { AdminCategory } from "@/types/admin"
+import { getCategoryImage } from "@/utils/categoryImages"
 import { Button } from "@/components/ui/button"
 import {
   Table,
@@ -52,7 +53,10 @@ export default function AdminCategoriesPage() {
   const [editingCategory, setEditingCategory] = useState<AdminCategory | null>(null)
   const [nameInput, setNameInput] = useState("")
   const [isActiveInput, setIsActiveInput] = useState(true)
+  const [selectedImage, setSelectedImage] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Delete dialog state
   const [deletingCategory, setDeletingCategory] = useState<AdminCategory | null>(null)
@@ -87,6 +91,9 @@ export default function AdminCategoriesPage() {
     setEditingCategory(null)
     setNameInput("")
     setIsActiveInput(true)
+    setSelectedImage(null)
+    setImagePreview(null)
+    if (fileInputRef.current) fileInputRef.current.value = ""
     nameInputRef.current?.focus()
   }
 
@@ -94,7 +101,39 @@ export default function AdminCategoriesPage() {
     setEditingCategory(cat)
     setNameInput(cat.name)
     setIsActiveInput(cat.is_active)
+    setSelectedImage(null)
+    setImagePreview(cat.image_url || null)
+    if (fileInputRef.current) fileInputRef.current.value = ""
     nameInputRef.current?.focus()
+  }
+
+  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0]
+      if (!file.type.startsWith("image/")) {
+        toast.error("Format invalide", {
+          description: "Veuillez sélectionner un fichier image valide (PNG, JPG, WebP).",
+        })
+        return
+      }
+      if (file.size > 4 * 1024 * 1024) {
+        toast.error("Fichier trop volumineux", {
+          description: "L'image ne doit pas dépasser 4 Mo.",
+        })
+        return
+      }
+      setSelectedImage(file)
+      setImagePreview(URL.createObjectURL(file))
+      toast.success("Image sélectionnée", {
+        description: file.name,
+      })
+    }
+  }
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null)
+    setImagePreview(null)
+    if (fileInputRef.current) fileInputRef.current.value = ""
   }
 
   const handleSaveCategory = async (e: React.FormEvent) => {
@@ -106,20 +145,21 @@ export default function AdminCategoriesPage() {
 
     setIsSubmitting(true)
     try {
+      const formData = new FormData()
+      formData.append("name", nameInput.trim())
+      formData.append("is_active", isActiveInput ? "1" : "0")
+      if (selectedImage) {
+        formData.append("image", selectedImage)
+      }
+
       if (editingCategory) {
-        await adminService.updateCategory(editingCategory.id, {
-          name: nameInput.trim(),
-          is_active: isActiveInput,
-        })
+        await adminService.updateCategory(editingCategory.id, formData)
         toast.success("Catégorie modifiée", {
           description: `La catégorie « ${nameInput} » a été modifiée avec succès.`,
         })
       } else {
-        await adminService.createCategory({
-          name: nameInput.trim(),
-          is_active: isActiveInput,
-          sort_order: categories.length + 1,
-        })
+        formData.append("sort_order", String(categories.length + 1))
+        await adminService.createCategory(formData)
         toast.success("Catégorie créée", {
           description: `La catégorie « ${nameInput} » a été ajoutée au catalogue.`,
         })
@@ -287,9 +327,18 @@ export default function AdminCategoriesPage() {
                         key={cat.id}
                         className="hover:bg-slate-50/70 transition-colors"
                       >
-                        {/* Nom */}
-                        <TableCell className="py-3 px-4 font-bold text-slate-900">
-                          {cat.name}
+                        {/* Nom avec miniature d'image */}
+                        <TableCell className="py-3 px-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg overflow-hidden border border-slate-200 bg-slate-50 shrink-0">
+                              <img
+                                src={(cat.image_url || getCategoryImage(cat.slug, cat.image)) ?? undefined}
+                                alt={cat.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <span className="font-bold text-slate-900">{cat.name}</span>
+                          </div>
                         </TableCell>
 
                         {/* Produits rattachés */}
@@ -423,29 +472,72 @@ export default function AdminCategoriesPage() {
                 <Label className="text-xs font-semibold text-slate-800">
                   Image de la catégorie (Optionnel)
                 </Label>
-                <div className="border border-dashed border-slate-200 rounded-lg p-5 text-center bg-slate-50/50 hover:bg-slate-50 transition-colors relative cursor-pointer">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                      if (e.target.files && e.target.files[0]) {
-                        toast.info("Image sélectionnée.")
-                      }
-                    }}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  />
-                  <div className="flex flex-col items-center pointer-events-none space-y-1.5">
-                    <div className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-600 shadow-2xs mb-0.5">
-                      <Upload className="w-3.5 h-3.5" />
+                {imagePreview ? (
+                  <div className="relative border border-slate-200 rounded-lg p-3 bg-slate-50/70 flex items-center gap-3.5">
+                    <div className="w-16 h-16 rounded-md overflow-hidden border border-slate-200 bg-white shrink-0 shadow-2xs">
+                      <img
+                        src={imagePreview}
+                        alt="Prévisualisation"
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                    <span className="text-xs text-slate-700 font-medium">
-                      Cliquez pour importer une image
-                    </span>
-                    <span className="text-[10px] text-slate-400">
-                      PNG, JPG ou WebP · 2 Mo max
-                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-slate-800 truncate">
+                        {selectedImage ? selectedImage.name : "Image actuelle"}
+                      </p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        {selectedImage
+                          ? `${(selectedImage.size / 1024).toFixed(0)} Ko · Prête à être enregistrée`
+                          : "Enregistrée sur le serveur"}
+                      </p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <label
+                          htmlFor="cat-image-input"
+                          className="text-[11px] font-semibold text-brand-gold hover:underline cursor-pointer"
+                        >
+                          Changer l'image
+                        </label>
+                        <span className="text-slate-300">•</span>
+                        <button
+                          type="button"
+                          onClick={handleRemoveImage}
+                          className="text-[11px] font-semibold text-rose-500 hover:underline cursor-pointer"
+                        >
+                          Supprimer
+                        </button>
+                      </div>
+                    </div>
+                    <input
+                      id="cat-image-input"
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
                   </div>
-                </div>
+                ) : (
+                  <div className="border border-dashed border-slate-200 rounded-lg p-5 text-center bg-slate-50/50 hover:bg-slate-50 transition-colors relative cursor-pointer">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      onChange={handleImageChange}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                    <div className="flex flex-col items-center pointer-events-none space-y-1.5">
+                      <div className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-600 shadow-2xs mb-0.5">
+                        <Upload className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="text-xs text-slate-700 font-medium">
+                        Cliquez pour importer une image
+                      </span>
+                      <span className="text-[10px] text-slate-400">
+                        PNG, JPG ou WebP · 4 Mo max
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Toggle Afficher dans la boutique avec Switch */}

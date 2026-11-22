@@ -112,7 +112,7 @@ export default function AdminLoginPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Champ Email */}
               <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-xs font-semibold text-foreground">
+                <Label htmlFor="email" className="text-sm font-semibold text-foreground">
                   Adresse e-mail
                 </Label>
                 <Input
@@ -124,14 +124,14 @@ export default function AdminLoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
                   required
-                  className="h-10 text-xs bg-white border-border rounded-xl focus-visible:ring-[#C9A227] focus-visible:border-[#C9A227]"
+                  className="h-10.5 text-sm bg-white border-border rounded-xl focus-visible:ring-[#C9A227] focus-visible:border-[#C9A227]"
                 />
               </div>
 
               {/* Champ Mot de passe avec toggle Eye / EyeOff */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-xs font-semibold text-foreground">
+                  <Label htmlFor="password" className="text-sm font-semibold text-foreground">
                     Mot de passe
                   </Label>
                 </div>
@@ -145,7 +145,7 @@ export default function AdminLoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={isLoading}
                     required
-                    className="h-10 pr-10 text-xs bg-white border-border rounded-xl focus-visible:ring-[#C9A227] focus-visible:border-[#C9A227]"
+                    className="h-10.5 pr-10 text-sm bg-white border-border rounded-xl focus-visible:ring-[#C9A227] focus-visible:border-[#C9A227]"
                   />
                   <Button
                     type="button"
@@ -175,7 +175,7 @@ export default function AdminLoginPage() {
                   />
                   <Label
                     htmlFor="remember-me"
-                    className="text-xs font-normal text-muted-foreground hover:text-foreground cursor-pointer select-none"
+                    className="text-xs font-medium text-muted-foreground hover:text-foreground cursor-pointer select-none"
                   >
                     Se souvenir de moi
                   </Label>

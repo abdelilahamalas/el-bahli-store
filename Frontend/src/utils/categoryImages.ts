@@ -40,9 +40,12 @@ export const categoryImagesMap: Record<string, string> = {
 }
 
 /**
- * Retourne l'image associée à une catégorie en fonction de son slug ou de son nom normalisé.
+ * Retourne l'image associée à une catégorie en fonction de son image API dynamique, de son slug ou de son nom.
  */
-export function getCategoryImage(slugOrName: string): string | null {
+export function getCategoryImage(slugOrName: string, categoryImageUrl?: string | null): string | null {
+  if (categoryImageUrl) {
+    return categoryImageUrl
+  }
   if (!slugOrName) return null
 
   const normalized = slugOrName

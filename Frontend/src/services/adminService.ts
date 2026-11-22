@@ -290,20 +290,26 @@ export const adminService = {
     return response.data.data
   },
 
-  async createCategory(data: {
-    name: string
-    sort_order?: number
-    is_active?: boolean
-  }): Promise<AdminCategory> {
-    const response = await api.post<ApiResponse<AdminCategory>>("/admin/categories", data)
+  async createCategory(
+    data: FormData | { name: string; sort_order?: number; is_active?: boolean }
+  ): Promise<AdminCategory> {
+    const isFormData = data instanceof FormData
+    const response = await api.post<ApiResponse<AdminCategory>>("/admin/categories", data, {
+      headers: isFormData ? { "Content-Type": "multipart/form-data" } : undefined,
+    })
     return response.data.data
   },
 
   async updateCategory(
     id: number | string,
-    data: { name: string; sort_order?: number; is_active?: boolean }
+    data: FormData | { name: string; sort_order?: number; is_active?: boolean }
   ): Promise<AdminCategory> {
-    const response = await api.put<ApiResponse<AdminCategory>>(`/admin/categories/${id}`, data)
+    const isFormData = data instanceof FormData
+    const response = isFormData
+      ? await api.post<ApiResponse<AdminCategory>>(`/admin/categories/${id}`, data, {
+          headers: { "Content-Type": "multipart/form-data" },
+        })
+      : await api.put<ApiResponse<AdminCategory>>(`/admin/categories/${id}`, data)
     return response.data.data
   },
 

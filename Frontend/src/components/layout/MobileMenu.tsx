@@ -99,7 +99,7 @@ export default function MobileMenu({ categories, isLoading }: MobileMenuProps) {
             </div>
           ) : (
             categories.map((category) => {
-              const image = getCategoryImage(category.slug)
+              const image = getCategoryImage(category.slug, category.image_url || category.image)
               return (
                 <SheetClose asChild key={category.id}>
                   <Link

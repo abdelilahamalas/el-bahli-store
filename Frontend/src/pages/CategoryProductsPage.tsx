@@ -115,7 +115,9 @@ export default function CategoryProductsPage() {
     }
   }, [slug, filters])
 
-  const categoryImage = slug ? getCategoryImage(slug) : null
+  const categoryImage = currentCategory
+    ? getCategoryImage(currentCategory.slug, currentCategory.image_url || currentCategory.image)
+    : (slug ? getCategoryImage(slug) : null)
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground antialiased selection:bg-brand-gold/30">
@@ -255,7 +257,9 @@ export default function CategoryProductsPage() {
                   to="/#categories-section"
                   className="text-xs font-bold text-muted-foreground hover:text-brand-gold transition-colors"
                 >
-                  Voir les 12 collections sur l'accueil →
+                  {categories.length > 1
+                    ? `Voir les ${categories.length} collections sur l'accueil →`
+                    : "Voir les collections sur l'accueil →"}
                 </Link>
               </div>
 

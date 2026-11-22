@@ -71,7 +71,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::get('/categories', [AdminCategoryController::class, 'index'])->name('categories.index');
             Route::post('/categories', [AdminCategoryController::class, 'store'])->name('categories.store');
             Route::get('/categories/{category}', [AdminCategoryController::class, 'show'])->name('categories.show');
-            Route::put('/categories/{category}', [AdminCategoryController::class, 'update'])->name('categories.update');
+            Route::match(['put', 'post'], '/categories/{category}', [AdminCategoryController::class, 'update'])->name('categories.update');
             Route::patch('/categories/{category}/toggle', [AdminCategoryController::class, 'toggle'])->name('categories.toggle');
             Route::post('/categories/reorder', [AdminCategoryController::class, 'reorder'])->name('categories.reorder');
             Route::delete('/categories/{category}', [AdminCategoryController::class, 'destroy'])->name('categories.destroy');

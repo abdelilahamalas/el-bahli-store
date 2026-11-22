@@ -9,6 +9,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme="light"
       className="toaster group"
       duration={2500}
+      visibleToasts={1}
+      expand={false}
       closeButton
       icons={{
         success: <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />,

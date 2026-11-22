@@ -229,7 +229,11 @@ export default function HomePage() {
                 Notre Catalogue
               </span>
               <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
-                Les 12 Collections Officielles
+                {categories.length === 1
+                  ? "1 Collection Officielle"
+                  : categories.length > 1
+                  ? `Les ${categories.length} Collections Officielles`
+                  : "Nos Collections Officielles"}
               </h2>
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                 Parcourez l'ensemble de notre vestiaire masculin : capuches, sweats,

@@ -298,6 +298,28 @@ class ImageService
     }
 
     /**
+     * Store category image, converting to WebP with 800px width limit.
+     */
+    public function storeCategoryImage(UploadedFile $file): string
+    {
+        $this->validateImage($file);
+
+        $uuid = Str::uuid()->toString();
+        $relativePath = "categories/{$uuid}.webp";
+
+        $encoder = new WebpEncoder(quality: 85, strip: true);
+
+        $source = $file->getPathname() ?: $file->getContent();
+        $image = Image::decode($source);
+        $image->scaleDown(width: 800);
+        $encoded = $image->encode($encoder);
+
+        Storage::disk('public')->put($relativePath, (string) $encoded);
+
+        return $relativePath;
+    }
+
+    /**
      * Store store logo.
      */
     public function storeStoreLogo(UploadedFile $file): string
