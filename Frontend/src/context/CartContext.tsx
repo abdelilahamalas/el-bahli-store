@@ -105,9 +105,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
     })
 
+    toast.dismiss()
     toast.success("Produit ajouté au panier", {
-      id: `cart-add-${itemData.productId}-${itemData.size}-${targetColor}`,
-      description: `${itemData.name} · Taille ${itemData.size}${targetColor !== "Standard" ? ` · ${targetColor}` : ""}`,
+      id: "cart-notification",
+      description: `Le produit « ${itemData.name} » a été ajouté à votre panier.`,
     })
 
     // Ouverture automatique du tiroir pour fluidité
@@ -136,8 +137,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         ) {
           const maxLimit = item.maxStock ? Math.min(10, item.maxStock) : 10
           if (quantity > maxLimit) {
+            toast.dismiss()
             toast.warning("Stock insuffisant", {
-              id: `stock-limit-${productId}-${size}`,
+              id: "cart-notification",
               description: `Seulement ${maxLimit} unité(s) disponible(s) en stock pour cette taille.`,
             })
             return {
@@ -167,9 +169,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     )
 
     if (removed) {
+      toast.dismiss()
       toast.info("Produit retiré du panier", {
-        id: `cart-remove-${productId}-${size}-${targetColor}`,
-        description: `« ${removed.name} » (${removed.size}) a été retiré de votre sélection.`,
+        id: "cart-notification",
+        description: `Le produit « ${removed.name} » a été retiré de votre panier.`,
       })
     }
 
