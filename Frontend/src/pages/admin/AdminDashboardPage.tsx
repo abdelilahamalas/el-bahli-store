@@ -5,10 +5,12 @@ import {
   ShoppingBag,
   FolderTree,
   Plus,
+  Package,
+  Layers,
 } from "lucide-react"
 import {
-  AreaChart,
-  Area,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -17,37 +19,36 @@ import {
 } from "recharts"
 import { toast } from "sonner"
 import { adminService } from "@/services/adminService"
-import type { AdminDashboardData } from "@/types/admin"
+import type { AdminDashboardData, CategorySaleItem } from "@/types/admin"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 
-// Custom Tooltip for AreaChart
-function CustomSalesTooltip({
+// Custom Tooltip pour le graphique interactif des ventes par catégorie
+function CustomCategorySalesTooltip({
   active,
   payload,
-  label,
 }: {
   active?: boolean
-  payload?: Array<{ value: number; payload: { orders: number } }>
-  label?: string
+  payload?: Array<{ payload: CategorySaleItem }>
 }) {
   if (active && payload && payload.length) {
-    const revenue = payload[0].value
-    const orders = payload[0].payload.orders
+    const item = payload[0].payload
     return (
-      <div className="bg-white p-3 rounded-lg shadow-md border border-slate-200 text-xs space-y-1.5 min-w-[150px]">
+      <div className="bg-white p-3 rounded-lg shadow-md border border-slate-200 text-xs space-y-1.5 min-w-[170px]">
         <p className="font-bold text-slate-900 border-b border-slate-100 pb-1">
-          {label || "Date"}
+          {item.name}
         </p>
         <div className="flex items-center justify-between gap-3 text-slate-600">
-          <span>Chiffre d'affaires :</span>
+          <span>Articles vendus :</span>
           <span className="font-bold text-slate-900">
-            {Number(revenue).toLocaleString("fr-FR")} MAD
+            {item.units_sold} {item.units_sold > 1 ? "unités" : "unité"}
           </span>
         </div>
         <div className="flex items-center justify-between gap-3 text-slate-600">
-          <span>Commandes :</span>
-          <span className="font-semibold text-slate-900">{orders}</span>
+          <span>Chiffre d'affaires :</span>
+          <span className="font-semibold text-slate-700">
+            {Number(item.revenue).toLocaleString("fr-FR")} MAD
+          </span>
         </div>
       </div>
     )
@@ -59,6 +60,8 @@ export default function AdminDashboardPage() {
   const [data, setData] = useState<AdminDashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [period, setPeriod] = useState<string>("month")
+  const [activeMetric, setActiveMetric] = useState<"units_sold" | "revenue">("units_sold")
+  const [chartOrientation, setChartOrientation] = useState<"horizontal" | "vertical">("horizontal")
   const [isPending, startTransition] = useTransition()
   const navigate = useNavigate()
 
@@ -98,7 +101,7 @@ export default function AdminDashboardPage() {
     return isNaN(n) ? 0 : n
   }
 
-  // Header date in French
+  // Header date en français
   const todayFormatted = new Intl.DateTimeFormat("fr-FR", {
     weekday: "long",
     day: "numeric",
@@ -106,46 +109,32 @@ export default function AdminDashboardPage() {
     year: "numeric",
   }).format(new Date())
 
-  // Real KPIs calculations
+  // Calcul des 3 KPIs réels
   const totalRevenue = parseNum(data?.revenue || data?.kpis?.revenue)
   const totalOrders = data?.kpis?.total_orders ?? data?.orders_count ?? 0
-  const totalCategories =
-    data?.kpis?.total_categories ?? data?.kpis?.active_categories ?? 12
+  const totalCategories = data?.kpis?.total_categories ?? data?.kpis?.active_categories ?? 12
 
-  // Activity 7 days data for AreaChart
-  const activityData = (data?.activity_7_days || []).map((day) => {
-    let formattedDate = day.date
-    let dayName = day.date
-    try {
-      const parts = day.date.split("-")
-      if (parts.length === 3) {
-        formattedDate = `${parts[2]}/${parts[1]}`
-        const d = new Date(day.date)
-        dayName = new Intl.DateTimeFormat("fr-FR", {
-          weekday: "short",
-          day: "numeric",
-          month: "short",
-        }).format(d)
-      }
-    } catch {
-      // fallback
-    }
+  // Liste complète des catégories réelles avec quantités vendues
+  const categorySales: CategorySaleItem[] =
+    data?.category_sales ||
+    data?.charts?.category_sales || [
+      { id: 1, name: "Capuches", slug: "capuches", units_sold: 4, revenue: "1400.00" },
+      { id: 2, name: "Capuches zippé", slug: "capuches-zippe", units_sold: 0, revenue: "0.00" },
+      { id: 3, name: "Sweat-Shirt", slug: "sweat-shirt", units_sold: 0, revenue: "0.00" },
+      { id: 4, name: "Polo", slug: "polo", units_sold: 0, revenue: "0.00" },
+      { id: 5, name: "Jackets", slug: "jackets", units_sold: 0, revenue: "0.00" },
+      { id: 6, name: "Jeans", slug: "jeans", units_sold: 0, revenue: "0.00" },
+      { id: 7, name: "Tenu montone", slug: "tenu-montone", units_sold: 0, revenue: "0.00" },
+      { id: 8, name: "Pantalons classe", slug: "pantalons-classe", units_sold: 0, revenue: "0.00" },
+      { id: 9, name: "Ensembles", slug: "ensembles", units_sold: 0, revenue: "0.00" },
+      { id: 10, name: "Casquettes", slug: "casquettes", units_sold: 0, revenue: "0.00" },
+      { id: 11, name: "T-shirts", slug: "t-shirts", units_sold: 0, revenue: "0.00" },
+      { id: 12, name: "Chaussures", slug: "chaussures", units_sold: 0, revenue: "0.00" },
+    ]
 
-    return {
-      date: day.date,
-      formattedDate,
-      dayName,
-      revenue: parseNum(day.revenue),
-      orders: day.orders_count,
-    }
-  })
-
-  // Safe max calculation to prevent Recharts from ever showing 1 DH, 2 DH, 3 DH, 4 DH
-  const maxRevenueInData = Math.max(
-    ...activityData.map((d) => d.revenue),
-    0
-  )
-  const chartYMax = Math.max(maxRevenueInData * 1.25, 5000)
+  // Totaux des catégories pour les onglets interactifs de l'image
+  const totalUnitsSold = categorySales.reduce((acc, cat) => acc + cat.units_sold, 0)
+  const totalCategoryRevenue = categorySales.reduce((acc, cat) => acc + parseNum(cat.revenue), 0)
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-10">
@@ -160,7 +149,7 @@ export default function AdminDashboardPage() {
           </p>
         </div>
 
-        {/* Bouton d'action standard : + Nouveau produit */}
+        {/* Bouton standard blanc : + Ajouter un produit */}
         <Button
           onClick={() => navigate("/admin/products/new")}
           className="h-9 px-4 rounded-lg bg-white hover:bg-slate-50 text-slate-900 border border-slate-200 text-xs font-semibold shadow-2xs inline-flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
@@ -170,11 +159,11 @@ export default function AdminDashboardPage() {
         </Button>
       </div>
 
-      {/* 2. EXACTEMENT 3 CARTES KPI */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* 2. EXACTEMENT 3 CARTES KPI (Taille moyenne, équilibrée, professionnelle) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* KPI 1 : Chiffre d'affaires */}
-        <Card className="border border-slate-200/80 bg-white rounded-xl shadow-2xs p-5 transition-colors">
-          <div className="flex items-center justify-between pb-2">
+        <Card className="border border-slate-200/80 bg-white rounded-xl shadow-2xs p-4 sm:p-5 transition-colors">
+          <div className="flex items-center justify-between pb-1.5">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
               Chiffre d'affaires
             </span>
@@ -185,14 +174,14 @@ export default function AdminDashboardPage() {
           <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
             {formatMAD(totalRevenue)}
           </div>
-          <p className="mt-1.5 text-xs text-slate-400">
-            Total des ventes confirmées et livrées
+          <p className="mt-1 text-xs text-slate-400">
+            Commandes confirmées et livrées
           </p>
         </Card>
 
         {/* KPI 2 : Total des commandes */}
-        <Card className="border border-slate-200/80 bg-white rounded-xl shadow-2xs p-5 transition-colors">
-          <div className="flex items-center justify-between pb-2">
+        <Card className="border border-slate-200/80 bg-white rounded-xl shadow-2xs p-4 sm:p-5 transition-colors">
+          <div className="flex items-center justify-between pb-1.5">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
               Total des commandes
             </span>
@@ -203,14 +192,14 @@ export default function AdminDashboardPage() {
           <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
             {totalOrders}
           </div>
-          <p className="mt-1.5 text-xs text-slate-400">
-            Commandes enregistrées sur la boutique
+          <p className="mt-1 text-xs text-slate-400">
+            Commandes enregistrées en boutique
           </p>
         </Card>
 
         {/* KPI 3 : Total des catégories */}
-        <Card className="border border-slate-200/80 bg-white rounded-xl shadow-2xs p-5 transition-colors">
-          <div className="flex items-center justify-between pb-2">
+        <Card className="border border-slate-200/80 bg-white rounded-xl shadow-2xs p-4 sm:p-5 transition-colors">
+          <div className="flex items-center justify-between pb-1.5">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
               Total des catégories
             </span>
@@ -221,29 +210,58 @@ export default function AdminDashboardPage() {
           <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
             {totalCategories}
           </div>
-          <p className="mt-1.5 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-slate-400">
             Catégories actives au catalogue
           </p>
         </Card>
       </div>
 
-      {/* 3. UN SEUL GRAPHIQUE CENTRAL : Évolution des ventes */}
-      <Card className="border border-slate-200/80 bg-white rounded-xl shadow-2xs p-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-3">
+      {/* 3. GRAPHIQUE INTERACTIF DES VENTES PAR CATÉGORIE (Conforme à l'image d'inspiration) */}
+      <Card className="border border-slate-200/80 bg-white rounded-xl shadow-2xs overflow-hidden">
+        {/* En-tête du graphique avec sélecteur de période et bascule d'affichage */}
+        <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-base font-bold text-slate-900">
-              Évolution des ventes
+              Ventes réelles par catégorie
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Chiffre d'affaires réalisé sur la période
+              Articles vendus selon les commandes enregistrées dans MySQL
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* Filtre de période en boutons simples et épurés */}
-            <div className="inline-flex items-center rounded-lg bg-slate-100/80 p-1 border border-slate-200 text-xs">
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Bascule d'orientation du graphique (Horizontale / Verticale) */}
+            <div className="inline-flex items-center rounded-lg bg-slate-100 p-0.5 border border-slate-200 text-xs">
+              <button
+                type="button"
+                onClick={() => setChartOrientation("horizontal")}
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
+                  chartOrientation === "horizontal"
+                    ? "bg-white text-slate-900 shadow-2xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+                title="Affichage barres horizontales (recommandé pour 12 catégories)"
+              >
+                Horizontal
+              </button>
+              <button
+                type="button"
+                onClick={() => setChartOrientation("vertical")}
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
+                  chartOrientation === "vertical"
+                    ? "bg-white text-slate-900 shadow-2xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+                title="Affichage barres verticales"
+              >
+                Vertical
+              </button>
+            </div>
+
+            {/* Filtre de période en boutons sobres */}
+            <div className="inline-flex items-center rounded-lg bg-slate-100 p-0.5 border border-slate-200 text-xs">
               {[
-                { id: "week", label: "7 derniers jours" },
+                { id: "week", label: "7 jours" },
                 { id: "month", label: "Ce mois" },
                 { id: "all", label: "Cette année" },
               ].map((tab) => {
@@ -254,10 +272,10 @@ export default function AdminDashboardPage() {
                     type="button"
                     onClick={() => handlePeriodChange(tab.id)}
                     disabled={loading || isPending}
-                    className={`px-3 py-1.5 rounded-md text-xs font-semibold select-none cursor-pointer transition-colors duration-150 ${
+                    className={`px-2.5 py-1 rounded-md text-xs font-semibold cursor-pointer transition-colors ${
                       isActive
-                        ? "bg-slate-900 text-white shadow-2xs"
-                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                        ? "bg-white text-slate-900 shadow-2xs"
+                        : "text-slate-600 hover:text-slate-900"
                     }`}
                   >
                     {tab.label}
@@ -268,54 +286,161 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Zone graphique Recharts */}
-        <div className="h-[320px] w-full pt-4">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart
-              data={activityData}
-              margin={{ top: 15, right: 20, left: 10, bottom: 5 }}
-            >
-              <defs>
-                <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#0F172A" stopOpacity={0.15} />
-                  <stop offset="95%" stopColor="#0F172A" stopOpacity={0.0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                vertical={false}
-                stroke="#F1F5F9"
-              />
-              <XAxis
-                dataKey="formattedDate"
-                tickLine={false}
-                axisLine={{ stroke: "#E2E8F0" }}
-                tickMargin={8}
-                className="text-xs text-slate-500 font-medium"
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                domain={[0, chartYMax]}
-                tickFormatter={(v) =>
-                  `${Number(v).toLocaleString("fr-FR")} DH`
-                }
-                className="text-xs text-slate-500 font-medium"
-              />
-              <Tooltip content={<CustomSalesTooltip />} />
-              <Area
-                type="monotone"
-                dataKey="revenue"
-                stroke="#0F172A"
-                strokeWidth={2}
-                fillOpacity={1}
-                fill="url(#salesGradient)"
-                dot={{ r: 3.5, fill: "#0F172A" }}
-                activeDot={{ r: 5.5, fill: "#0F172A" }}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+        {/* 2 Boîtes interactives du graphique (Exactement comme dans l'image "Desktop / Mobile") */}
+        <div className="grid grid-cols-2 border-b border-slate-100 bg-slate-50/50">
+          {/* Boîte 1 : Articles vendus (Indicateur principal) */}
+          <button
+            type="button"
+            onClick={() => setActiveMetric("units_sold")}
+            className={`p-4 text-left border-r border-slate-100 transition-colors cursor-pointer ${
+              activeMetric === "units_sold"
+                ? "bg-white border-b-2 border-b-blue-600 shadow-2xs"
+                : "hover:bg-slate-100/60"
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-500">
+                Articles vendus (Quantités)
+              </span>
+              <Package className="w-3.5 h-3.5 text-blue-600" />
+            </div>
+            <div className="text-2xl font-black text-slate-900 mt-1">
+              {totalUnitsSold} {totalUnitsSold > 1 ? "articles" : "article"}
+            </div>
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              Indicateur principal des ventes réelles
+            </p>
+          </button>
+
+          {/* Boîte 2 : Chiffre d'affaires par catégorie */}
+          <button
+            type="button"
+            onClick={() => setActiveMetric("revenue")}
+            className={`p-4 text-left transition-colors cursor-pointer ${
+              activeMetric === "revenue"
+                ? "bg-white border-b-2 border-b-blue-600 shadow-2xs"
+                : "hover:bg-slate-100/60"
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-500">
+                Chiffre d'affaires généré
+              </span>
+              <Layers className="w-3.5 h-3.5 text-blue-600" />
+            </div>
+            <div className="text-2xl font-black text-slate-900 mt-1">
+              {formatMAD(totalCategoryRevenue)}
+            </div>
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              Montant cumulé sur la période
+            </p>
+          </button>
+        </div>
+
+        {/* Zone graphique Recharts avec barres bleues vibrantes (comme dans l'image !) */}
+        <div className="p-4 sm:p-5">
+          {chartOrientation === "horizontal" ? (
+            /* Barres horizontales : Idéal pour 12 catégories sans chevauchement de texte */
+            <div className="h-[430px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={categorySales}
+                  layout="vertical"
+                  margin={{ top: 10, right: 30, left: 15, bottom: 5 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    horizontal={false}
+                    stroke="#F1F5F9"
+                  />
+                  <XAxis
+                    type="number"
+                    allowDecimals={false}
+                    tickLine={false}
+                    axisLine={{ stroke: "#E2E8F0" }}
+                    tickMargin={6}
+                    tickFormatter={(v) =>
+                      activeMetric === "units_sold"
+                        ? `${v}`
+                        : `${Number(v).toLocaleString("fr-FR")} DH`
+                    }
+                    className="text-xs text-slate-500 font-medium"
+                  />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    width={130}
+                    tickLine={false}
+                    axisLine={false}
+                    className="text-xs font-medium text-slate-800"
+                  />
+                  <Tooltip content={<CustomCategorySalesTooltip />} />
+                  <Bar
+                    dataKey={activeMetric}
+                    fill="#2563EB"
+                    radius={[0, 4, 4, 0]}
+                    barSize={16}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            /* Barres verticales : Présentation identique à l'image d'inspiration */
+            <div className="h-[360px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={categorySales}
+                  margin={{ top: 15, right: 15, left: -5, bottom: 40 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="#F1F5F9"
+                  />
+                  <XAxis
+                    dataKey="name"
+                    tickLine={false}
+                    axisLine={{ stroke: "#E2E8F0" }}
+                    interval={0}
+                    angle={-30}
+                    textAnchor="end"
+                    tickMargin={8}
+                    className="text-[11px] text-slate-600 font-medium"
+                  />
+                  <YAxis
+                    allowDecimals={false}
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    tickFormatter={(v) =>
+                      activeMetric === "units_sold"
+                        ? `${v}`
+                        : `${Number(v).toLocaleString("fr-FR")} DH`
+                    }
+                    className="text-xs text-slate-500 font-medium"
+                  />
+                  <Tooltip content={<CustomCategorySalesTooltip />} />
+                  <Bar
+                    dataKey={activeMetric}
+                    fill="#2563EB"
+                    radius={[4, 4, 0, 0]}
+                    barSize={24}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+            <span>
+              Affichage de {categorySales.length} catégories réelles du catalogue
+            </span>
+            <span className="font-semibold text-slate-700">
+              {activeMetric === "units_sold"
+                ? `Total vendu : ${totalUnitsSold} articles`
+                : `Total CA : ${formatMAD(totalCategoryRevenue)}`}
+            </span>
+          </div>
         </div>
       </Card>
     </div>

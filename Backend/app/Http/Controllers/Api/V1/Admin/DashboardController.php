@@ -181,6 +181,31 @@ class DashboardController extends ApiController
                 'revenue' => number_format((float) $cat->revenue, 2, '.', ''),
             ]);
 
+        // Quantités réellement vendues pour TOUTES les catégories de la boutique
+        $salesPerCategory = OrderItem::join('products', 'order_items.product_id', '=', 'products.id')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->whereIn('orders.status', $realizedStatuses)
+            ->when($startDate, fn ($q) => $q->whereBetween('orders.created_at', [$startDate, $endDate]))
+            ->select('products.category_id', DB::raw('SUM(order_items.quantity) as units_sold'), DB::raw('SUM(order_items.line_total) as revenue'))
+            ->groupBy('products.category_id')
+            ->get()
+            ->keyBy('category_id');
+
+        $allCategorySales = Category::where('is_active', true)
+            ->orderBy('sort_order', 'asc')
+            ->get()
+            ->map(function ($cat) use ($salesPerCategory) {
+                $sales = $salesPerCategory->get($cat->id);
+                return [
+                    'id' => $cat->id,
+                    'name' => $cat->name,
+                    'slug' => $cat->slug,
+                    'units_sold' => $sales ? (int) $sales->units_sold : 0,
+                    'revenue' => $sales ? number_format((float) $sales->revenue, 2, '.', '') : '0.00',
+                ];
+            })
+            ->values();
+
         // Stock alerts (out of stock and low stock) with product images
         $stockAlerts = ProductSize::with(['product.images', 'product.category'])
             ->where('stock', '<=', $lowStockThreshold)
@@ -338,7 +363,9 @@ class DashboardController extends ApiController
                 'status_distribution' => $ordersByStatus,
                 'top_products' => $topProducts,
                 'top_categories' => $topCategories,
+                'category_sales' => $allCategorySales,
             ],
+            'category_sales' => $allCategorySales,
             'stock_alerts' => $stockAlerts,
             'category_stock' => $categoryStock,
             'product_stock' => $productStock,

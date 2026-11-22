@@ -90,6 +90,14 @@ export interface DashboardKpis {
   low_stock_threshold: number
 }
 
+export interface CategorySaleItem {
+  id: number
+  name: string
+  slug: string
+  units_sold: number
+  revenue: string
+}
+
 export interface AdminDashboardData {
   period: {
     type: string
@@ -101,11 +109,13 @@ export interface AdminDashboardData {
   orders_by_status: Record<string, StatusCountItem>
   revenue: string
   activity_7_days: DayActivity[]
+  category_sales?: CategorySaleItem[]
   charts: {
     activity_evolution: DayActivity[]
     status_distribution: Record<string, StatusCountItem>
     top_products: TopProductItem[]
     top_categories: TopCategoryItem[]
+    category_sales?: CategorySaleItem[]
   }
   stock_alerts: LowStockAlertItem[]
   category_stock?: { id: number; name: string; stock: number }[]

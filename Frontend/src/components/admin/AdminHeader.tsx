@@ -1,7 +1,8 @@
 import React, { useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
-import { Store, Search, Menu } from "lucide-react"
+import { Store, Search, Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import AdminSidebar from "./AdminSidebar"
 
@@ -41,7 +42,7 @@ export default function AdminHeader() {
   return (
     <header className="h-14 bg-white border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30 select-none">
       {/* 1. Gauche : Bouton menu mobile + Icône Store + Nom de la page */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 shrink-0">
         {/* Menu mobile */}
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
@@ -65,23 +66,37 @@ export default function AdminHeader() {
         </div>
       </div>
 
-      {/* 2. Droite : Champ de recherche avec icône Search placée à DROITE */}
-      <form onSubmit={handleSearchSubmit} className="relative w-48 sm:w-64">
-        <input
-          type="search"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Rechercher..."
-          className="w-full h-8.5 pl-3 pr-9 rounded-lg border border-slate-200 bg-slate-50 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 focus:bg-white transition-colors"
-        />
-        <button
-          type="submit"
-          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 cursor-pointer"
-          aria-label="Lancer la recherche"
-        >
-          <Search className="w-3.5 h-3.5" />
-        </button>
-      </form>
+      {/* 2. Droite : Champ de recherche parfaitement aligné à droite avec icône Search intégrée */}
+      <div className="ml-auto flex items-center justify-end pl-3">
+        <form onSubmit={handleSearchSubmit} className="relative w-44 sm:w-64 md:w-72">
+          <Input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Rechercher..."
+            className="h-8.5 w-full bg-slate-50/80 hover:bg-white focus:bg-white border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 pl-3 pr-14 rounded-lg focus-visible:ring-1 focus-visible:ring-slate-300 focus-visible:border-slate-300 transition-colors"
+          />
+          <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-slate-400">
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="text-slate-400 hover:text-slate-700 cursor-pointer p-0.5 rounded transition-colors"
+                aria-label="Effacer la recherche"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+            <button
+              type="submit"
+              className="text-slate-400 hover:text-slate-700 cursor-pointer p-0.5 rounded transition-colors"
+              aria-label="Lancer la recherche"
+            >
+              <Search className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </form>
+      </div>
     </header>
   )
 }
