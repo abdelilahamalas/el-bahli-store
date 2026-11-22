@@ -35,6 +35,8 @@ export interface DayActivity {
 export interface TopProductItem {
   product_id: number
   product_name: string
+  category_name?: string
+  image_url?: string | null
   units_sold: number
   revenue: string
 }
@@ -52,6 +54,7 @@ export interface LowStockAlertItem {
   variant_id: number
   product_id: number
   product_name: string
+  image_url?: string | null
   size: string
   color: string
   stock: number
@@ -78,6 +81,7 @@ export interface DashboardKpis {
   total_products: number
   active_products: number
   active_categories: number
+  total_categories?: number
   total_variants: number
   available_variants: number
   total_stock: number
@@ -104,6 +108,8 @@ export interface AdminDashboardData {
     top_categories: TopCategoryItem[]
   }
   stock_alerts: LowStockAlertItem[]
+  category_stock?: { id: number; name: string; stock: number }[]
+  product_stock?: { id: number; name: string; category_name: string; stock: number; image_url?: string | null }[]
   stock_by_size?: { size: string; total_stock: number; variants_count: number }[]
   stock_by_color?: { color: string; total_stock: number; variants_count: number }[]
   recent_movements?: {

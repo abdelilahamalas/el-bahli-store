@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { ArrowLeft, History, ArrowDown, ArrowUp, Minus, Calendar, Search, X } from "lucide-react"
+import { ArrowLeft, History, ArrowDown, ArrowUp, Minus, Calendar, Search, X, ChevronLeft, ChevronRight } from "lucide-react"
 import { toast } from "sonner"
 import { adminService } from "@/services/adminService"
 import type { StockMovementItem } from "@/types/admin"
 import type { PaginationMeta } from "@/types/api"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
+import { Input } from "@/components/ui/input"
 import {
   Empty,
   EmptyMedia,
@@ -71,39 +70,39 @@ export default function AdminStockMovementsPage() {
     switch (type) {
       case "initial_stock":
         return (
-          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-[10px] font-semibold">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
             Stock initial
-          </Badge>
+          </span>
         )
       case "manual_adjustment":
         return (
-          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-[10px] font-semibold">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
             Ajustement manuel
-          </Badge>
+          </span>
         )
       case "order_placed":
         return (
-          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] font-semibold">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
             Commande client
-          </Badge>
+          </span>
         )
       case "order_cancelled":
         return (
-          <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] font-semibold">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
             Annulation commande
-          </Badge>
+          </span>
         )
       case "return":
         return (
-          <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-200 text-[10px] font-semibold">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
             Retour marchandise
-          </Badge>
+          </span>
         )
       default:
         return (
-          <Badge variant="outline" className="bg-muted text-muted-foreground text-[10px]">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
             {type}
-          </Badge>
+          </span>
         )
     }
   }
@@ -117,108 +116,118 @@ export default function AdminStockMovementsPage() {
             variant="outline"
             size="icon"
             onClick={() => navigate("/admin/inventory")}
-            className="h-9 w-9 border-border"
+            className="h-10 w-10 rounded-xl border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors shadow-xs"
           >
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            <h1 className="text-2xl font-bold tracking-tight text-[#0B1528]">
               Mouvements de stock
             </h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <p className="text-xs text-slate-500 mt-1">
               Journal d'audit détaillé de chaque entrée, sortie et ajustement d'inventaire.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Toolbar Filters: Search + Operation Type */}
-      <div className="bg-white p-3 rounded-xl border border-border shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        <InputGroup className="flex-1 max-w-sm">
-          <InputGroupAddon>
-            <Search className="w-4 h-4 text-muted-foreground" />
-          </InputGroupAddon>
-          <InputGroupInput
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value)
-              setCurrentPage(1)
-            }}
-            placeholder="Rechercher par article, référence, motif..."
-            aria-label="Rechercher un mouvement"
-          />
-          {search && (
-            <InputGroupAddon align="end">
-              <Button
+      {/* Main Single Card: Search, Filter & Table (Matches Image 9) */}
+      <Card className="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden">
+        {/* Toolbar */}
+        <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value)
+                setCurrentPage(1)
+              }}
+              placeholder="Rechercher par article, référence, motif..."
+              className="pl-10 pr-9 h-10 rounded-xl bg-slate-50 border-slate-200 text-xs focus-visible:ring-1 focus-visible:ring-slate-300"
+            />
+            {search && (
+              <button
                 type="button"
-                variant="ghost"
-                size="icon"
                 onClick={() => {
                   setSearch("")
                   setCurrentPage(1)
                 }}
-                className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                aria-label="Effacer la recherche"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
               >
                 <X className="w-3.5 h-3.5" />
-              </Button>
-            </InputGroupAddon>
-          )}
-        </InputGroup>
+              </button>
+            )}
+          </div>
 
-        {/* Filter Type */}
-        <Select
-          value={selectedType || "__all__"}
-          onValueChange={(val) => {
-            setSelectedType(val === "__all__" ? "" : val)
-            setCurrentPage(1)
-          }}
-        >
-          <SelectTrigger className="h-9 w-auto min-w-[200px] text-xs">
-            <SelectValue placeholder="Tous les types d'opération" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__all__" className="text-xs">Tous les types d'opération</SelectItem>
-            <SelectItem value="initial_stock" className="text-xs">Stock initial</SelectItem>
-            <SelectItem value="manual_adjustment" className="text-xs">Ajustement manuel</SelectItem>
-            <SelectItem value="order_placed" className="text-xs">Sortie commande</SelectItem>
-            <SelectItem value="order_cancelled" className="text-xs">Restitution annulation</SelectItem>
-            <SelectItem value="return" className="text-xs">Retour marchandise</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+          <div className="flex items-center gap-2.5 overflow-x-auto">
+            <Select
+              value={selectedType || "__all__"}
+              onValueChange={(val) => {
+                setSelectedType(val === "__all__" ? "" : val)
+                setCurrentPage(1)
+              }}
+            >
+              <SelectTrigger className="h-10 w-auto min-w-[200px] rounded-xl border-slate-200 bg-white text-xs font-medium text-slate-700">
+                <SelectValue placeholder="Tous les types d'opération" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="__all__" className="text-xs">Tous les types d'opération</SelectItem>
+                <SelectItem value="initial_stock" className="text-xs">Stock initial</SelectItem>
+                <SelectItem value="manual_adjustment" className="text-xs">Ajustement manuel</SelectItem>
+                <SelectItem value="order_placed" className="text-xs">Sortie commande</SelectItem>
+                <SelectItem value="order_cancelled" className="text-xs">Restitution annulation</SelectItem>
+                <SelectItem value="return" className="text-xs">Retour marchandise</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
-      {/* Movements Table */}
-      <Card className="overflow-hidden border-border bg-white shadow-xs">
+        {/* Movements Table */}
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-muted/40 hover:bg-muted/40 border-b border-border">
-                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Date & Heure</TableHead>
-                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Article & Variante</TableHead>
-                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Opération</TableHead>
-                <TableHead className="text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Variation</TableHead>
-                <TableHead className="text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Avant / Après</TableHead>
-                <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Motif / Contexte</TableHead>
-                <TableHead className="text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Auteur</TableHead>
+              <TableRow className="border-b border-slate-100 hover:bg-transparent">
+                <TableHead className="text-[11px] font-bold uppercase tracking-wider text-slate-400 py-3.5 pl-6">
+                  Date & Heure
+                </TableHead>
+                <TableHead className="text-[11px] font-bold uppercase tracking-wider text-slate-400 py-3.5 min-w-[200px]">
+                  Article & Variante
+                </TableHead>
+                <TableHead className="text-[11px] font-bold uppercase tracking-wider text-slate-400 py-3.5">
+                  Opération
+                </TableHead>
+                <TableHead className="text-center text-[11px] font-bold uppercase tracking-wider text-slate-400 py-3.5">
+                  Variation
+                </TableHead>
+                <TableHead className="text-center text-[11px] font-bold uppercase tracking-wider text-slate-400 py-3.5">
+                  Avant → Après
+                </TableHead>
+                <TableHead className="text-[11px] font-bold uppercase tracking-wider text-slate-400 py-3.5">
+                  Motif / Contexte
+                </TableHead>
+                <TableHead className="text-right text-[11px] font-bold uppercase tracking-wider text-slate-400 py-3.5 pr-6">
+                  Auteur
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
-                [...Array(6)].map((_, i) => (
-                  <TableRow key={i} className="animate-pulse">
-                    <TableCell className="py-3.5"><Skeleton className="h-4 w-28" /></TableCell>
-                    <TableCell className="py-3.5"><Skeleton className="h-4 w-36" /></TableCell>
-                    <TableCell className="py-3.5"><Skeleton className="h-5 w-24 rounded" /></TableCell>
-                    <TableCell className="py-3.5 text-center"><Skeleton className="h-4 w-12 mx-auto" /></TableCell>
-                    <TableCell className="py-3.5 text-center"><Skeleton className="h-4 w-16 mx-auto" /></TableCell>
-                    <TableCell className="py-3.5"><Skeleton className="h-4 w-32" /></TableCell>
-                    <TableCell className="py-3.5 text-right"><Skeleton className="h-4 w-20 ml-auto" /></TableCell>
+                [...Array(5)].map((_, i) => (
+                  <TableRow key={i} className="animate-pulse border-b border-slate-50">
+                    <TableCell className="py-4 pl-6"><Skeleton className="h-4 w-28" /></TableCell>
+                    <TableCell className="py-4"><Skeleton className="h-4 w-36" /></TableCell>
+                    <TableCell className="py-4"><Skeleton className="h-5 w-24 rounded-full" /></TableCell>
+                    <TableCell className="py-4 text-center"><Skeleton className="h-4 w-12 mx-auto" /></TableCell>
+                    <TableCell className="py-4 text-center"><Skeleton className="h-4 w-16 mx-auto" /></TableCell>
+                    <TableCell className="py-4"><Skeleton className="h-4 w-32" /></TableCell>
+                    <TableCell className="py-4 text-right pr-6"><Skeleton className="h-4 w-20 ml-auto" /></TableCell>
                   </TableRow>
                 ))
               ) : movements.length > 0 ? (
                 movements.map((m) => {
-                  const dateStr = new Date(m.created_at).toLocaleDateString("fr-FR", {
+                  const dateObj = new Date(m.created_at)
+                  const dateStr = dateObj.toLocaleDateString("fr-FR", {
                     day: "2-digit",
                     month: "short",
                     year: "numeric",
@@ -231,32 +240,35 @@ export default function AdminStockMovementsPage() {
                   const isNegative = delta < 0
 
                   return (
-                    <TableRow key={m.id} className="hover:bg-muted/30 transition-colors">
-                      <TableCell className="py-3 whitespace-nowrap text-muted-foreground flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-muted-foreground/60" />
-                        {dateStr}
+                    <TableRow key={m.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+                      <TableCell className="py-3.5 pl-6 whitespace-nowrap text-slate-500 text-xs font-mono">
+                        <span className="flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                          {dateStr}
+                        </span>
                       </TableCell>
 
-                      <TableCell className="py-3">
+                      <TableCell className="py-3.5">
                         <div className="flex flex-col">
-                          <span className="font-semibold text-foreground">{m.product_name}</span>
-                          <span className="text-[11px] text-muted-foreground">
+                          <span className="font-bold text-xs text-[#0B1528]">{m.product_name}</span>
+                          <span className="text-[11px] text-slate-500 mt-0.5">
                             Taille : {m.size} · Couleur : {m.color}
                           </span>
                         </div>
                       </TableCell>
 
-                      <TableCell className="py-3 whitespace-nowrap">{renderTypeBadge(m.type)}</TableCell>
+                      <TableCell className="py-3.5 whitespace-nowrap">
+                        {renderTypeBadge(m.type)}
+                      </TableCell>
 
-                      <TableCell className="py-3 text-center whitespace-nowrap">
+                      <TableCell className="py-3.5 text-center whitespace-nowrap">
                         <span
-                          className={`font-bold inline-flex items-center gap-0.5 ${
-                            isPositive
-                              ? "text-emerald-600"
-                              : isNegative
-                              ? "text-rose-600"
-                              : "text-muted-foreground"
-                          }`}
+                          className={`font-mono font-bold text-xs inline-flex items-center gap-1 px-2 py-0.5 rounded-lg ${isPositive
+                            ? "bg-emerald-50 text-emerald-700"
+                            : isNegative
+                              ? "bg-rose-50 text-rose-700"
+                              : "bg-slate-100 text-slate-600"
+                            }`}
                         >
                           {isPositive && <ArrowUp className="w-3 h-3" />}
                           {isNegative && <ArrowDown className="w-3 h-3" />}
@@ -265,38 +277,43 @@ export default function AdminStockMovementsPage() {
                         </span>
                       </TableCell>
 
-                      <TableCell className="py-3 text-center whitespace-nowrap text-muted-foreground">
-                        <span className="font-medium text-foreground">{m.quantity_before}</span>
-                        <span className="mx-1.5 text-muted-foreground/60">&rarr;</span>
-                        <span className="font-bold text-foreground">{m.quantity_after}</span>
+                      <TableCell className="py-3.5 text-center whitespace-nowrap font-mono text-xs">
+                        <span className="text-slate-600 font-medium">{m.quantity_before}</span>
+                        <span className="mx-2 text-slate-400">→</span>
+                        <span className="font-bold text-[#0B1528]">{m.quantity_after}</span>
                       </TableCell>
 
-                      <TableCell className="py-3">
+                      <TableCell className="py-3.5">
                         <div className="flex flex-col">
-                          <span className="text-foreground">{m.reason || "—"}</span>
+                          <span className="text-xs text-slate-700">{m.reason || "—"}</span>
                           {m.order_reference && (
-                            <span className="text-[10px] font-mono text-[#C9A227] font-semibold">
+                            <span className="text-[10px] font-mono font-semibold text-[#C9A227] mt-0.5">
                               Réf: {m.order_reference}
                             </span>
                           )}
                         </div>
                       </TableCell>
 
-                      <TableCell className="py-3 text-right whitespace-nowrap text-muted-foreground">
-                        {m.admin_name || "Système"}
+                      <TableCell className="py-3.5 text-right pr-6 whitespace-nowrap">
+                        <div className="inline-flex items-center gap-1.5 text-xs text-slate-600 font-medium">
+                          <div className="w-5 h-5 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[10px] text-slate-600 font-bold">
+                            {m.admin_name ? m.admin_name.charAt(0).toUpperCase() : "S"}
+                          </div>
+                          <span>{m.admin_name || "Système"}</span>
+                        </div>
                       </TableCell>
                     </TableRow>
                   )
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-10 text-center">
-                    <Empty className="border-none py-2">
+                  <TableCell colSpan={7} className="py-12 text-center">
+                    <Empty className="border-none py-4">
                       <EmptyMedia>
-                        <History className="w-5 h-5" />
+                        <History className="w-8 h-8 text-slate-300" />
                       </EmptyMedia>
-                      <EmptyTitle>Aucun mouvement enregistré</EmptyTitle>
-                      <EmptyDescription>
+                      <EmptyTitle className="text-sm font-bold text-slate-700">Aucun mouvement enregistré</EmptyTitle>
+                      <EmptyDescription className="text-xs text-slate-500">
                         Toutes les variations de stock futures apparaîtront ici.
                       </EmptyDescription>
                     </Empty>
@@ -307,38 +324,39 @@ export default function AdminStockMovementsPage() {
           </Table>
         </div>
 
-        {/* Pagination Bar */}
-        {pagination && pagination.last_page > 1 && (
-          <div className="py-3 px-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-            <span>
-              Affichage de {pagination.from || 1} à {pagination.to || movements.length} sur{" "}
-              {pagination.total} mouvements
+        {/* Bottom Pagination Bar */}
+        <div className="py-3.5 px-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 bg-white">
+          <span>
+            {pagination
+              ? `Affichage de ${pagination.from || 1} à ${pagination.to || movements.length} sur ${pagination.total} mouvements`
+              : `${movements.length} mouvement(s)`}
+          </span>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage <= 1 || loading}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              className="rounded-xl border-slate-200 text-xs font-medium h-8 px-3 text-slate-700 hover:bg-slate-50 transition-colors"
+            >
+              <ChevronLeft className="w-3.5 h-3.5 mr-1" />
+              Précédent
+            </Button>
+            <span className="text-xs font-semibold text-[#0B1528] px-2">
+              Page {currentPage} {pagination && pagination.last_page > 1 ? `sur ${pagination.last_page}` : ""}
             </span>
-            <div className="flex items-center gap-1.5">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={currentPage <= 1 || loading}
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="h-8 text-xs"
-              >
-                Précédent
-              </Button>
-              <span className="px-2 font-medium text-foreground">
-                Page {currentPage} sur {pagination.last_page}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={currentPage >= pagination.last_page || loading}
-                onClick={() => setCurrentPage((p) => Math.min(pagination.last_page, p + 1))}
-                className="h-8 text-xs"
-              >
-                Suivant
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!pagination || currentPage >= pagination.last_page || loading}
+              onClick={() => setCurrentPage((p) => Math.min(pagination?.last_page || 1, p + 1))}
+              className="rounded-xl border-slate-200 text-xs font-medium h-8 px-3 text-slate-700 hover:bg-slate-50 transition-colors"
+            >
+              Suivant
+              <ChevronRight className="w-3.5 h-3.5 ml-1" />
+            </Button>
           </div>
-        )}
+        </div>
       </Card>
     </div>
   )

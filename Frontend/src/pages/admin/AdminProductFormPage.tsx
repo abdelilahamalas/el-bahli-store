@@ -453,7 +453,7 @@ export default function AdminProductFormPage() {
             variant="outline"
             onClick={() => navigate("/admin/products")}
             disabled={isSubmitting}
-            className="text-xs h-9 border-border"
+            className="text-xs h-9 px-3.5 rounded-lg border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-2xs"
           >
             Annuler
           </Button>
@@ -461,16 +461,16 @@ export default function AdminProductFormPage() {
           <Button
             type="submit"
             disabled={isSubmitting || isImageActionLoading}
-            className="text-xs h-9 bg-[#111111] hover:bg-[#222222] text-white border border-[#C9A227]/40 shadow-xs"
+            className="text-xs h-9 px-4 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-semibold shadow-2xs transition-colors cursor-pointer"
           >
             {isSubmitting ? (
               <span className="flex items-center gap-2">
-                <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#C9A227]" />
+                <RefreshCw className="w-3.5 h-3.5 animate-spin text-white" />
                 Enregistrement...
               </span>
             ) : (
               <span className="flex items-center gap-1.5">
-                <Check className="w-3.5 h-3.5 text-[#C9A227]" />
+                <Check className="w-3.5 h-3.5 text-white" />
                 {isEditMode ? "Mettre à jour" : "Publier le produit"}
               </span>
             )}
@@ -622,7 +622,7 @@ export default function AdminProductFormPage() {
                   variant="outline"
                   size="sm"
                   onClick={handleQuickAddSizes}
-                  className="h-8 text-xs border-border hover:border-[#C9A227]"
+                  className="h-8 text-xs border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-2xs"
                 >
                   {getQuickSizes().label}
                 </Button>
@@ -630,9 +630,9 @@ export default function AdminProductFormPage() {
                   type="button"
                   size="sm"
                   onClick={handleAddVariant}
-                  className="h-8 text-xs bg-[#111111] hover:bg-[#222222] text-white gap-1"
+                  className="h-8 text-xs bg-white text-slate-900 border border-slate-200 hover:bg-slate-50 rounded-lg gap-1 shadow-2xs font-semibold"
                 >
-                  <Plus className="w-3.5 h-3.5 text-[#C9A227]" />
+                  <Plus className="w-3.5 h-3.5 text-slate-700" />
                   Ajouter une ligne
                 </Button>
               </div>
@@ -665,10 +665,10 @@ export default function AdminProductFormPage() {
                           ])
                         }
                       }}
-                      className={`h-7 px-2.5 text-xs font-bold rounded-md transition-all ${
+                      className={`h-7 px-2.5 text-xs font-bold rounded-lg transition-colors ${
                         alreadyAdded
-                          ? "bg-[#111111] text-white hover:bg-[#222222]"
-                          : "border-border hover:border-[#C9A227] text-foreground"
+                          ? "bg-slate-900 text-white hover:bg-slate-800 shadow-2xs"
+                          : "bg-white border-slate-200 hover:bg-slate-50 text-slate-700 shadow-2xs"
                       }`}
                     >
                       {sz} {alreadyAdded ? "✓" : "+"}
@@ -810,7 +810,7 @@ export default function AdminProductFormPage() {
                         size="sm"
                         onClick={handleUploadPendingFiles}
                         disabled={isImageActionLoading}
-                        className="h-7 text-[11px] bg-[#111111] text-white hover:bg-[#222222] border border-[#C9A227]/40"
+                        className="h-7 text-xs bg-white text-slate-800 hover:bg-slate-50 border border-slate-200 rounded-lg shadow-2xs font-semibold"
                       >
                         Enregistrer ces photos
                       </Button>
@@ -832,7 +832,7 @@ export default function AdminProductFormPage() {
                               className="w-full h-full object-cover"
                             />
                             {isDesignatedMain && (
-                              <Badge className="absolute top-1.5 left-1.5 bg-[#C9A227] text-black font-bold text-[9px] px-1.5 py-0.5 shadow-xs">
+                              <Badge className="absolute top-1.5 left-1.5 bg-slate-900 text-white font-bold text-[9px] px-1.5 py-0.5 shadow-xs">
                                 Principale
                               </Badge>
                             )}
@@ -855,7 +855,7 @@ export default function AdminProductFormPage() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => setSelectedNewMainIndex(idx)}
-                                className="w-full h-6 text-[10px] px-1 font-medium border-border hover:border-[#C9A227]"
+                                className="w-full h-6 text-[10px] px-1 font-medium border-slate-200 bg-white hover:bg-slate-50 text-slate-700"
                               >
                                 Définir comme principale
                               </Button>
@@ -899,8 +899,8 @@ export default function AdminProductFormPage() {
                             />
 
                             {img.is_main && (
-                              <Badge className="absolute top-1.5 left-1.5 bg-[#C9A227] text-black font-bold text-[9px] px-1.5 py-0.5 shadow-xs flex items-center gap-1">
-                                <Star className="w-2.5 h-2.5 fill-black" />
+                              <Badge className="absolute top-1.5 left-1.5 bg-slate-900 text-white font-bold text-[9px] px-1.5 py-0.5 shadow-xs flex items-center gap-1">
+                                <Star className="w-2.5 h-2.5 fill-white text-white" />
                                 Principale
                               </Badge>
                             )}
@@ -926,7 +926,7 @@ export default function AdminProductFormPage() {
                                 size="sm"
                                 onClick={() => handleSetMainImage(img.id)}
                                 disabled={isImageActionLoading}
-                                className="w-full h-6 text-[10px] px-1 font-medium border-border hover:border-[#C9A227] hover:text-[#C9A227]"
+                                className="w-full h-6 text-[10px] px-1 font-medium border-slate-200 bg-white hover:bg-slate-50 text-slate-700"
                               >
                                 Définir comme principale
                               </Button>

@@ -17,10 +17,7 @@ import AdminProductsPage from "@/pages/admin/AdminProductsPage"
 import AdminProductFormPage from "@/pages/admin/AdminProductFormPage"
 import AdminOrdersPage from "@/pages/admin/AdminOrdersPage"
 import AdminOrderDetailPage from "@/pages/admin/AdminOrderDetailPage"
-import AdminInventoryPage from "@/pages/admin/AdminInventoryPage"
-import AdminStockMovementsPage from "@/pages/admin/AdminStockMovementsPage"
 import AdminCategoriesPage from "@/pages/admin/AdminCategoriesPage"
-import AdminSettingsPage from "@/pages/admin/AdminSettingsPage"
 
 export default function AppRoutes() {
   return (
@@ -48,9 +45,9 @@ export default function AppRoutes() {
           <Route path="/admin/categories" element={<AdminCategoriesPage />} />
           <Route path="/admin/orders" element={<AdminOrdersPage />} />
           <Route path="/admin/orders/:id" element={<AdminOrderDetailPage />} />
-          <Route path="/admin/inventory" element={<AdminInventoryPage />} />
-          <Route path="/admin/inventory/movements" element={<AdminStockMovementsPage />} />
-          <Route path="/admin/settings" element={<AdminSettingsPage />} />
+          <Route path="/admin/inventory" element={<Navigate to="/admin" replace />} />
+          <Route path="/admin/inventory/movements" element={<Navigate to="/admin" replace />} />
+          <Route path="/admin/settings" element={<Navigate to="/admin" replace />} />
         </Route>
       </Route>
 

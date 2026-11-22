@@ -1,17 +1,12 @@
 import { NavLink, useNavigate } from "react-router-dom"
 import {
-  LayoutDashboard,
+  LayoutGrid,
   Package,
+  Layers,
   ShoppingBag,
-  Boxes,
-  FolderTree,
-  Plus,
   LogOut,
-  ExternalLink,
-  History,
 } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
-import { Button } from "@/components/ui/button"
 import logoImg from "@/images/logo store.jpeg"
 
 interface AdminSidebarProps {
@@ -22,17 +17,17 @@ export default function AdminSidebar({ onNavClick }: AdminSidebarProps) {
   const { logout } = useAuth()
   const navigate = useNavigate()
 
-  const handleLogout = () => {
-    logout()
+  const handleLogout = async () => {
+    await logout()
     navigate("/admin/login")
   }
 
-  // Navigation officielle requise (9 rubriques)
+  // Exactement les 4 pages + Déconnexion demandées
   const navItems = [
     {
       label: "Dashboard",
       to: "/admin",
-      icon: LayoutDashboard,
+      icon: LayoutGrid,
       end: true,
     },
     {
@@ -44,7 +39,7 @@ export default function AdminSidebar({ onNavClick }: AdminSidebarProps) {
     {
       label: "Catégories",
       to: "/admin/categories",
-      icon: FolderTree,
+      icon: Layers,
       end: false,
     },
     {
@@ -53,55 +48,31 @@ export default function AdminSidebar({ onNavClick }: AdminSidebarProps) {
       icon: ShoppingBag,
       end: false,
     },
-    {
-      label: "Inventaire",
-      to: "/admin/inventory",
-      icon: Boxes,
-      end: true,
-    },
-    {
-      label: "Mouvements de stock",
-      to: "/admin/inventory/movements",
-      icon: History,
-      end: true,
-    },
   ]
 
   return (
-    <aside className="w-64 bg-[#0D0D0D] text-white flex flex-col h-full border-r border-[#1E1E1E] select-none">
-      {/* En-tête de marque avec logo officiel circulaire (Exactement comme dans la maquette) */}
-      <div className="pt-6 pb-4 px-6 flex flex-col items-center justify-center text-center">
-        <div className="w-14 h-14 rounded-full overflow-hidden border border-[#C9A227]/70 bg-black flex items-center justify-center p-0.5 mb-2.5 shadow-sm">
+    <aside className="w-60 bg-[#111111] text-white flex flex-col h-screen max-h-screen select-none border-r border-[#222222] overflow-hidden shrink-0">
+      {/* 1. Logo officiel El Bahli Store */}
+      <div className="pt-6 pb-6 px-4 flex items-center gap-3 shrink-0 border-b border-white/5">
+        <div className="w-10 h-10 rounded-full overflow-hidden border border-white/20 shrink-0 bg-black">
           <img
             src={logoImg}
             alt="Logo officiel El Bahli Store"
-            className="w-full h-full object-cover rounded-full"
+            className="w-full h-full object-cover"
           />
         </div>
-        <span className="font-extrabold text-sm tracking-widest text-[#C9A227] uppercase leading-none">
-          EL BAHLI
-        </span>
-        <span className="font-bold text-xs tracking-wider text-white uppercase mt-0.5">
-          STORE
-        </span>
+        <div className="flex flex-col min-w-0">
+          <span className="font-extrabold text-xs tracking-wider text-white uppercase leading-tight truncate">
+            EL BAHLI STORE
+          </span>
+          <span className="text-[10px] text-slate-400 font-medium">
+            Administration
+          </span>
+        </div>
       </div>
 
-      {/* Bouton d'action rapide : + Nouveau produit (Bouton Or plein arrondi) */}
-      <div className="px-5 pb-4">
-        <Button
-          onClick={() => {
-            navigate("/admin/products/new")
-            onNavClick?.()
-          }}
-          className="w-full bg-[#C9A227] hover:bg-[#B38F1E] text-[#111111] font-bold h-10 text-xs rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer border-0"
-        >
-          <Plus className="w-4 h-4 stroke-[3]" />
-          <span>Nouveau produit</span>
-        </Button>
-      </div>
-
-      {/* Navigation principale avec les 6 rubriques */}
-      <nav className="flex-1 overflow-y-auto px-4 space-y-1">
+      {/* 2. Navigation principale : 4 liens essentiels */}
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-hidden">
         {navItems.map((item) => {
           const Icon = item.icon
           return (
@@ -111,17 +82,19 @@ export default function AdminSidebar({ onNavClick }: AdminSidebarProps) {
               end={item.end}
               onClick={onNavClick}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors ${isActive
-                  ? "bg-[#C9A227] text-[#111111] shadow-xs"
-                  : "text-[#9E9E9E] hover:text-white hover:bg-[#1A1A1A]"
+                `flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-semibold transition-colors ${
+                  isActive
+                    ? "bg-white/10 text-white border-l-2 border-[#C9A227]"
+                    : "text-slate-300 hover:text-white hover:bg-white/5"
                 }`
               }
             >
               {({ isActive }) => (
                 <>
                   <Icon
-                    className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-[#111111]" : "text-[#777777]"
-                      }`}
+                    className={`w-4 h-4 flex-shrink-0 ${
+                      isActive ? "text-[#C9A227]" : "text-slate-400"
+                    }`}
                   />
                   <span className="truncate">{item.label}</span>
                 </>
@@ -131,31 +104,20 @@ export default function AdminSidebar({ onNavClick }: AdminSidebarProps) {
         })}
       </nav>
 
-      {/* Pied de Sidebar : Liens utiles et déconnexion */}
-      <div className="p-4 border-t border-[#1E1E1E] space-y-1">
-        <a
-          href="/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-3 px-3.5 py-2 text-xs font-medium text-[#888888] hover:text-[#C9A227] hover:bg-[#151515] rounded-xl transition-colors"
-        >
-          <ExternalLink className="w-4 h-4 text-[#666666]" />
-          <span>Voir la boutique ↗</span>
-        </a>
-
-        <Button
-          variant="ghost"
+      {/* 3. Pied de Sidebar : Déconnexion uniquement */}
+      <div className="p-3 border-t border-white/5 shrink-0">
+        <button
+          type="button"
           onClick={handleLogout}
-          className="w-full flex items-center justify-start gap-3 px-3.5 py-2 text-xs font-medium text-[#888888] hover:text-rose-400 hover:bg-[#151515] rounded-xl h-auto"
+          className="w-full flex items-center justify-start gap-2.5 px-3.5 py-2.5 text-xs font-medium text-slate-300 hover:text-rose-400 hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
         >
-          <LogOut className="w-4 h-4 text-[#666666]" />
+          <LogOut className="w-4 h-4 text-slate-400" />
           <span>Déconnexion</span>
-        </Button>
+        </button>
 
-        {/* Copyright conforme à la maquette */}
-        <div className="pt-3 pb-1 text-center text-[10px] text-[#555555]">
-          © 2026 El Bahli Store · Tous droits réservés
-        </div>
+        <p className="text-[10px] text-slate-500 pt-2 text-center font-normal">
+          © 2026 El Bahli Store
+        </p>
       </div>
     </aside>
   )

@@ -4,24 +4,24 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#C9A227] focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] cursor-pointer [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 select-none',
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-300 disabled:pointer-events-none disabled:opacity-50 cursor-pointer [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 select-none',
   {
     variants: {
       variant: {
         default:
-          'bg-[#18181B] text-white hover:bg-[#27272A] border border-[#27272A] hover:border-[#3F3F46] shadow-xs',
+          'bg-[#0B1528] text-white hover:bg-[#1A2844] shadow-xs',
         secondary:
-          'bg-muted text-foreground hover:bg-muted/80 border border-border/60 shadow-2xs',
+          'bg-slate-100 text-slate-900 hover:bg-slate-200 border border-slate-200/60 shadow-2xs',
         gold:
-          'bg-[#C9A227] text-[#111111] hover:bg-[#B89220] border border-[#C9A227] font-bold shadow-xs',
+          'bg-[#E5C368] text-[#0B1528] hover:bg-[#D8B452] font-bold shadow-xs',
         outline:
-          'border border-border/80 bg-white text-foreground hover:bg-muted/60 hover:border-border text-foreground shadow-2xs',
+          'border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 shadow-2xs',
         destructive:
-          'bg-rose-600 text-white hover:bg-rose-700 border border-rose-600 shadow-xs',
+          'bg-rose-600 text-white hover:bg-rose-700 shadow-xs',
         ghost:
-          'text-foreground hover:bg-muted/60 hover:text-foreground border border-transparent',
+          'text-slate-700 hover:bg-slate-100 hover:text-slate-900',
         link:
-          'text-[#111111] underline-offset-4 hover:underline hover:text-[#C9A227] border border-transparent',
+          'text-slate-800 underline-offset-4 hover:underline',
       },
       size: {
         default: 'h-10 px-4 py-2',

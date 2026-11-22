@@ -1,82 +1,27 @@
 import React, { useState } from "react"
-import { useLocation, Link, useNavigate } from "react-router-dom"
-import {
-  Menu,
-  ExternalLink,
-  LogOut,
-  Search,
-  X,
-} from "lucide-react"
-import { useAuth } from "@/hooks/useAuth"
+import { useLocation, useNavigate } from "react-router-dom"
+import { Store, Search, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
-import {
-  Breadcrumb,
-  BreadcrumbList,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import AdminSidebar from "./AdminSidebar"
 
 export default function AdminHeader() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const { user, logout } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
 
-  // Generate breadcrumb path
-  const getBreadcrumbs = () => {
-    const parts = location.pathname.split("/").filter(Boolean)
-    const crumbs = [{ label: "Dashboard", href: "/admin" }]
-
-    if (parts.length > 1) {
-      const section = parts[1]
-      if (section === "products") {
-        crumbs.push({ label: "Produits", href: "/admin/products" })
-        if (parts[2] === "new") {
-          crumbs.push({ label: "Nouveau produit", href: "/admin/products/new" })
-        } else if (parts[3] === "edit") {
-          crumbs.push({ label: "Modifier", href: location.pathname })
-        }
-      } else if (section === "categories") {
-        crumbs.push({ label: "Catégories", href: "/admin/categories" })
-      } else if (section === "orders") {
-        crumbs.push({ label: "Commandes", href: "/admin/orders" })
-        if (parts[2]) {
-          crumbs.push({ label: `Commande #${parts[2]}`, href: location.pathname })
-        }
-      } else if (section === "inventory") {
-        if (parts[2] === "movements") {
-          crumbs.push({ label: "Inventaire", href: "/admin/inventory" })
-          crumbs.push({ label: "Mouvements", href: "/admin/inventory/movements" })
-        } else {
-          crumbs.push({ label: "Inventaire", href: "/admin/inventory" })
-        }
-      } else if (section === "settings") {
-        crumbs.push({ label: "Paramètres", href: "/admin/settings" })
-      }
-    }
-
-    return crumbs
-  }
-
-  const breadcrumbs = getBreadcrumbs()
-
-  const handleLogout = () => {
-    logout()
-    navigate("/admin/login")
+  // Détermination du nom de la page active
+  const getPageTitle = () => {
+    const path = location.pathname
+    if (path === "/admin") return "Tableau de bord"
+    if (path.startsWith("/admin/products/new")) return "Ajouter un produit"
+    if (path.startsWith("/admin/products/") && path.includes("/edit")) return "Modifier le produit"
+    if (path.startsWith("/admin/products")) return "Produits"
+    if (path.startsWith("/admin/categories")) return "Catégories"
+    if (path.startsWith("/admin/orders/")) return "Détail de la commande"
+    if (path.startsWith("/admin/orders")) return "Commandes"
+    return "Administration"
   }
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -88,126 +33,55 @@ export default function AdminHeader() {
       navigate(`/admin/orders?search=${encodeURIComponent(query)}`)
     } else if (location.pathname.startsWith("/admin/categories")) {
       navigate(`/admin/categories?search=${encodeURIComponent(query)}`)
-    } else if (location.pathname.startsWith("/admin/inventory")) {
-      navigate(`/admin/inventory?search=${encodeURIComponent(query)}`)
-    } else if (location.pathname.startsWith("/admin/products")) {
-      navigate(`/admin/products?search=${encodeURIComponent(query)}`)
     } else {
-      // Depuis le dashboard ou les paramètres, on redirige vers les produits par défaut
       navigate(`/admin/products?search=${encodeURIComponent(query)}`)
     }
   }
 
   return (
-    <header className="h-16 bg-white border-b border-border/70 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30">
-      <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0 pr-4">
-        {/* Mobile Sidebar Trigger */}
+    <header className="h-14 bg-white border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30 select-none">
+      {/* 1. Gauche : Bouton menu mobile + Icône Store + Nom de la page */}
+      <div className="flex items-center gap-3">
+        {/* Menu mobile */}
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="md:hidden text-foreground shrink-0">
+            <Button variant="ghost" size="icon" className="md:hidden text-slate-700 h-9 w-9 shrink-0">
               <Menu className="w-5 h-5" />
               <span className="sr-only">Ouvrir le menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-64 bg-[#0D0D0D] border-r border-[#1E1E1E]">
+          <SheetContent side="left" className="p-0 w-60 bg-[#111111] border-r border-[#222222]">
             <SheetTitle className="sr-only">Menu d'administration</SheetTitle>
             <AdminSidebar onNavClick={() => setMobileOpen(false)} />
           </SheetContent>
         </Sheet>
 
-        {/* Global Functional Search Bar — InputGroup shadcn */}
-        <form onSubmit={handleSearchSubmit} className="relative w-full max-w-xs sm:max-w-sm md:max-w-md">
-          <InputGroup>
-            <InputGroupAddon>
-              <Search className="w-4 h-4 text-muted-foreground" />
-            </InputGroupAddon>
-            <InputGroupInput
-              type="search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Rechercher…"
-              aria-label="Recherche globale"
-            />
-            {searchQuery && (
-              <InputGroupAddon align="end">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setSearchQuery("")}
-                  className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                  aria-label="Effacer la recherche"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </Button>
-              </InputGroupAddon>
-            )}
-          </InputGroup>
-        </form>
-
-        {/* Official Shadcn/UI Breadcrumb Navigation (sur écrans moyens et grands) */}
-        <Breadcrumb className="hidden xl:flex items-center ml-2 shrink-0">
-          <BreadcrumbList>
-            {breadcrumbs.map((crumb, idx) => {
-              const isLast = idx === breadcrumbs.length - 1
-              return (
-                <React.Fragment key={crumb.href}>
-                  <BreadcrumbItem>
-                    {isLast ? (
-                      <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
-                    ) : (
-                      <BreadcrumbLink asChild>
-                        <Link to={crumb.href}>{crumb.label}</Link>
-                      </BreadcrumbLink>
-                    )}
-                  </BreadcrumbItem>
-                  {!isLast && <BreadcrumbSeparator />}
-                </React.Fragment>
-              )
-            })}
-          </BreadcrumbList>
-        </Breadcrumb>
+        {/* Icône Store et titre de page */}
+        <div className="flex items-center gap-2 text-slate-900">
+          <Store className="w-4 h-4 text-slate-500 shrink-0" />
+          <h1 className="text-sm sm:text-base font-extrabold tracking-tight text-slate-900">
+            {getPageTitle()}
+          </h1>
+        </div>
       </div>
 
-      {/* Right Actions: Admin Profile Pill ONLY (Notifications Bell completely removed per instructions) */}
-      <div className="flex items-center gap-3 shrink-0">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full hover:bg-muted/80 border border-border/60 bg-white shadow-2xs h-auto">
-              <div className="w-7 h-7 rounded-full bg-[#111111] text-white flex items-center justify-center font-extrabold text-xs">
-                {user?.name ? user.name.charAt(0).toUpperCase() : "A"}
-              </div>
-              <span className="text-xs font-bold text-foreground hidden sm:inline-block">
-                {user?.name || "Admin"}
-              </span>
-              <span className="text-[10px] text-muted-foreground">▾</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56 p-1">
-            <DropdownMenuLabel className="font-normal px-2 py-1.5">
-              <div className="flex flex-col space-y-0.5">
-                <p className="text-xs font-bold text-foreground">{user?.name || "Administrateur"}</p>
-                <p className="text-[11px] text-muted-foreground truncate">{user?.email || "admin@elbahli.ma"}</p>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <a href="/" target="_blank" rel="noopener noreferrer" className="cursor-pointer text-xs">
-                <ExternalLink className="w-4 h-4 mr-2 text-muted-foreground" />
-                Voir la boutique
-              </a>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={handleLogout}
-              className="text-destructive focus:text-destructive cursor-pointer text-xs"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Déconnexion
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+      {/* 2. Droite : Champ de recherche avec icône Search placée à DROITE */}
+      <form onSubmit={handleSearchSubmit} className="relative w-48 sm:w-64">
+        <input
+          type="search"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Rechercher..."
+          className="w-full h-8.5 pl-3 pr-9 rounded-lg border border-slate-200 bg-slate-50 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 focus:bg-white transition-colors"
+        />
+        <button
+          type="submit"
+          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 cursor-pointer"
+          aria-label="Lancer la recherche"
+        >
+          <Search className="w-3.5 h-3.5" />
+        </button>
+      </form>
     </header>
   )
 }

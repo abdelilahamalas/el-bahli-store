@@ -25,6 +25,22 @@ class ImageProduit extends Model
     ];
 
     /**
+     * @var list<string>
+     */
+    protected $appends = [
+        'image_url',
+    ];
+
+    /**
+     * Accessor for full image URL.
+     */
+    public function getImageUrlAttribute(): ?string
+    {
+        $path = $this->attributes['chemin_image'] ?? null;
+        return $path ? asset('storage/' . $path) : null;
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array

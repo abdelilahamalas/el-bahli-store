@@ -125,13 +125,14 @@ class DashboardController extends ApiController
             ];
         }
 
-        // Top 5 selling products
-        $topProducts = OrderItem::select(
-            'product_id',
-            'product_name',
-            DB::raw('SUM(quantity) as units_sold'),
-            DB::raw('SUM(line_total) as revenue')
-        )
+        // Top 5 selling products with images and category
+        $topProducts = OrderItem::with(['product.images', 'product.category'])
+            ->select(
+                'product_id',
+                'product_name',
+                DB::raw('SUM(quantity) as units_sold'),
+                DB::raw('SUM(line_total) as revenue')
+            )
             ->whereHas('order', function ($q) use ($startDate, $endDate, $realizedStatuses) {
                 $q->whereIn('status', $realizedStatuses);
                 if ($startDate) {
@@ -142,12 +143,18 @@ class DashboardController extends ApiController
             ->orderByDesc('units_sold')
             ->take(5)
             ->get()
-            ->map(fn ($item) => [
-                'product_id' => $item->product_id,
-                'product_name' => $item->product_name,
-                'units_sold' => (int) $item->units_sold,
-                'revenue' => number_format((float) $item->revenue, 2, '.', ''),
-            ]);
+            ->map(function ($item) {
+                $firstImg = $item->product?->images->first();
+                $imgPath = $firstImg?->chemin_image ?? $item->product?->image;
+                return [
+                    'product_id' => $item->product_id,
+                    'product_name' => $item->product_name,
+                    'category_name' => $item->product?->category?->name ?? 'Général',
+                    'image_url' => $imgPath ? asset('storage/' . $imgPath) : null,
+                    'units_sold' => (int) $item->units_sold,
+                    'revenue' => number_format((float) $item->revenue, 2, '.', ''),
+                ];
+            });
 
         // Top 5 selling categories
         $topCategories = OrderItem::join('products', 'order_items.product_id', '=', 'products.id')
@@ -174,21 +181,58 @@ class DashboardController extends ApiController
                 'revenue' => number_format((float) $cat->revenue, 2, '.', ''),
             ]);
 
-        // Stock alerts (out of stock and low stock)
-        $stockAlerts = ProductSize::with('product')
+        // Stock alerts (out of stock and low stock) with product images
+        $stockAlerts = ProductSize::with(['product.images', 'product.category'])
             ->where('stock', '<=', $lowStockThreshold)
             ->orderBy('stock', 'asc')
             ->take(10)
             ->get()
-            ->map(fn ($variant) => [
-                'variant_id' => $variant->id,
-                'product_id' => $variant->product_id,
-                'product_name' => $variant->product?->name,
-                'size' => $variant->size,
-                'color' => $variant->color,
-                'stock' => $variant->stock,
-                'status' => $variant->stock === 0 ? 'out_of_stock' : 'low_stock',
-            ]);
+            ->map(function ($variant) {
+                $firstImg = $variant->product?->images->first();
+                $imgPath = $firstImg?->chemin_image ?? $variant->product?->image;
+                return [
+                    'variant_id' => $variant->id,
+                    'product_id' => $variant->product_id,
+                    'product_name' => $variant->product?->name,
+                    'image_url' => $imgPath ? asset('storage/' . $imgPath) : null,
+                    'size' => $variant->size,
+                    'color' => $variant->color,
+                    'stock' => $variant->stock,
+                    'status' => $variant->stock === 0 ? 'out_of_stock' : 'low_stock',
+                ];
+            });
+
+        // Category stock distribution (for Donut Chart)
+        $categoryStock = Category::with('products.sizes')
+            ->where('is_active', true)
+            ->get()
+            ->map(function ($cat) {
+                $stock = $cat->products->flatMap->sizes->sum('stock');
+                return [
+                    'id' => $cat->id,
+                    'name' => $cat->name,
+                    'stock' => (int) $stock,
+                ];
+            })
+            ->filter(fn ($c) => $c['stock'] > 0)
+            ->values();
+
+        // Product stock breakdown (for Bar Chart)
+        $productStock = Product::with(['category', 'sizes', 'images'])
+            ->where('is_active', true)
+            ->get()
+            ->map(function ($p) {
+                $firstImg = $p->images->first();
+                $imgPath = $firstImg?->chemin_image ?? $p->image;
+                return [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'category_name' => $p->category?->name ?? 'Général',
+                    'stock' => (int) $p->sizes->sum('stock'),
+                    'image_url' => $imgPath ? asset('storage/' . $imgPath) : null,
+                ];
+            })
+            ->values();
 
         $recentOrders = Order::with('items.product.images')
             ->latest()
@@ -269,6 +313,7 @@ class DashboardController extends ApiController
             'total_products' => $totalProducts,
             'active_products' => $activeProducts,
             'active_categories' => $activeCategories,
+            'total_categories' => Category::count(),
             'total_variants' => $totalVariants,
             'available_variants' => $availableVariants,
             'total_stock' => $totalStock,
@@ -295,6 +340,8 @@ class DashboardController extends ApiController
                 'top_categories' => $topCategories,
             ],
             'stock_alerts' => $stockAlerts,
+            'category_stock' => $categoryStock,
+            'product_stock' => $productStock,
             'stock_by_size' => $stockBySize,
             'stock_by_color' => $stockByColor,
             'recent_movements' => $recentMovements,
