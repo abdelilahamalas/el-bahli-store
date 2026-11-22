@@ -35,55 +35,55 @@ export default function ProductCard({ product }: ProductCardProps) {
       to={`/products/${product.slug}`}
       className="group block focus:outline-hidden"
     >
-      <Card className="overflow-hidden border border-border/70 bg-card transition-colors duration-200 hover:border-brand-gold rounded-2xl flex flex-col h-full">
-        {/* Conteneur d'image */}
-        <div className="relative aspect-[3/4] w-full overflow-hidden bg-brand-lightGray">
+      <Card className="overflow-hidden border border-border/70 bg-card transition-colors duration-200 hover:border-brand-gold rounded-2xl flex flex-col h-full shadow-2xs hover:shadow-xs">
+        {/* Conteneur d'image format moyen équilibré */}
+        <div className="relative aspect-[4/5] w-full overflow-hidden bg-brand-lightGray">
           {mainImage ? (
             <img
               src={mainImage}
               alt={product.name}
-              className="h-full w-full object-cover object-center"
+              className="h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-102"
               loading="lazy"
             />
           ) : (
             <div className="h-full w-full flex flex-col items-center justify-center bg-neutral-100 text-neutral-400 p-4 text-center">
-              <ShoppingBag className="h-10 w-10 mb-2 opacity-30 text-neutral-600" />
-              <span className="text-xs font-medium text-neutral-500">{product.name}</span>
+              <ShoppingBag className="h-9 w-9 mb-1.5 opacity-30 text-neutral-600" />
+              <span className="text-[11px] font-medium text-neutral-500">{product.name}</span>
             </div>
           )}
 
           {/* Badges en superposition */}
-          <div className="absolute top-3 left-3 flex flex-col gap-1.5 items-start z-10">
+          <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 items-start z-10">
             {hasPromo && (
-              <Badge variant="destructive" className="font-bold text-[10px] tracking-wider uppercase rounded-full px-2.5 py-0.5 shadow-xs">
+              <Badge variant="destructive" className="font-bold text-[9.5px] tracking-wider uppercase rounded-full px-2 py-0.5 shadow-xs">
                 -{Math.round(((numPrice - (numPromo as number)) / numPrice) * 100)}%
               </Badge>
             )}
             {isOutOfStock ? (
-              <Badge variant="secondary" className="bg-brand-black text-white text-[10px] uppercase rounded-full px-2.5 py-0.5">
+              <Badge variant="secondary" className="bg-brand-black text-white text-[9.5px] uppercase rounded-full px-2 py-0.5">
                 Épuisé
               </Badge>
             ) : (
               product.category_name && (
-                <span className="px-2.5 py-0.5 rounded-full bg-brand-black/75 backdrop-blur-md text-brand-gold text-[10px] font-bold tracking-wider uppercase border border-brand-gold/20">
+                <span className="px-2 py-0.5 rounded-full bg-brand-black/80 backdrop-blur-md text-brand-gold text-[9.5px] font-bold tracking-wider uppercase border border-brand-gold/20">
                   {product.category_name}
                 </span>
               )
             )}
           </div>
 
-          {/* Badge Paiement à la livraison comme dans l'exemple de référence */}
-          <div className="absolute bottom-2.5 left-2.5 z-10">
-            <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-white/95 backdrop-blur-md text-brand-black text-[10px] font-bold shadow-xs border border-border/40">
+          {/* Badge Paiement à la livraison */}
+          <div className="absolute bottom-2 left-2 z-10">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-white/95 backdrop-blur-md text-brand-black text-[9.5px] font-bold shadow-2xs border border-border/40">
               Paiement à la livraison
             </span>
           </div>
         </div>
 
-        {/* Détails du produit */}
-        <div className="p-4 sm:p-5 flex flex-col flex-1 justify-between gap-3">
-          <div className="space-y-1.5">
-            <h3 className="font-bold text-sm sm:text-base text-foreground tracking-tight line-clamp-1 group-hover:text-brand-gold transition-colors">
+        {/* Détails du produit format moyen */}
+        <div className="p-3.5 sm:p-4 flex flex-col flex-1 justify-between gap-2.5">
+          <div className="space-y-1">
+            <h3 className="font-bold text-xs sm:text-sm text-foreground tracking-tight line-clamp-1 group-hover:text-brand-gold transition-colors">
               {product.name}
             </h3>
 
@@ -93,13 +93,13 @@ export default function ProductCard({ product }: ProductCardProps) {
                 {availableSizes.slice(0, 4).map((size) => (
                   <span
                     key={size}
-                    className="text-[10px] px-2 py-0.5 bg-muted rounded-full text-muted-foreground font-semibold"
+                    className="text-[9.5px] px-1.5 py-0.5 bg-muted rounded-full text-muted-foreground font-semibold"
                   >
                     {size}
                   </span>
                 ))}
                 {availableSizes.length > 4 && (
-                  <span className="text-[10px] text-muted-foreground font-semibold self-center">
+                  <span className="text-[9.5px] text-muted-foreground font-semibold self-center">
                     +{availableSizes.length - 4}
                   </span>
                 )}
@@ -108,30 +108,30 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
 
           {/* Prix */}
-          <div className="pt-2 border-t border-border/50 flex items-center justify-between">
-            <div className="flex items-baseline gap-2">
+          <div className="pt-1.5 border-t border-border/50 flex items-center justify-between">
+            <div className="flex items-baseline gap-1.5">
               {hasPromo ? (
                 <>
-                  <span className="font-extrabold text-base sm:text-lg text-brand-black">
-                    {numPromo} <span className="text-xs font-bold text-brand-gold">MAD</span>
+                  <span className="font-extrabold text-sm sm:text-base text-brand-black">
+                    {numPromo} <span className="text-[11px] font-bold text-brand-gold">MAD</span>
                   </span>
-                  <span className="text-xs text-muted-foreground line-through">
+                  <span className="text-[11px] text-muted-foreground line-through">
                     {numPrice} MAD
                   </span>
                 </>
               ) : (
-                <span className="font-extrabold text-base sm:text-lg text-brand-black">
-                  {numPrice} <span className="text-xs font-bold text-brand-gold">MAD</span>
+                <span className="font-extrabold text-sm sm:text-base text-brand-black">
+                  {numPrice} <span className="text-[11px] font-bold text-brand-gold">MAD</span>
                 </span>
               )}
             </div>
           </div>
 
-          {/* Bouton d'action Voir le produit style boutique streetwear */}
-          <div className="pt-1">
-            <div className="w-full py-2.5 px-4 rounded-xl bg-[#111111] text-white border border-[#222222] text-xs font-bold text-center transition-colors group-hover:bg-[#1C1C1C] group-hover:border-[#C9A227]/60 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs">
+          {/* Bouton d'action Voir le produit */}
+          <div className="pt-0.5">
+            <div className="w-full py-2 px-3 rounded-xl bg-[#111111] text-white border border-[#222222] text-xs font-bold text-center transition-colors group-hover:bg-[#1C1C1C] group-hover:border-[#C9A227]/60 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs">
               <span>Voir le produit</span>
-              <ArrowRight className="h-3.5 w-3.5 text-[#C9A227]" />
+              <ArrowRight className="h-3 w-3 text-[#C9A227]" />
             </div>
           </div>
         </div>

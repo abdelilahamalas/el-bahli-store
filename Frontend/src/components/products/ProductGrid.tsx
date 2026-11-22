@@ -23,13 +23,13 @@ export default function ProductGrid({
 }: ProductGridProps) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
         {Array.from({ length: 8 }).map((_, index) => (
           <div
             key={index}
             className="overflow-hidden rounded-xl border border-border flex flex-col space-y-3 p-3"
           >
-            <Skeleton className="aspect-3/4 w-full rounded-lg" />
+            <Skeleton className="aspect-4/5 w-full rounded-lg" />
             <Skeleton className="h-4 w-3/4" />
             <Skeleton className="h-4 w-1/2" />
             <div className="pt-2 flex justify-between items-center">
@@ -96,7 +96,7 @@ export default function ProductGrid({
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
       {products.map((product) => (
         <ProductCard key={product.id} product={product} />
       ))}
