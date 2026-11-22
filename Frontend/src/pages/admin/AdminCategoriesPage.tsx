@@ -11,6 +11,7 @@ import {
   X,
   Edit,
   RefreshCw,
+  Tag,
 } from "lucide-react"
 import { toast } from "sonner"
 import { adminService } from "@/services/adminService"
@@ -103,7 +104,7 @@ export default function AdminCategoriesPage() {
     setNameInput(cat.name)
     setIsActiveInput(cat.is_active)
     setSelectedImage(null)
-    setImagePreview(cat.image_url || null)
+    setImagePreview(getCategoryImage(cat.slug, cat.image_url || cat.image) || null)
     if (fileInputRef.current) fileInputRef.current.value = ""
     nameInputRef.current?.focus()
   }
@@ -343,12 +344,19 @@ export default function AdminCategoriesPage() {
                         {/* Nom avec miniature d'image */}
                         <TableCell className="py-3 px-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg overflow-hidden border border-slate-200 bg-slate-50 shrink-0">
-                              <img
-                                src={(cat.image_url || getCategoryImage(cat.slug, cat.image)) ?? undefined}
-                                alt={cat.name}
-                                className="w-full h-full object-cover"
-                              />
+                            <div className="w-8 h-8 rounded-lg overflow-hidden border border-slate-200 bg-slate-50 shrink-0 flex items-center justify-center">
+                              {(() => {
+                                const catImg = getCategoryImage(cat.slug, cat.image_url || cat.image)
+                                return catImg ? (
+                                  <img
+                                    src={catImg}
+                                    alt={cat.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <Tag className="w-3.5 h-3.5 text-slate-400" />
+                                )
+                              })()}
                             </div>
                             <span className="font-bold text-slate-900">{cat.name}</span>
                           </div>

@@ -362,7 +362,7 @@ export default function Navbar({ categories, isLoading }: NavbarProps) {
                 </span>
                 <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
                   {matchingCategories.map((cat) => {
-                    const img = getCategoryImage(cat.slug)
+                    const img = getCategoryImage(cat.slug, cat.image_url || cat.image)
                     return (
                       <button
                         key={cat.id}

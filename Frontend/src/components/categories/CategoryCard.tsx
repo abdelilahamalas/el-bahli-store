@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { Link } from "react-router-dom"
 import { ArrowRight, Tag } from "lucide-react"
 import type { Category } from "@/types/category"
@@ -9,7 +10,8 @@ interface CategoryCardProps {
 }
 
 export default function CategoryCard({ category }: CategoryCardProps) {
-  const image = getCategoryImage(category.slug, category.image_url || category.image)
+  const [hasError, setHasError] = useState(false)
+  const image = hasError ? null : getCategoryImage(category.slug, category.image_url || category.image)
 
   return (
     <Link
@@ -25,6 +27,7 @@ export default function CategoryCard({ category }: CategoryCardProps) {
               alt={category.name}
               className="h-full w-full object-cover object-center"
               loading="lazy"
+              onError={() => setHasError(true)}
             />
           ) : (
             <div className="h-full w-full flex flex-col items-center justify-center bg-muted text-muted-foreground p-4 text-center">

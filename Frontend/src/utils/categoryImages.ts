@@ -40,11 +40,33 @@ export const categoryImagesMap: Record<string, string> = {
 }
 
 /**
+ * Normalise l'URL d'une image pour garantir un chemin absolu valide vers le backend si nécessaire.
+ */
+export function resolveBackendImageUrl(urlOrPath: string): string {
+  const trimmed = urlOrPath.trim()
+  if (
+    trimmed.startsWith("http://") ||
+    trimmed.startsWith("https://") ||
+    trimmed.startsWith("data:") ||
+    trimmed.startsWith("blob:")
+  ) {
+    return trimmed
+  }
+
+  const apiBase = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api/v1"
+  const backendOrigin = apiBase.replace(/\/api\/v1\/?$/, "")
+
+  // Nettoyage des préfixes relatifs
+  const cleanPath = trimmed.replace(/^\/?(storage\/)?/, "")
+  return `${backendOrigin}/storage/${cleanPath}`
+}
+
+/**
  * Retourne l'image associée à une catégorie en fonction de son image API dynamique, de son slug ou de son nom.
  */
 export function getCategoryImage(slugOrName: string, categoryImageUrl?: string | null): string | null {
-  if (categoryImageUrl) {
-    return categoryImageUrl
+  if (categoryImageUrl && categoryImageUrl.trim()) {
+    return resolveBackendImageUrl(categoryImageUrl)
   }
   if (!slugOrName) return null
 

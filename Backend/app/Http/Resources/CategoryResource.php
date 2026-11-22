@@ -22,7 +22,11 @@ class CategoryResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'image' => $this->image,
-            'image_url' => $this->image ? url(Storage::disk('public')->url($this->image)) : null,
+            'image_url' => $this->image
+                ? (str_starts_with($this->image, 'http://') || str_starts_with($this->image, 'https://')
+                    ? $this->image
+                    : asset('storage/'.ltrim($this->image, '/')))
+                : null,
             'is_active' => (bool) $this->is_active,
             'sort_order' => (int) $this->sort_order,
             'products_count' => $this->whenCounted('products'),
