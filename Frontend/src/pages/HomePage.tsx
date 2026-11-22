@@ -122,7 +122,7 @@ export default function HomePage() {
               <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
                 {/* Ligne discrète d'introduction type streetwear */}
                 <div className="text-xs sm:text-sm font-semibold tracking-widest uppercase text-brand-gold/90">
-                  — LIVRÉ PARTOUT DANS LE ROYAUME
+                  — LIVRAISON GRATUITE DANS TOUT LE MAROC
                 </div>
 
                 {/* Titre percutant, grand et épuré comme le modèle "Prends ta place." */}
@@ -232,8 +232,8 @@ export default function HomePage() {
                 {categories.length === 1
                   ? "1 Collection Officielle"
                   : categories.length > 1
-                  ? `Les ${categories.length} Collections Officielles`
-                  : "Nos Collections Officielles"}
+                    ? `Les ${categories.length} Collections Officielles`
+                    : "Nos Collections Officielles"}
               </h2>
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                 Parcourez l'ensemble de notre vestiaire masculin : capuches, sweats,

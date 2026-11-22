@@ -9,12 +9,6 @@ import SocialLinks from "@/components/common/SocialLinks"
 import MobileMenu from "@/components/layout/MobileMenu"
 import { Button } from "@/components/ui/button"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -100,6 +94,34 @@ export default function Navbar({ categories, isLoading }: NavbarProps) {
     }
   }, [])
 
+  // Écouteurs globaux : fermeture avec Escape ou clic à l'extérieur
+  useEffect(() => {
+    if (!openDropdown) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
+        setOpenDropdown(null)
+      }
+    }
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (!target.closest("[data-nav-group]")) {
+        if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
+        setOpenDropdown(null)
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    document.addEventListener("mousedown", handleClickOutside)
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown)
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [openDropdown])
+
   // Catégories correspondantes en temps réel dans le modal de recherche
   const matchingCategories = searchQuery.trim()
     ? categories.filter(
@@ -170,79 +192,75 @@ export default function Navbar({ categories, isLoading }: NavbarProps) {
                       const groupCategories = getCategoriesForGroup(group.slugs)
                       if (groupCategories.length === 0) return null
 
+                      const isOpen = openDropdown === group.label
+
                       return (
-                        <DropdownMenu
+                        <div
                           key={group.label}
-                          open={openDropdown === group.label}
-                          onOpenChange={(open) => {
-                            if (!open) {
-                              if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
-                              setOpenDropdown(null)
-                            } else {
-                              setOpenDropdown(group.label)
-                            }
-                          }}
+                          data-nav-group={group.label}
+                          className="relative inline-block"
+                          onMouseEnter={() => handleMouseEnter(group.label)}
+                          onMouseLeave={handleMouseLeave}
                         >
-                          <div
-                            className="inline-flex"
-                            onMouseEnter={() => handleMouseEnter(group.label)}
-                            onMouseLeave={handleMouseLeave}
+                          <button
+                            type="button"
+                            onClick={() => handleToggle(group.label)}
+                            aria-expanded={isOpen}
+                            aria-haspopup="true"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs xl:text-sm font-medium text-foreground/90 hover:text-brand-gold transition-colors focus:outline-hidden cursor-pointer"
                           >
-                            <DropdownMenuTrigger asChild>
-                              <button
-                                type="button"
-                                onClick={() => handleToggle(group.label)}
-                                aria-expanded={openDropdown === group.label}
-                                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs xl:text-sm font-medium text-foreground/90 hover:text-brand-gold transition-colors focus:outline-hidden cursor-pointer"
-                              >
-                                <span>{group.label}</span>
-                                <ChevronDown
-                                  className={cn(
-                                    "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
-                                    openDropdown === group.label && "rotate-180 text-brand-gold"
-                                  )}
-                                />
-                              </button>
-                            </DropdownMenuTrigger>
-                          </div>
-                          <DropdownMenuContent
-                            align="start"
-                            sideOffset={4}
-                            onMouseEnter={() => handleMouseEnter(group.label)}
-                            onMouseLeave={handleMouseLeave}
-                            className="w-56 p-2 bg-background border border-border shadow-xl rounded-xl z-50 animate-in fade-in-80"
-                          >
-                            <div className="px-2 py-1 text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
-                              Rayon {group.label}
+                            <span>{group.label}</span>
+                            <ChevronDown
+                              className={cn(
+                                "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
+                                isOpen && "rotate-180 text-brand-gold"
+                              )}
+                            />
+                          </button>
+
+                          {/* Menu déroulant continu avec pont interactif (zéro zone morte, zéro clignotement) */}
+                          {isOpen && (
+                            <div
+                              role="menu"
+                              aria-label={`Rayon ${group.label}`}
+                              className="absolute left-0 top-full pt-1.5 z-50 animate-in fade-in-80 duration-150"
+                            >
+                              <div className="w-56 p-2 bg-background border border-border shadow-xl rounded-xl">
+                                <div className="px-2 py-1 text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+                                  Rayon {group.label}
+                                </div>
+                                <div className="mt-1 space-y-0.5">
+                                  {groupCategories.map((cat) => {
+                                    const img = getCategoryImage(cat.slug, cat.image_url || cat.image)
+                                    return (
+                                      <Link
+                                        key={cat.id}
+                                        to={`/categories/${cat.slug}`}
+                                        onClick={() => {
+                                          if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
+                                          setOpenDropdown(null)
+                                        }}
+                                        role="menuitem"
+                                        className="flex items-center gap-2.5 p-2 text-xs font-medium cursor-pointer rounded-lg hover:bg-muted focus:bg-muted text-foreground transition-colors"
+                                      >
+                                        {img && (
+                                          <img
+                                            src={img}
+                                            alt={cat.name}
+                                            className="h-7 w-7 rounded-md object-cover border border-border/60 shrink-0"
+                                          />
+                                        )}
+                                        <span className="text-foreground font-medium truncate">
+                                          {cat.name}
+                                        </span>
+                                      </Link>
+                                    )
+                                  })}
+                                </div>
+                              </div>
                             </div>
-                            {groupCategories.map((cat) => {
-                              const img = getCategoryImage(cat.slug, cat.image_url || cat.image)
-                              return (
-                                <DropdownMenuItem key={cat.id} asChild>
-                                  <Link
-                                    to={`/categories/${cat.slug}`}
-                                    onClick={() => {
-                                      if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
-                                      setOpenDropdown(null)
-                                    }}
-                                    className="flex items-center gap-2.5 p-2 text-xs font-medium cursor-pointer rounded-lg hover:bg-muted focus:bg-muted"
-                                  >
-                                    {img && (
-                                      <img
-                                        src={img}
-                                        alt={cat.name}
-                                        className="h-7 w-7 rounded-md object-cover border border-border/60 shrink-0"
-                                      />
-                                    )}
-                                    <span className="text-foreground font-medium">
-                                      {cat.name}
-                                    </span>
-                                  </Link>
-                                </DropdownMenuItem>
-                              )
-                            })}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                          )}
+                        </div>
                       )
                     })}
 
