@@ -119,6 +119,7 @@ export default function ProductFilters({
               <Button
                 variant="outline"
                 size="sm"
+                data-sheet-trigger="true"
                 className="h-10 px-3.5 gap-2 text-xs font-semibold rounded-xl relative cursor-pointer"
               >
                 <SlidersHorizontal className="h-4 w-4" />

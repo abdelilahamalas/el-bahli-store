@@ -53,7 +53,7 @@ const NAV_GROUPS: NavGroupConfig[] = [
 
 export default function Navbar({ categories, isLoading }: NavbarProps) {
   const navigate = useNavigate()
-  const { totalCount, openCart } = useCart()
+  const { totalCount, toggleCart } = useCart()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
 
@@ -317,7 +317,9 @@ export default function Navbar({ categories, isLoading }: NavbarProps) {
               {/* Bouton Panier avec compteur badge circulaire or très visible */}
               <button
                 type="button"
-                onClick={openCart}
+                data-cart-trigger="true"
+                data-sheet-trigger="true"
+                onClick={toggleCart}
                 aria-label={`Accéder au panier (${totalCount} articles)`}
                 className="relative p-2 sm:p-2.5 text-foreground/85 hover:text-brand-gold hover:bg-muted/60 rounded-full transition-colors cursor-pointer flex items-center justify-center"
               >

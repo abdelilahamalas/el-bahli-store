@@ -30,8 +30,9 @@ export default function MobileMenu({ categories, isLoading }: MobileMenuProps) {
         <Button
           variant="ghost"
           size="icon"
+          data-sheet-trigger="true"
           aria-label="Ouvrir le menu de navigation"
-          className="lg:hidden h-10 w-10 text-foreground hover:text-brand-gold hover:bg-muted"
+          className="lg:hidden h-10 w-10 text-foreground hover:text-brand-gold hover:bg-muted cursor-pointer"
         >
           <Menu className="h-6 w-6" />
         </Button>

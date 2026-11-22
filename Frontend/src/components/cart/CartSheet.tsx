@@ -35,7 +35,7 @@ export default function CartSheet() {
   }
 
   return (
-    <Sheet open={isCartSheetOpen} onOpenChange={(open) => !open && closeCart()}>
+    <Sheet open={isCartSheetOpen} onOpenChange={(open) => { if (!open) closeCart() }}>
       <SheetContent
         side="right"
         className="w-[90vw] sm:w-[420px] p-0 flex flex-col bg-background border-l shadow-2xl"

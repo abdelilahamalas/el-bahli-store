@@ -6,7 +6,7 @@ export default function AdminLayout() {
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[#F8F9FA] text-[#111111]">
       {/* Desktop Fixed Sidebar */}
-      <div className="hidden md:flex flex-col flex-shrink-0 h-full">
+      <div className="hidden lg:flex flex-col flex-shrink-0 h-full">
         <AdminSidebar />
       </div>
 

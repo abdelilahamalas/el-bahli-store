@@ -18,6 +18,7 @@ export default function AdminSidebar({ onNavClick }: AdminSidebarProps) {
   const navigate = useNavigate()
 
   const handleLogout = async () => {
+    onNavClick?.()
     await logout()
     navigate("/zakaria/admin/login")
   }

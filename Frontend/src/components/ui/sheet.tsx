@@ -53,11 +53,27 @@ interface SheetContentProps
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Content>,
   SheetContentProps
->(({ side = 'right', className, children, ...props }, ref) => (
+>(({ side = 'right', className, children, onCloseAutoFocus, onPointerDownOutside, ...props }, ref) => (
   <SheetPortal>
     <SheetOverlay />
     <SheetPrimitive.Content
       ref={ref}
+      onCloseAutoFocus={(e) => {
+        // Prevent auto-focusing the trigger button on close to eliminate ghost clicks on mobile & tablet
+        e.preventDefault()
+        onCloseAutoFocus?.(e)
+      }}
+      onPointerDownOutside={(e) => {
+        // If the click is on a sheet trigger button, prevent outside-click dismiss to avoid double-toggle race conditions
+        const target = e.target as HTMLElement | null
+        if (
+          target?.closest('[data-sheet-trigger="true"]') ||
+          target?.closest('[data-cart-trigger="true"]')
+        ) {
+          e.preventDefault()
+        }
+        onPointerDownOutside?.(e)
+      }}
       className={cn(sheetVariants({ side }), className)}
       {...props}
     >

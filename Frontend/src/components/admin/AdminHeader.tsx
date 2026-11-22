@@ -43,15 +43,24 @@ export default function AdminHeader() {
     <header className="h-14 bg-white border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30 select-none">
       {/* 1. Gauche : Bouton menu mobile + Icône Store + Nom de la page */}
       <div className="flex items-center gap-3 shrink-0">
-        {/* Menu mobile */}
+        {/* Menu mobile et tablette */}
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="md:hidden text-slate-700 h-9 w-9 shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              data-sheet-trigger="true"
+              className="lg:hidden text-slate-700 h-9 w-9 shrink-0 cursor-pointer"
+            >
               <Menu className="w-5 h-5" />
               <span className="sr-only">Ouvrir le menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-60 bg-[#111111] border-r border-[#222222]">
+          <SheetContent
+            side="left"
+            onCloseAutoFocus={(e) => e.preventDefault()}
+            className="p-0 w-60 bg-[#111111] border-r border-[#222222]"
+          >
             <SheetTitle className="sr-only">Menu d'administration</SheetTitle>
             <AdminSidebar onNavClick={() => setMobileOpen(false)} />
           </SheetContent>
