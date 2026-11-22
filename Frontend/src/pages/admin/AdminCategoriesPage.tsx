@@ -75,24 +75,6 @@ export default function AdminCategoriesPage() {
     }
   }
 
-  const handleManualRefresh = async () => {
-    if (loading) return
-    try {
-      setLoading(true)
-      const res = await adminService.getCategories()
-      setCategories(res)
-      toast.success("Catégories actualisées", {
-        description: "La liste des catégories a été mise à jour avec succès.",
-      })
-    } catch {
-      toast.error("Actualisation impossible", {
-        description: "Erreur lors de la récupération des catégories.",
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
-
   useEffect(() => {
     fetchCategories()
   }, [])
@@ -278,7 +260,7 @@ export default function AdminCategoriesPage() {
         <div className="flex items-center gap-2 self-start sm:self-auto">
           {/* White button standard : Actualiser */}
           <Button
-            onClick={() => handleManualRefresh()}
+            onClick={() => fetchCategories()}
             disabled={loading}
             className="h-9 px-4 rounded-lg bg-white hover:bg-slate-50 text-slate-900 border border-slate-200 text-xs font-semibold shadow-2xs inline-flex items-center gap-1.5 cursor-pointer"
           >

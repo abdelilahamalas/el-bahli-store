@@ -114,34 +114,6 @@ export default function AdminProductsPage() {
     }
   }
 
-  const handleManualRefresh = async () => {
-    if (loading) return
-    try {
-      setLoading(true)
-      const params: Record<string, string | number | boolean> = {
-        page: currentPage,
-        per_page: 15,
-      }
-      if (search.trim()) params.search = search.trim()
-      if (selectedCategory !== "all") params.category_id = selectedCategory
-      if (selectedStatus === "active") params.is_active = true
-      if (selectedStatus === "inactive") params.is_active = false
-
-      const res = await adminService.getProducts(params)
-      setProducts(res.products)
-      setPagination(res.pagination)
-      toast.success("Produits actualisés", {
-        description: "La liste des produits a été mise à jour avec succès.",
-      })
-    } catch {
-      toast.error("Actualisation impossible", {
-        description: "Erreur lors de la récupération des produits.",
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
-
   useEffect(() => {
     fetchProducts()
   }, [currentPage, selectedCategory, selectedStatus])
@@ -244,7 +216,7 @@ export default function AdminProductsPage() {
         <div className="flex items-center gap-2 self-start sm:self-auto">
           {/* White button standard : Actualiser */}
           <Button
-            onClick={() => handleManualRefresh()}
+            onClick={() => fetchProducts()}
             disabled={loading}
             className="h-9 px-4 rounded-lg bg-white hover:bg-slate-50 text-slate-900 border border-slate-200 text-xs font-semibold shadow-2xs inline-flex items-center gap-1.5 cursor-pointer"
           >
