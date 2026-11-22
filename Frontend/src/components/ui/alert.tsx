@@ -8,17 +8,17 @@ const alertVariants = cva(
     variants: {
       variant: {
         default:
-          "border-slate-200/90 text-slate-900 [&>svg]:text-blue-600",
+          "border-slate-200/90 bg-white text-slate-900 [&>svg]:text-blue-600",
         dark:
-          "border-slate-200/90 text-slate-900 [&>svg]:text-slate-700",
+          "border-slate-200/90 bg-white text-slate-900 [&>svg]:text-slate-700",
         destructive:
-          "border-rose-200/90 bg-rose-50/40 text-slate-900 [&>svg]:text-rose-600 [&_.alert-desc]:text-slate-600",
+          "border-rose-200/90 bg-white text-slate-900 [&>svg]:text-rose-600 [&_.alert-desc]:text-slate-600",
         success:
-          "border-emerald-200/90 bg-emerald-50/40 text-slate-900 [&>svg]:text-emerald-600 [&_.alert-desc]:text-slate-600",
+          "border-emerald-200/90 bg-white text-slate-900 [&>svg]:text-emerald-600 [&_.alert-desc]:text-slate-600",
         warning:
-          "border-amber-200/90 bg-amber-50/40 text-slate-900 [&>svg]:text-amber-600 [&_.alert-desc]:text-slate-600",
+          "border-amber-200/90 bg-white text-slate-900 [&>svg]:text-amber-600 [&_.alert-desc]:text-slate-600",
         info:
-          "border-blue-200/90 bg-blue-50/40 text-slate-900 [&>svg]:text-blue-600 [&_.alert-desc]:text-slate-600",
+          "border-blue-200/90 bg-white text-slate-900 [&>svg]:text-blue-600 [&_.alert-desc]:text-slate-600",
       },
     },
     defaultVariants: {

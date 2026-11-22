@@ -31,10 +31,10 @@ const Toaster = ({ ...props }: ToasterProps) => {
             "!bg-slate-100 !text-slate-700 !text-xs !rounded-lg !px-3 !py-1.5",
           closeButton:
             "!absolute !top-3.5 !right-3.5 !left-auto !transform-none !bg-slate-100/90 !text-slate-400 hover:!text-slate-800 hover:!bg-slate-200/70 !border !border-slate-200/60 !rounded-full !w-6 !h-6 !flex !items-center !justify-center !cursor-pointer !transition-colors !opacity-90 hover:!opacity-100",
-          success: "!border-emerald-300/80 !shadow-xs",
-          error: "!border-rose-300/80 !shadow-xs",
-          warning: "!border-amber-300/80 !shadow-xs",
-          info: "!border-blue-300/80 !shadow-xs",
+          success: "!border-emerald-300/80 !shadow-xs !bg-white",
+          error: "!border-rose-300/80 !shadow-xs !bg-white",
+          warning: "!border-amber-300/80 !shadow-xs !bg-white",
+          info: "!border-blue-300/80 !shadow-xs !bg-white",
         },
       }}
       {...props}
