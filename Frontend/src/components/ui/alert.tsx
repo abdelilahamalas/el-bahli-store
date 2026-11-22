@@ -3,22 +3,22 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const alertVariants = cva(
-  "relative w-full rounded-[20px] border p-4 sm:p-5 shadow-lg [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-2px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 font-sans bg-[#18181B] text-white",
+  "relative w-full rounded-[20px] border p-4 sm:p-5 shadow-xl [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-2px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 font-sans bg-[#18181B]/80 backdrop-blur-md text-white",
   {
     variants: {
       variant: {
         default:
-          "border-[#27272A] [&>svg]:text-white",
+          "border-white/10 [&>svg]:text-white",
         dark:
-          "border-[#27272A] [&>svg]:text-white",
+          "border-white/10 [&>svg]:text-white",
         destructive:
-          "border-rose-500/40 [&>svg]:text-rose-400 [&_.alert-desc]:text-[#A1A1AA]",
+          "border-rose-500/40 bg-rose-950/25 [&>svg]:text-rose-400 [&_.alert-desc]:text-[#A1A1AA]",
         success:
-          "border-emerald-500/35 [&>svg]:text-emerald-400 [&_.alert-desc]:text-[#A1A1AA]",
+          "border-emerald-500/35 bg-emerald-950/25 [&>svg]:text-emerald-400 [&_.alert-desc]:text-[#A1A1AA]",
         warning:
-          "border-amber-500/35 [&>svg]:text-amber-400 [&_.alert-desc]:text-[#A1A1AA]",
+          "border-amber-500/35 bg-amber-950/25 [&>svg]:text-amber-400 [&_.alert-desc]:text-[#A1A1AA]",
         info:
-          "border-blue-500/35 [&>svg]:text-blue-400 [&_.alert-desc]:text-[#A1A1AA]",
+          "border-blue-500/35 bg-blue-950/25 [&>svg]:text-blue-400 [&_.alert-desc]:text-[#A1A1AA]",
       },
     },
     defaultVariants: {

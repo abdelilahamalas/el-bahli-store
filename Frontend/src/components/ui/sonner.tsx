@@ -1,5 +1,5 @@
 import { Toaster as Sonner } from "sonner"
-import { CheckCircle2, CircleAlert, TriangleAlert, Info } from "lucide-react"
+import { CheckCircle2, CircleAlert, TriangleAlert, Info, X } from "lucide-react"
 
 type ToasterProps = React.ComponentProps<typeof Sonner>
 
@@ -15,24 +15,25 @@ const Toaster = ({ ...props }: ToasterProps) => {
         error: <CircleAlert className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />,
         warning: <TriangleAlert className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />,
         info: <Info className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />,
+        close: <X className="w-3.5 h-3.5" />,
       }}
       toastOptions={{
         unstyled: false,
         classNames: {
           toast:
-            "group toast font-sans !bg-[#18181B] !text-white border !border-[#27272A] !rounded-[20px] !shadow-2xl !p-4 sm:!p-5 flex items-start gap-3 w-full max-w-[420px]",
+            "group toast font-sans !bg-[#141416]/80 backdrop-blur-xl !text-white border !border-white/10 !rounded-[20px] !shadow-2xl !p-4 sm:!p-5 !pr-14 flex items-start gap-3 w-full max-w-[420px] relative",
           title: "!text-white !font-semibold !text-sm !tracking-tight !leading-snug",
           description: "!text-[#A1A1AA] !text-xs !leading-relaxed !mt-1 !font-normal",
           actionButton:
             "!bg-white !text-slate-900 !text-xs !font-semibold !rounded-lg !px-3 !py-1.5",
           cancelButton:
-            "!bg-zinc-800 !text-zinc-300 !text-xs !rounded-lg !px-3 !py-1.5",
+            "!bg-zinc-800/80 !text-zinc-300 !text-xs !rounded-lg !px-3 !py-1.5",
           closeButton:
-            "!bg-[#27272A] !text-[#A1A1AA] hover:!text-white hover:!bg-[#3F3F46] !border !border-[#3F3F46] !rounded-full",
-          success: "!border-emerald-500/35",
-          error: "!border-rose-500/40",
-          warning: "!border-amber-500/35",
-          info: "!border-blue-500/35",
+            "!absolute !top-3.5 !right-3.5 !left-auto !transform-none !bg-white/10 !text-zinc-400 hover:!text-white hover:!bg-white/20 !border !border-white/10 !rounded-lg !w-6 !h-6 !flex !items-center !justify-center !cursor-pointer !transition-colors !opacity-90 hover:!opacity-100",
+          success: "!border-emerald-500/40",
+          error: "!border-rose-500/45",
+          warning: "!border-amber-500/40",
+          info: "!border-blue-500/40",
         },
       }}
       {...props}

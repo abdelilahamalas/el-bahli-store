@@ -100,39 +100,55 @@
 
 /* ==========================================================================
    STYLE DES NOTIFICATIONS EL BAHLI STORE (Inspiré de l'image de référence)
-   Fond sombre #18181B, coins arrondis 20px, typographie blanche et grise, bordures subtiles
+   Fond transparent flouté (glassmorphism pro), coins arrondis 20px, typographie blanche et grise,
+   icône "X" élégamment positionnée à droite.
    ========================================================================== */
 [data-sonner-toaster] {
-  --normal-bg: #18181B !important;
-  --normal-border: #27272A !important;
+  --normal-bg: rgba(18, 18, 20, 0.82) !important;
+  --normal-border: rgba(255, 255, 255, 0.1) !important;
   --normal-text: #FFFFFF !important;
 }
 
-[data-sonner-toast] {
-  background-color: #18181B !important;
-  color: #FFFFFF !important;
-  border-radius: 20px !important;
-  padding: 16px 20px !important;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
-  font-family: inherit !important;
-  border: 1px solid #27272A !important;
+html[dir='ltr'] [data-sonner-toaster],
+[data-sonner-toaster][dir='ltr'],
+[data-sonner-toaster] {
+  --toast-close-button-start: auto !important;
+  --toast-close-button-end: 14px !important;
+  --toast-close-button-transform: none !important;
 }
 
-/* Bordures fines adaptées selon le type */
+[data-sonner-toast] {
+  position: relative !important;
+  background-color: rgba(18, 18, 20, 0.82) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  color: #FFFFFF !important;
+  border-radius: 20px !important;
+  padding: 16px 48px 16px 18px !important;
+  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+  font-family: inherit !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Bordures fines adaptées selon le type avec lueur discrète */
 [data-sonner-toast][data-type="success"] {
-  border-color: rgba(16, 185, 129, 0.35) !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
+  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.6), 0 0 15px -3px rgba(16, 185, 129, 0.15) !important;
 }
 
 [data-sonner-toast][data-type="error"] {
-  border-color: rgba(244, 63, 94, 0.4) !important;
+  border-color: rgba(244, 63, 94, 0.45) !important;
+  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.6), 0 0 15px -3px rgba(244, 63, 94, 0.15) !important;
 }
 
 [data-sonner-toast][data-type="warning"] {
-  border-color: rgba(245, 158, 11, 0.35) !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.6), 0 0 15px -3px rgba(245, 158, 11, 0.15) !important;
 }
 
 [data-sonner-toast][data-type="info"] {
-  border-color: rgba(59, 130, 246, 0.35) !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
+  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.6), 0 0 15px -3px rgba(59, 130, 246, 0.15) !important;
 }
 
 /* Titre blanc et bien lisible */
@@ -162,16 +178,37 @@
   flex-shrink: 0 !important;
 }
 
-/* Bouton de fermeture discret */
+/* Bouton de fermeture "X" placé à DROITE, visible, élégant et professionnel */
 [data-sonner-toast] [data-close-button] {
-  background-color: #27272A !important;
+  position: absolute !important;
+  right: 14px !important;
+  left: auto !important;
+  top: 14px !important;
+  bottom: auto !important;
+  transform: none !important;
+  width: 26px !important;
+  height: 26px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(255, 255, 255, 0.08) !important;
   color: #A1A1AA !important;
-  border: 1px solid #3F3F46 !important;
-  border-radius: 9999px !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  z-index: 20 !important;
   transition: all 0.15s ease !important;
+  opacity: 0.85 !important;
 }
 
 [data-sonner-toast] [data-close-button]:hover {
-  background-color: #3F3F46 !important;
+  background: rgba(255, 255, 255, 0.18) !important;
   color: #FFFFFF !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  opacity: 1 !important;
+}
+
+[data-sonner-toast] [data-close-button] svg {
+  width: 14px !important;
+  height: 14px !important;
 }
