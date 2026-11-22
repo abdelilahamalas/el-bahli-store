@@ -3,22 +3,22 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const alertVariants = cva(
-  "relative w-full rounded-[20px] border p-4 sm:p-5 shadow-xl [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-2px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 font-sans bg-white/90 backdrop-blur-2xl text-slate-900",
+  "relative w-full rounded-2xl border p-4 sm:p-4.5 shadow-xs [&>svg~*]:pl-8 [&>svg+div]:translate-y-[-2px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4.5 font-sans bg-white text-slate-900",
   {
     variants: {
       variant: {
         default:
-          "border-slate-200/80 [&>svg]:text-slate-900",
+          "border-slate-200/90 text-slate-900 [&>svg]:text-blue-600",
         dark:
-          "border-slate-200/80 [&>svg]:text-slate-900",
+          "border-slate-200/90 text-slate-900 [&>svg]:text-slate-700",
         destructive:
-          "border-rose-500/40 bg-rose-50/75 [&>svg]:text-rose-600 [&_.alert-desc]:text-slate-600",
+          "border-rose-200/90 bg-rose-50/40 text-slate-900 [&>svg]:text-rose-600 [&_.alert-desc]:text-slate-600",
         success:
-          "border-emerald-500/35 bg-emerald-50/75 [&>svg]:text-emerald-600 [&_.alert-desc]:text-slate-600",
+          "border-emerald-200/90 bg-emerald-50/40 text-slate-900 [&>svg]:text-emerald-600 [&_.alert-desc]:text-slate-600",
         warning:
-          "border-amber-500/35 bg-amber-50/75 [&>svg]:text-amber-600 [&_.alert-desc]:text-slate-600",
+          "border-amber-200/90 bg-amber-50/40 text-slate-900 [&>svg]:text-amber-600 [&_.alert-desc]:text-slate-600",
         info:
-          "border-blue-500/35 bg-blue-50/75 [&>svg]:text-blue-600 [&_.alert-desc]:text-slate-600",
+          "border-blue-200/90 bg-blue-50/40 text-slate-900 [&>svg]:text-blue-600 [&_.alert-desc]:text-slate-600",
       },
     },
     defaultVariants: {
@@ -58,7 +58,7 @@ const AlertDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("text-xs leading-relaxed text-[#A1A1AA] alert-desc mt-1", className)}
+    className={cn("text-[13px] leading-relaxed text-slate-600 alert-desc mt-0.5", className)}
     {...props}
   />
 ))

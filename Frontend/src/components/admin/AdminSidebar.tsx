@@ -22,7 +22,7 @@ export default function AdminSidebar({ onNavClick }: AdminSidebarProps) {
     navigate("/zakaria/admin/login")
   }
 
-  // Exactement les 4 pages + Déconnexion demandées
+  // Exactement les 4 pages + Déconnexion 
   const navItems = [
     {
       label: "Dashboard",
@@ -82,19 +82,17 @@ export default function AdminSidebar({ onNavClick }: AdminSidebarProps) {
               end={item.end}
               onClick={onNavClick}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-semibold transition-colors ${
-                  isActive
-                    ? "bg-white/10 text-white border-l-2 border-[#C9A227]"
-                    : "text-slate-300 hover:text-white hover:bg-white/5"
+                `flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-semibold transition-colors ${isActive
+                  ? "bg-white/10 text-white border-l-2 border-[#C9A227]"
+                  : "text-slate-300 hover:text-white hover:bg-white/5"
                 }`
               }
             >
               {({ isActive }) => (
                 <>
                   <Icon
-                    className={`w-4 h-4 flex-shrink-0 ${
-                      isActive ? "text-[#C9A227]" : "text-slate-400"
-                    }`}
+                    className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-[#C9A227]" : "text-slate-400"
+                      }`}
                   />
                   <span className="truncate">{item.label}</span>
                 </>
