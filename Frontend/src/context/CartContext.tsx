@@ -106,6 +106,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     })
 
     toast.success("Produit ajouté au panier", {
+      id: `cart-add-${itemData.productId}-${itemData.size}-${targetColor}`,
       description: `${itemData.name} · Taille ${itemData.size}${targetColor !== "Standard" ? ` · ${targetColor}` : ""}`,
     })
 
@@ -136,6 +137,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           const maxLimit = item.maxStock ? Math.min(10, item.maxStock) : 10
           if (quantity > maxLimit) {
             toast.warning("Stock insuffisant", {
+              id: `stock-limit-${productId}-${size}`,
               description: `Seulement ${maxLimit} unité(s) disponible(s) en stock pour cette taille.`,
             })
             return {
@@ -155,19 +157,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const removeItem = (productId: number, size: string, color: string) => {
     const targetColor = color || "Standard"
-    setItems((prevItems) => {
-      const removed = prevItems.find(
-        (i) =>
-          i.productId === productId &&
-          i.size === size &&
-          (i.color || "Standard") === targetColor
-      )
-      if (removed) {
-        toast.info("Produit retiré du panier", {
-          description: `« ${removed.name} » (${removed.size}) a été retiré de votre sélection.`,
-        })
-      }
-      return prevItems.filter(
+    
+    // Rechercher l'article hors du setter d'état pour éviter les doubles déclenchements en mode React Strict
+    const removed = items.find(
+      (i) =>
+        i.productId === productId &&
+        i.size === size &&
+        (i.color || "Standard") === targetColor
+    )
+
+    if (removed) {
+      toast.info("Produit retiré du panier", {
+        id: `cart-remove-${productId}-${size}-${targetColor}`,
+        description: `« ${removed.name} » (${removed.size}) a été retiré de votre sélection.`,
+      })
+    }
+
+    setItems((prevItems) =>
+      prevItems.filter(
         (i) =>
           !(
             i.productId === productId &&
@@ -175,7 +182,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             (i.color || "Standard") === targetColor
           )
       )
-    })
+    )
   }
 
   const clearCart = () => {

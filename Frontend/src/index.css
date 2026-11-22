@@ -99,14 +99,14 @@
 }
 
 /* ==========================================================================
-   STYLE DES NOTIFICATIONS EL BAHLI STORE (Inspiré de l'image de référence)
-   Fond transparent flouté (glassmorphism pro), coins arrondis 20px, typographie blanche et grise,
-   icône "X" élégamment positionnée à droite.
+   STYLE DES NOTIFICATIONS EL BAHLI STORE (Style Instagram / iOS Frosted Glass)
+   Fond blanc transparent flouté (white & transparent glassmorphism), coins arrondis 20px,
+   typographie sombre haute lisibilité, icône "X" élégamment positionnée à droite.
    ========================================================================== */
 [data-sonner-toaster] {
-  --normal-bg: rgba(18, 18, 20, 0.82) !important;
-  --normal-border: rgba(255, 255, 255, 0.1) !important;
-  --normal-text: #FFFFFF !important;
+  --normal-bg: rgba(255, 255, 255, 0.9) !important;
+  --normal-border: rgba(226, 232, 240, 0.85) !important;
+  --normal-text: #0F172A !important;
 }
 
 html[dir='ltr'] [data-sonner-toaster],
@@ -119,50 +119,50 @@ html[dir='ltr'] [data-sonner-toaster],
 
 [data-sonner-toast] {
   position: relative !important;
-  background-color: rgba(18, 18, 20, 0.82) !important;
-  backdrop-filter: blur(16px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
-  color: #FFFFFF !important;
+  background-color: rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  color: #0F172A !important;
   border-radius: 20px !important;
   padding: 16px 48px 16px 18px !important;
-  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
   font-family: inherit !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(226, 232, 240, 0.85) !important;
 }
 
 /* Bordures fines adaptées selon le type avec lueur discrète */
 [data-sonner-toast][data-type="success"] {
-  border-color: rgba(16, 185, 129, 0.4) !important;
-  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.6), 0 0 15px -3px rgba(16, 185, 129, 0.15) !important;
+  border-color: rgba(16, 185, 129, 0.45) !important;
+  box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.1), 0 0 15px -3px rgba(16, 185, 129, 0.15) !important;
 }
 
 [data-sonner-toast][data-type="error"] {
   border-color: rgba(244, 63, 94, 0.45) !important;
-  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.6), 0 0 15px -3px rgba(244, 63, 94, 0.15) !important;
+  box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.1), 0 0 15px -3px rgba(244, 63, 94, 0.15) !important;
 }
 
 [data-sonner-toast][data-type="warning"] {
-  border-color: rgba(245, 158, 11, 0.4) !important;
-  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.6), 0 0 15px -3px rgba(245, 158, 11, 0.15) !important;
+  border-color: rgba(245, 158, 11, 0.45) !important;
+  box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.1), 0 0 15px -3px rgba(245, 158, 11, 0.15) !important;
 }
 
 [data-sonner-toast][data-type="info"] {
-  border-color: rgba(59, 130, 246, 0.4) !important;
-  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.6), 0 0 15px -3px rgba(59, 130, 246, 0.15) !important;
+  border-color: rgba(59, 130, 246, 0.45) !important;
+  box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.1), 0 0 15px -3px rgba(59, 130, 246, 0.15) !important;
 }
 
-/* Titre blanc et bien lisible */
+/* Titre sombre net et bien lisible */
 [data-sonner-toast] [data-title] {
-  color: #FFFFFF !important;
-  font-weight: 600 !important;
+  color: #0F172A !important;
+  font-weight: 700 !important;
   font-size: 14px !important;
   letter-spacing: -0.01em !important;
   line-height: 1.35 !important;
 }
 
-/* Description en gris clair */
+/* Description en gris ardoise élégant */
 [data-sonner-toast] [data-description] {
-  color: #A1A1AA !important;
+  color: #475569 !important;
   font-size: 12.5px !important;
   line-height: 1.5 !important;
   font-weight: 400 !important;
@@ -191,9 +191,9 @@ html[dir='ltr'] [data-sonner-toaster],
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  background: rgba(255, 255, 255, 0.08) !important;
-  color: #A1A1AA !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: rgba(0, 0, 0, 0.05) !important;
+  color: #64748B !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
   border-radius: 8px !important;
   cursor: pointer !important;
   z-index: 20 !important;
@@ -202,9 +202,9 @@ html[dir='ltr'] [data-sonner-toaster],
 }
 
 [data-sonner-toast] [data-close-button]:hover {
-  background: rgba(255, 255, 255, 0.18) !important;
-  color: #FFFFFF !important;
-  border-color: rgba(255, 255, 255, 0.25) !important;
+  background: rgba(0, 0, 0, 0.1) !important;
+  color: #0F172A !important;
+  border-color: rgba(0, 0, 0, 0.15) !important;
   opacity: 1 !important;
 }
 
