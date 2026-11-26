@@ -26,12 +26,13 @@ export default function AdminLoginPage() {
 
   // Redirection si déjà authentifié
   if (isAuthenticated) {
-    const destination = (location.state as { from?: { pathname: string } })?.from?.pathname || "/admin"
+    const destination = (location.state as { from?: { pathname: string } })?.from?.pathname || "/zakaria/admin"
     return <Navigate to={destination} replace />
   }
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
+    if (isLoading) return
     setErrorMessage(null)
 
     if (!email.trim() || !password) {
@@ -53,13 +54,16 @@ export default function AdminLoginPage() {
         description: `Bienvenue dans l'espace administration, ${response.user.name}.`,
       })
 
-      const destination = (location.state as { from?: { pathname: string } })?.from?.pathname || "/admin"
+
+      const destination = (location.state as { from?: { pathname: string } })?.from?.pathname || "/zakaria/admin"
       navigate(destination, { replace: true })
     } catch (err: unknown) {
       let msg = "Identifiants invalides ou accès non autorisé."
       if (err && typeof err === "object" && "response" in err) {
-        const axErr = err as { response?: { data?: { message?: string } } }
-        if (axErr.response?.data?.message) {
+        const axErr = err as { response?: { status?: number; data?: { message?: string } } }
+        if (axErr.response?.status === 429) {
+          msg = "Trop de tentatives de connexion infructueuses. Veuillez patienter 1 minute avant de réessayer."
+        } else if (axErr.response?.data?.message) {
           msg = axErr.response.data.message
         }
       }
@@ -119,7 +123,7 @@ export default function AdminLoginPage() {
                   id="email"
                   type="email"
                   autoComplete="email"
-                  placeholder="admin@elbahli.ma"
+                  placeholder="exemple@exemple.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}

@@ -115,7 +115,7 @@ export default function AdminProductFormPage() {
         }
       } catch {
         toast.error("Impossible de récupérer les détails du produit.")
-        navigate("/admin/products")
+        navigate("/zakaria/admin/products")
       } finally {
         setIsLoading(false)
       }
@@ -309,6 +309,7 @@ export default function AdminProductFormPage() {
   // Form submit
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
+    if (isSubmitting) return
 
     if (!name.trim()) {
       toast.warning("Champ obligatoire manquant", {
@@ -363,7 +364,7 @@ export default function AdminProductFormPage() {
         toast.success("Produit modifié avec succès", {
           description: `Le produit « ${name} » a été mis à jour.`,
         })
-        navigate("/admin/products")
+        navigate("/zakaria/admin/products")
       } else {
         // Create product via FormData
         const formData = new FormData()
@@ -404,7 +405,7 @@ export default function AdminProductFormPage() {
         toast.success("Produit ajouté avec succès", {
           description: `Le produit « ${name} » a été enregistré dans la boutique.`,
         })
-        navigate("/admin/products")
+        navigate("/zakaria/admin/products")
       }
     } catch (err: unknown) {
       let msg = "Une erreur est survenue lors de l'enregistrement."
@@ -443,7 +444,7 @@ export default function AdminProductFormPage() {
             type="button"
             variant="outline"
             size="icon"
-            onClick={() => navigate("/admin/products")}
+            onClick={() => navigate("/zakaria/admin/products")}
             className="h-9 w-9 border-border hover:bg-muted"
             title="Retour à la liste"
           >
@@ -465,7 +466,7 @@ export default function AdminProductFormPage() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => navigate("/admin/products")}
+            onClick={() => navigate("/zakaria/admin/products")}
             disabled={isSubmitting}
             className="text-xs h-9 px-3.5 rounded-lg border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-2xs"
           >
@@ -575,10 +576,12 @@ export default function AdminProductFormPage() {
                     type="number"
                     step="0.01"
                     min="0"
+                    inputMode="decimal"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
+                    onWheel={(e) => e.currentTarget.blur()}
                     placeholder="Ex. 250"
-                    className="h-9 text-xs"
+                    className="h-9 text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     required
                   />
                 </div>
@@ -593,10 +596,12 @@ export default function AdminProductFormPage() {
                     type="number"
                     step="0.01"
                     min="0"
+                    inputMode="decimal"
                     value={promotionalPrice}
                     onChange={(e) => setPromotionalPrice(e.target.value)}
+                    onWheel={(e) => e.currentTarget.blur()}
                     placeholder="Ex. 199"
-                    className="h-9 text-xs"
+                    className="h-9 text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
               </div>
@@ -731,11 +736,13 @@ export default function AdminProductFormPage() {
                           <Input
                             type="number"
                             min="0"
+                            inputMode="numeric"
                             value={v.stock}
                             onChange={(e) =>
                               handleUpdateVariant(idx, "stock", parseInt(e.target.value) || 0)
                             }
-                            className="h-8 text-xs w-24"
+                            onWheel={(e) => e.currentTarget.blur()}
+                            className="h-8 text-xs w-24 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             required
                           />
                         </TableCell>

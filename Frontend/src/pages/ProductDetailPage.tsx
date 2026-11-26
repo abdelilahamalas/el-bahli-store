@@ -109,16 +109,26 @@ export default function ProductDetailPage() {
   }
 
   const handleAddToCart = () => {
-    if (!product || !selectedVariant || selectedVariant.stock <= 0) {
+    if (!product || !selectedVariant || selectedVariant.stock <= 0 || quantity <= 0) {
       toast.warning("Taille non disponible", {
         description: "Veuillez sélectionner une taille disponible avant d'ajouter au panier.",
       })
       return
     }
 
-    const unitPrice = product.promotional_price
-      ? parseFloat(product.promotional_price)
-      : parseFloat(product.price)
+    if (quantity > selectedVariant.stock) {
+      toast.warning("Stock insuffisant", {
+        description: `Seulement ${selectedVariant.stock} unité(s) disponible(s) pour cette taille.`,
+      })
+      return
+    }
+
+    const unitPrice =
+      product.promotional_price &&
+      parseFloat(product.promotional_price) > 0 &&
+      parseFloat(product.promotional_price) < parseFloat(product.price)
+        ? parseFloat(product.promotional_price)
+        : parseFloat(product.price)
 
     const mainImage =
       product.images?.find((img) => img.is_main)?.image_url ||
@@ -198,36 +208,59 @@ export default function ProductDetailPage() {
   const numPrice = parseFloat(product.price)
   const numPromo = product.promotional_price ? parseFloat(product.promotional_price) : null
   const hasPromo = numPromo !== null && numPromo > 0 && numPromo < numPrice
+  const discountPct = hasPromo ? Math.round(((numPrice - (numPromo as number)) / numPrice) * 100) : 0
+  const savingsAmount = hasPromo ? Math.round(numPrice - (numPromo as number)) : 0
   const isOutOfStock = product.total_stock <= 0
   const isVariantSelected = Boolean(selectedVariant && selectedVariant.stock > 0 && selectedVariant.is_active)
+
+  // Catégorie parente pour la navigation de retour fluide
+  const matchingCategory = categories.find(
+    (c) =>
+      c.id === product.category_id ||
+      (product.category_name && c.name.toLowerCase() === product.category_name.toLowerCase())
+  )
+  const categoryUrl = matchingCategory ? `/categories/${matchingCategory.slug}` : "/products"
+  const categoryLabel = matchingCategory?.name || product.category_name || "la catégorie"
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground antialiased selection:bg-brand-gold/30">
       <AnnouncementBar />
       <Navbar categories={categories} />
 
-      <main className="flex-1 py-8 sm:py-12">
-        <div className="container mx-auto px-4 space-y-8">
-          {/* Fil d'Ariane épuré avec séparateur vertical façon streetwear */}
-          <nav className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-            <Link to="/" className="hover:text-brand-gold transition-colors">
-              Accueil
+      <main className="flex-1 py-6 sm:py-10">
+        <div className="container mx-auto px-4 space-y-6 sm:space-y-8">
+          {/* Barre de retour et fil d'Ariane intuitif */}
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <Link
+              to={categoryUrl}
+              className="inline-flex items-center gap-2 text-xs font-bold text-foreground bg-card hover:bg-muted py-2 px-3.5 rounded-xl border border-border shadow-2xs hover:border-brand-black transition-all cursor-pointer group"
+            >
+              <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-1 text-muted-foreground group-hover:text-foreground" />
+              <span>Retour à {categoryLabel}</span>
             </Link>
-            <span className="opacity-40">|</span>
-            <Link to="/products" className="hover:text-brand-gold transition-colors">
-              Catalogue
-            </Link>
-            {product.category_name && (
-              <>
-                <span className="opacity-40">|</span>
-                <span className="text-muted-foreground">{product.category_name}</span>
-              </>
-            )}
-            <span className="opacity-40">|</span>
-            <span className="text-foreground font-semibold truncate max-w-[200px]">
-              {product.name}
-            </span>
-          </nav>
+
+            <nav className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+              <Link to="/" className="hover:text-brand-gold transition-colors">
+                Accueil
+              </Link>
+              <span className="opacity-40">|</span>
+              <Link to="/products" className="hover:text-brand-gold transition-colors">
+                Catalogue
+              </Link>
+              {product.category_name && (
+                <>
+                  <span className="opacity-40">|</span>
+                  <Link to={categoryUrl} className="hover:text-brand-gold transition-colors font-medium">
+                    {product.category_name}
+                  </Link>
+                </>
+              )}
+              <span className="opacity-40">|</span>
+              <span className="text-foreground font-semibold truncate max-w-[180px]">
+                {product.name}
+              </span>
+            </nav>
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
             {/* Galerie d'Images (Gauche) */}
@@ -244,9 +277,11 @@ export default function ProductDetailPage() {
               {/* Catégorie & Partage */}
               <div className="flex items-center justify-between gap-2">
                 {product.category_name && (
-                  <Badge variant="outline" className="text-xs uppercase tracking-wider font-bold border-brand-gold/40 text-brand-gold rounded-full px-3 py-1">
-                    {product.category_name}
-                  </Badge>
+                  <Link to={categoryUrl}>
+                    <Badge variant="outline" className="text-xs uppercase tracking-wider font-bold border-brand-gold/40 text-brand-gold hover:bg-brand-gold/10 transition-colors rounded-full px-3 py-1 cursor-pointer">
+                      {product.category_name}
+                    </Badge>
+                  </Link>
                 )}
                 <Button
                   variant="ghost"
@@ -273,19 +308,22 @@ export default function ProductDetailPage() {
                 <span className="text-muted-foreground">· 12 avis clients vérifiés</span>
               </div>
 
-              {/* Affichage des Prix style épuré */}
-              <div className="flex items-baseline gap-3 pt-1">
+              {/* Affichage des Prix style épuré et professionnel */}
+              <div className="flex items-center flex-wrap gap-3 pt-1">
                 {hasPromo ? (
                   <>
-                    <span className="text-3xl sm:text-4xl font-black text-brand-black">
+                    <span className="text-3xl sm:text-4xl font-black text-brand-black tracking-tight">
                       {numPromo} <span className="text-sm font-bold text-brand-gold">MAD</span>
                     </span>
-                    <span className="text-lg text-muted-foreground line-through">
+                    <span className="text-lg font-medium text-muted-foreground line-through">
                       {numPrice} MAD
                     </span>
-                    <Badge variant="destructive" className="ml-2 font-bold text-xs uppercase rounded-full">
-                      -{Math.round(((numPrice - (numPromo as number)) / numPrice) * 100)}%
-                    </Badge>
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200/90 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900/60 shadow-2xs">
+                      <span className="h-1.5 w-1.5 rounded-full bg-rose-600 animate-pulse" />
+                      <span className="font-extrabold uppercase tracking-wide">-{discountPct}%</span>
+                      <span className="text-rose-300 dark:text-rose-700">·</span>
+                      <span className="text-[11px] font-semibold">Économie {savingsAmount} MAD</span>
+                    </div>
                   </>
                 ) : (
                   <span className="text-3xl sm:text-4xl font-black text-brand-black">
@@ -300,9 +338,20 @@ export default function ProductDetailPage() {
                 selectedVariant={selectedVariant}
                 onVariantChange={setSelectedVariant}
                 selectedColor={selectedColor}
-                onColorChange={setSelectedColor}
+                onColorChange={(color) => {
+                  setSelectedColor(color)
+                  setQuantity(1)
+                }}
                 selectedSize={selectedSize}
-                onSizeChange={setSelectedSize}
+                onSizeChange={(size) => {
+                  setSelectedSize(size)
+                  // Réinitialisation de la quantité à 1 dès le changement de taille (ou 0 si stock épuisé)
+                  const nextVariant = product.variants?.find(
+                    (v) => (v.color || "Standard") === (selectedColor || "Standard") && v.size === size
+                  )
+                  const availableStock = nextVariant?.stock ?? 0
+                  setQuantity(availableStock > 0 ? 1 : 0)
+                }}
               />
 
               {/* Sélecteur de Quantité */}
@@ -316,8 +365,9 @@ export default function ProductDetailPage() {
                       <button
                         type="button"
                         onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                        disabled={quantity <= 1}
-                        className="h-10 w-10 flex items-center justify-center text-sm font-bold hover:bg-muted disabled:opacity-40 cursor-pointer"
+                        disabled={quantity <= 1 || (selectedVariant?.stock ?? 0) <= 0}
+                        className="h-10 w-10 flex items-center justify-center text-sm font-bold hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed disabled:pointer-events-none transition-colors"
+                        aria-label="Diminuer la quantité"
                       >
                         -
                       </button>
@@ -326,20 +376,27 @@ export default function ProductDetailPage() {
                       </span>
                       <button
                         type="button"
-                        onClick={() =>
-                          setQuantity((q) =>
-                            Math.min(selectedVariant?.stock ?? 1, q + 1)
-                          )
+                        onClick={() => {
+                          const maxStock = Math.max(1, selectedVariant?.stock ?? 1)
+                          setQuantity((q) => {
+                            const current = q < 1 ? 1 : q
+                            return Math.min(maxStock, current + 1)
+                          })
+                        }}
+                        disabled={
+                          !selectedVariant ||
+                          (selectedVariant.stock ?? 0) <= 0 ||
+                          quantity >= (selectedVariant.stock ?? 1)
                         }
-                        disabled={quantity >= (selectedVariant?.stock ?? 1)}
-                        className="h-10 w-10 flex items-center justify-center text-sm font-bold hover:bg-muted disabled:opacity-40 cursor-pointer"
+                        className="h-10 w-10 flex items-center justify-center text-sm font-bold hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed disabled:pointer-events-none transition-colors"
+                        aria-label="Augmenter la quantité"
                       >
                         +
                       </button>
                     </div>
 
                     <span className="text-xs text-muted-foreground">
-                      (Max {selectedVariant?.stock} unité{(selectedVariant?.stock ?? 0) > 1 ? "s" : ""})
+                      (Max {selectedVariant?.stock ?? 0} unité{(selectedVariant?.stock ?? 0) > 1 ? "s" : ""})
                     </span>
                   </div>
                 </div>
@@ -399,6 +456,15 @@ export default function ProductDetailPage() {
                   <Phone className="h-3.5 w-3.5 text-brand-gold" />
                   <span>Une question sur la taille ? Échangez sur WhatsApp</span>
                 </a>
+
+                {/* Lien secondaire : Continuer mes achats dans la catégorie */}
+                <Link
+                  to={categoryUrl}
+                  className="w-full flex items-center justify-center gap-2 text-xs font-bold text-muted-foreground hover:text-foreground py-2 transition-colors group cursor-pointer"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
+                  <span>Continuer mes achats dans {categoryLabel}</span>
+                </Link>
               </div>
 
               {/* Description */}

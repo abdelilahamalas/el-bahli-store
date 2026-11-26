@@ -41,11 +41,11 @@ enum OrderStatus: string
     {
         return match ($this) {
             self::PENDING => [self::CONFIRMED, self::CANCELLED],
-            self::CONFIRMED => [self::PROCESSING, self::SHIPPED, self::CANCELLED],
-            self::PROCESSING => [self::SHIPPED, self::CANCELLED],
-            self::SHIPPED => [self::DELIVERED, self::CANCELLED],
-            self::DELIVERED => [self::RETURN_REQUESTED],
-            self::RETURN_REQUESTED => [self::RETURN_RECEIVED, self::DELIVERED],
+            self::CONFIRMED => [self::PROCESSING, self::SHIPPED, self::CANCELLED, self::RETURNED],
+            self::PROCESSING => [self::SHIPPED, self::CANCELLED, self::RETURNED],
+            self::SHIPPED => [self::DELIVERED, self::CANCELLED, self::RETURN_REQUESTED, self::RETURNED],
+            self::DELIVERED => [self::RETURN_REQUESTED, self::RETURNED],
+            self::RETURN_REQUESTED => [self::RETURN_RECEIVED, self::RETURNED, self::DELIVERED],
             self::RETURN_RECEIVED => [self::RETURNED],
             self::CANCELLED => [],
             self::RETURNED => [],

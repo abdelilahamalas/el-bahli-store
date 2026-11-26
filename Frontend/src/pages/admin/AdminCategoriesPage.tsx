@@ -213,7 +213,7 @@ export default function AdminCategoriesPage() {
   }
 
   const handleDeleteConfirm = async () => {
-    if (!deletingCategory) return
+    if (!deletingCategory || isDeleting) return
     setIsDeleting(true)
     try {
       await adminService.deleteCategory(deletingCategory.id)
@@ -405,7 +405,7 @@ export default function AdminCategoriesPage() {
                             </Button>
 
                             <Link
-                              to={`/admin/products?category_id=${cat.id}`}
+                              to={`/zakaria/admin/products?category_id=${cat.id}`}
                               className="h-7 px-2.5 rounded-md text-xs font-medium bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 inline-flex items-center gap-1 shadow-2xs transition-colors"
                             >
                               <span>Voir les produits</span>

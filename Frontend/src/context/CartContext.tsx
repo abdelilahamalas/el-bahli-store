@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, type ReactNode } from "react"
+import { createContext, useState, useEffect, useCallback, useRef, type ReactNode } from "react"
 import { toast } from "sonner"
 import type { CartItem } from "@/types/cart"
 
@@ -65,9 +65,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [items])
 
-  const openCart = () => setIsCartSheetOpen(true)
-  const closeCart = () => setIsCartSheetOpen(false)
-  const toggleCart = () => setIsCartSheetOpen((prev) => !prev)
+  const lastClosedAtRef = useRef<number>(0)
+
+  const openCart = useCallback(() => {
+    if (Date.now() - lastClosedAtRef.current < 450) return
+    setIsCartSheetOpen(true)
+  }, [])
+
+  const closeCart = useCallback(() => {
+    lastClosedAtRef.current = Date.now()
+    setIsCartSheetOpen(false)
+  }, [])
+
+  const toggleCart = useCallback(() => {
+    if (Date.now() - lastClosedAtRef.current < 450) return
+    setIsCartSheetOpen((prev) => !prev)
+  }, [])
 
   const addItem = (
     itemData: Omit<CartItem, "quantity">,

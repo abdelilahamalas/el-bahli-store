@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
+use RuntimeException;
 
 class AdminUserSeeder extends Seeder
 {
@@ -14,21 +14,24 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
-        $email = strtolower(trim((string) env('ADMIN_INITIAL_EMAIL', 'zakariaelbahli@store.com')));
-        $name = trim((string) env('ADMIN_INITIAL_NAME', 'Zakaria El Bahli'));
-        $password = (string) env('ADMIN_INITIAL_PASSWORD', '');
+        $email = config('admin.email');
+        $password = config('admin.password');
+        $name = config('admin.name') ?: 'Zakaria El Bahli';
 
-        // Si aucun mot de passe n'est configuré, génération d'une clé aléatoire sécurisée.
-        if (empty($password)) {
-            $password = Str::random(24);
+        if (empty($email) || empty($password)) {
+            throw new RuntimeException(
+                "Impossible d'exécuter AdminUserSeeder : ADMIN_EMAIL et ADMIN_PASSWORD doivent être obligatoirement définis dans le fichier .env (aucune valeur par défaut autorisée)."
+            );
         }
 
+        $email = strtolower(trim((string) $email));
+
         $admin = User::firstOrNew(['email' => $email]);
-        $admin->name = $name;
+        $admin->name = trim((string) $name);
 
         // Only set password if the admin account is new
         if (! $admin->exists) {
-            $admin->password = Hash::make($password);
+            $admin->password = Hash::make((string) $password);
             $admin->email_verified_at = now();
         }
 

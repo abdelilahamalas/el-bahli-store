@@ -69,7 +69,7 @@ export default function AdminOrderDetailPage() {
       setAllowedTransitions(res.allowed_transitions || [])
     } catch {
       toast.error("Impossible de récupérer les détails de la commande.")
-      navigate("/admin/orders")
+      navigate("/zakaria/admin/orders")
     } finally {
       setLoading(false)
     }
@@ -91,9 +91,11 @@ export default function AdminOrderDetailPage() {
       case "delivered":
         return { label: "Marquer comme livrée", icon: PackageCheck, isDestructive: false }
       case "return_requested":
+        return { label: "Retour demandé", icon: RotateCcw, isDestructive: false }
       case "return_received":
+        return { label: "Colis retour reçu", icon: RotateCcw, isDestructive: false }
       case "returned":
-        return { label: "Marquer comme retournée", icon: RotateCcw, isDestructive: false }
+        return { label: "Confirmer le retour (Restock)", icon: RotateCcw, isDestructive: false }
       case "cancelled":
         return { label: "Annuler la commande", icon: XCircle, isDestructive: true }
       default:
@@ -102,7 +104,7 @@ export default function AdminOrderDetailPage() {
   }
 
   const handleTransitionConfirm = async () => {
-    if (!order || !targetTransition) return
+    if (!order || !targetTransition || isUpdatingStatus) return
 
     setIsUpdatingStatus(true)
     try {
@@ -130,7 +132,7 @@ export default function AdminOrderDetailPage() {
   }
 
   const handlePaymentConfirm = async () => {
-    if (!order) return
+    if (!order || isUpdatingPayment) return
     setIsUpdatingPayment(true)
     try {
       await adminService.updatePaymentStatus(order.id, "paid" as PaymentStatusValue)
@@ -250,7 +252,7 @@ export default function AdminOrderDetailPage() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => navigate("/admin/orders")}
+          onClick={() => navigate("/zakaria/admin/orders")}
           className="h-8 px-3 rounded-lg border-slate-200 bg-white text-slate-900 hover:bg-slate-50 gap-1.5 text-xs font-medium shadow-2xs transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5 text-slate-600" />
@@ -295,9 +297,8 @@ export default function AdminOrderDetailPage() {
                   size="sm"
                   variant="outline"
                   onClick={() => setTargetTransition(tr)}
-                  className={`h-8 px-3 rounded-lg text-xs font-medium bg-white text-slate-900 border border-slate-200 hover:bg-slate-50 inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer ${
-                    config.isDestructive ? "hover:text-rose-600 hover:border-rose-200" : ""
-                  }`}
+                  className={`h-8 px-3 rounded-lg text-xs font-medium bg-white text-slate-900 border border-slate-200 hover:bg-slate-50 inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer ${config.isDestructive ? "hover:text-rose-600 hover:border-rose-200" : ""
+                    }`}
                 >
                   <IconComp className={`w-3.5 h-3.5 ${config.isDestructive ? "text-rose-500" : "text-slate-600"}`} />
                   <span>{config.label}</span>
@@ -535,6 +536,16 @@ export default function AdminOrderDetailPage() {
                   « {getActionConfig(targetTransition.value, targetTransition.label).label} »
                 </strong>{" "}
                 ?
+                {targetTransition.value === "returned" && (
+                  <span className="block mt-2 text-emerald-700 font-medium bg-emerald-50 p-2 rounded-lg border border-emerald-200">
+                    ✓ Les quantités des articles commandés seront automatiquement réintégrées dans le stock disponible de la boutique.
+                  </span>
+                )}
+                {targetTransition.value === "cancelled" && order.status !== "pending" && (
+                  <span className="block mt-2 text-rose-700 font-medium bg-rose-50 p-2 rounded-lg border border-rose-200">
+                    ✓ Le stock réservé pour cette commande sera réintégré dans la boutique.
+                  </span>
+                )}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

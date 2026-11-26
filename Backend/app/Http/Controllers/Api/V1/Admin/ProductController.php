@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateProductRequest;
 use App\Http\Resources\ProductResource;
 use App\Models\ImageProduit;
 use App\Models\OrderItem;
+use App\Models\OrderReturn;
 use App\Models\Product;
 use App\Models\ProductSize;
 use App\Models\StockMovement;
@@ -15,6 +16,7 @@ use App\Services\AuditService;
 use App\Services\ImageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -296,31 +298,68 @@ class ProductController extends ApiController
     }
 
     /**
-     * Delete product or soft-deactivate if order history exists.
+     * Delete product definitively while preserving historical orders and stock movements.
      */
     public function destroy(Product $product): JsonResponse
     {
-        $hasOrders = OrderItem::where('product_id', $product->id)->exists();
-        $hasMovements = StockMovement::whereIn('product_size_id', $product->sizes()->pluck('id'))->exists();
-
-        if ($hasOrders || $hasMovements) {
-            $product->update(['is_active' => false]);
-            $this->auditService->log('product.deactivated_on_delete_attempt', $product, [
-                'reason' => $hasOrders ? 'Order history exists' : 'Stock movements exist',
-            ]);
-
-            return $this->success(
-                (new ProductResource($product->load(['category', 'sizes', 'images'])))->resolve(),
-                'Ce produit possède un historique de commandes ou de mouvements. Il a été désactivé au lieu d’être supprimé.'
-            );
-        }
-
+        $id = $product->id;
         $name = $product->name;
-        $this->auditService->log('product.deleted', $product, ['name' => $name]);
 
-        $product->delete();
+        // Suppression physique atomique dans une transaction SQL
+        DB::transaction(function () use ($product, $name) {
+            // 1. Sauvegarder un instantané du libellé sur les mouvements de stock avant dissociation
+            $sizes = $product->sizes()->get();
+            $sizeIds = $sizes->pluck('id')->all();
 
-        return $this->success(null, "Le produit « {$name} » a été supprimé avec succès.");
+            foreach ($sizes as $size) {
+                StockMovement::where('product_size_id', $size->id)
+                    ->whereNull('variant_label')
+                    ->update([
+                        'variant_label' => "{$name} - {$size->size} ({$size->color})",
+                    ]);
+            }
+
+            // Dissociation explicite des variantes pour garantir la préservation historique
+            if (! empty($sizeIds)) {
+                StockMovement::whereIn('product_size_id', $sizeIds)->update(['product_size_id' => null]);
+                OrderReturn::whereIn('product_size_id', $sizeIds)->update(['product_size_id' => null]);
+            }
+
+            // Dissociation explicite des lignes de commandes pour préserver 100% de l'historique
+            OrderItem::where('product_id', $product->id)->update(['product_id' => null]);
+
+            // 2. Supprimer les images physiques et enregistrements de la galerie
+            foreach ($product->images as $image) {
+                $this->imageService->deleteImage($image);
+            }
+
+            // Supprimer l'image principale physique si présente
+            if ($product->image) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($product->image);
+            }
+            if ($product->thumbnail) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($product->thumbnail);
+            }
+
+            // 3. Supprimer les tailles et variantes
+            $product->sizes()->delete();
+
+            // 4. Supprimer définitivement le produit
+            $product->delete();
+        });
+
+        // 5. Invalider le cache des catégories actives
+        Cache::forget('active_categories');
+
+        $this->auditService->log('product.deleted', null, [
+            'product_id' => $id,
+            'name' => $name,
+        ]);
+
+        return $this->success(
+            ['deleted' => true, 'id' => $id],
+            "Le produit « {$name} » a été supprimé définitivement du catalogue et de la base de données."
+        );
     }
 
     /**

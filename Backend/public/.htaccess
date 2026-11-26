@@ -1,3 +1,7 @@
+# ==============================================================================
+# EL BAHLI STORE — BACKEND API .HTACCESS (LITESPEED / APACHE)
+# ==============================================================================
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes
@@ -5,21 +9,58 @@
 
     RewriteEngine On
 
-    # Handle Authorization Header
+    # 1. Forcer HTTPS en production (bypass pour localhost et 127.0.0.1 en local)
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteCond %{HTTP_HOST} !=localhost
+    RewriteCond %{HTTP_HOST} !^127\.0\.0\.1
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # 2. Transmettre le header Authorization à PHP pour Sanctum Bearer Token
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-    # Handle X-XSRF-Token Header
+    # 3. Transmettre le header X-XSRF-Token si présent
     RewriteCond %{HTTP:x-xsrf-token} .
     RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
 
-    # Redirect Trailing Slashes If Not A Folder...
+    # 4. Supprimer le slash final si ce n'est pas un dossier physique
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=308]
 
-    # Send Requests To Front Controller...
+    # 5. Envoyer toutes les requêtes vers le Front Controller Laravel index.php
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# ------------------------------------------------------------------------------
+# EN-TÊTES DE SÉCURITÉ HTTP DE L'API
+# ------------------------------------------------------------------------------
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "DENY"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# COMPRESSION DES RÉPONSES JSON ET ASSETS
+# ------------------------------------------------------------------------------
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE application/json text/plain text/xml application/xml image/svg+xml
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# CACHE DES IMAGES DANS /storage/
+# ------------------------------------------------------------------------------
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/webp "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+</IfModule>
+
+# Désactiver le listage des répertoires
+Options -Indexes

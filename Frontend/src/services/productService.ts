@@ -13,12 +13,13 @@ export const productService = {
   /**
    * Récupère la liste des produits actifs du catalogue avec filtres, recherche et pagination.
    */
-  async getProducts(params?: ProductFilterParams): Promise<{
+  async getProducts(params?: ProductFilterParams, signal?: AbortSignal): Promise<{
     products: Product[]
     pagination: PaginationMeta
   }> {
     try {
       const response = await api.get<ProductsApiResponse>("/products", {
+        signal,
         params: {
           page: params?.page ?? 1,
           per_page: params?.per_page ?? 12,

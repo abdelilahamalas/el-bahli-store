@@ -1,27 +1,54 @@
 import React, { useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
-import { Store, Search, Menu, X } from "lucide-react"
+import { Store, Search, Menu, X, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import AdminSidebar from "./AdminSidebar"
+import { useAuth } from "@/hooks/useAuth"
 
 export default function AdminHeader() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const triggerRef = React.useRef<HTMLButtonElement>(null)
+  const lastClosedAtRef = React.useRef<number>(0)
   const location = useLocation()
   const navigate = useNavigate()
+  const { logout } = useAuth()
+
+  const handleLogout = async () => {
+    handleClose()
+    await logout()
+    navigate("/zakaria/admin/login")
+  }
+
+  const handleClose = () => {
+    lastClosedAtRef.current = Date.now()
+    setMobileOpen(false)
+  }
+
+  const handleToggle = () => {
+    if (Date.now() - lastClosedAtRef.current < 450) {
+      return
+    }
+    setMobileOpen((prev) => !prev)
+  }
+
+  // Fermeture automatique lors d'un changement de route admin
+  React.useEffect(() => {
+    handleClose()
+  }, [location.pathname])
 
   // Détermination du nom de la page active
   const getPageTitle = () => {
     const path = location.pathname
-    if (path === "/admin") return "Tableau de bord"
-    if (path.startsWith("/admin/products/new")) return "Ajouter un produit"
-    if (path.startsWith("/admin/products/") && path.includes("/edit")) return "Modifier le produit"
-    if (path.startsWith("/admin/products")) return "Produits"
-    if (path.startsWith("/admin/categories")) return "Catégories"
-    if (path.startsWith("/admin/orders/")) return "Détail de la commande"
-    if (path.startsWith("/admin/orders")) return "Commandes"
+    if (path === "/zakaria/admin") return "Tableau de bord"
+    if (path.startsWith("/zakaria/admin/products/new")) return "Ajouter un produit"
+    if (path.startsWith("/zakaria/admin/products/") && path.includes("/edit")) return "Modifier le produit"
+    if (path.startsWith("/zakaria/admin/products")) return "Produits"
+    if (path.startsWith("/zakaria/admin/categories")) return "Catégories"
+    if (path.startsWith("/zakaria/admin/orders/")) return "Détail de la commande"
+    if (path.startsWith("/zakaria/admin/orders")) return "Commandes"
     return "Administration"
   }
 
@@ -30,12 +57,12 @@ export default function AdminHeader() {
     const query = searchQuery.trim()
     if (!query) return
 
-    if (location.pathname.startsWith("/admin/orders")) {
-      navigate(`/admin/orders?search=${encodeURIComponent(query)}`)
-    } else if (location.pathname.startsWith("/admin/categories")) {
-      navigate(`/admin/categories?search=${encodeURIComponent(query)}`)
+    if (location.pathname.startsWith("/zakaria/admin/orders")) {
+      navigate(`/zakaria/admin/orders?search=${encodeURIComponent(query)}`)
+    } else if (location.pathname.startsWith("/zakaria/admin/categories")) {
+      navigate(`/zakaria/admin/categories?search=${encodeURIComponent(query)}`)
     } else {
-      navigate(`/admin/products?search=${encodeURIComponent(query)}`)
+      navigate(`/zakaria/admin/products?search=${encodeURIComponent(query)}`)
     }
   }
 
@@ -43,26 +70,29 @@ export default function AdminHeader() {
     <header className="h-14 bg-white border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30 select-none">
       {/* 1. Gauche : Bouton menu mobile + Icône Store + Nom de la page */}
       <div className="flex items-center gap-3 shrink-0">
+        {/* Bouton hamburger contrôlé (sans SheetTrigger pour éliminer tout conflit d'état) */}
+        <Button
+          ref={triggerRef}
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={handleToggle}
+          aria-expanded={mobileOpen}
+          aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"}
+          className="lg:hidden text-slate-700 h-9 w-9 shrink-0 cursor-pointer"
+        >
+          <Menu className="w-5 h-5" />
+          <span className="sr-only">Ouvrir le menu</span>
+        </Button>
+
         {/* Menu mobile et tablette */}
-        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-          <SheetTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              data-sheet-trigger="true"
-              className="lg:hidden text-slate-700 h-9 w-9 shrink-0 cursor-pointer"
-            >
-              <Menu className="w-5 h-5" />
-              <span className="sr-only">Ouvrir le menu</span>
-            </Button>
-          </SheetTrigger>
+        <Sheet open={mobileOpen} onOpenChange={(next) => { if (!next) { handleClose() } else { setMobileOpen(true) } }}>
           <SheetContent
             side="left"
-            onCloseAutoFocus={(e) => e.preventDefault()}
             className="p-0 w-60 bg-[#111111] border-r border-[#222222]"
           >
             <SheetTitle className="sr-only">Menu d'administration</SheetTitle>
-            <AdminSidebar onNavClick={() => setMobileOpen(false)} />
+            <AdminSidebar onNavClick={handleClose} />
           </SheetContent>
         </Sheet>
 
@@ -75,9 +105,9 @@ export default function AdminHeader() {
         </div>
       </div>
 
-      {/* 2. Droite : Champ de recherche parfaitement aligné à droite avec icône Search intégrée */}
-      <div className="ml-auto flex items-center justify-end pl-3">
-        <form onSubmit={handleSearchSubmit} className="relative w-44 sm:w-64 md:w-72">
+      {/* 2. Droite : Champ de recherche et bouton de Déconnexion rapide */}
+      <div className="ml-auto flex items-center justify-end gap-2 pl-3">
+        <form onSubmit={handleSearchSubmit} className="relative w-36 sm:w-64 md:w-72">
           <Input
             type="text"
             value={searchQuery}
@@ -105,6 +135,19 @@ export default function AdminHeader() {
             </button>
           </div>
         </form>
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={handleLogout}
+          title="Se déconnecter"
+          aria-label="Se déconnecter"
+          className="text-slate-500 hover:text-rose-600 hover:bg-rose-50 h-8.5 w-8.5 rounded-lg shrink-0 transition-colors cursor-pointer"
+        >
+          <LogOut className="w-4 h-4" />
+          <span className="sr-only">Déconnexion</span>
+        </Button>
       </div>
     </header>
   )

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { Check, AlertCircle, Ruler } from "lucide-react"
 import type { ProductVariant } from "@/types/product"
 import { cn } from "@/utils/utils"
@@ -40,11 +40,18 @@ export default function VariantSelector({
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false)
 
   // Liste des couleurs uniques disponibles dans les variantes
-  const colors = Array.from(new Set(variants.map((v) => v.color || "Standard")))
+  const colors = useMemo(
+    () => Array.from(new Set(variants.map((v) => v.color || "Standard"))),
+    [variants]
+  )
 
   // Variantes correspondant à la couleur sélectionnée
-  const colorVariants = variants.filter(
-    (v) => (v.color || "Standard") === selectedColor
+  const colorVariants = useMemo(
+    () =>
+      variants.filter(
+        (v) => (v.color || "Standard") === selectedColor
+      ),
+    [variants, selectedColor]
   )
 
   // Ordre canonique des tailles streetwear standard
@@ -85,7 +92,9 @@ export default function VariantSelector({
       (v) => (v.color || "Standard") === selectedColor && v.size === selectedSize
     )
     if (currentVariant && currentVariant.stock > 0 && currentVariant.is_active) {
-      onVariantChange(currentVariant)
+      if (selectedVariant?.id !== currentVariant.id) {
+        onVariantChange(currentVariant)
+      }
     } else {
       const firstAvailable = variants.find(
         (v) =>
@@ -94,15 +103,20 @@ export default function VariantSelector({
           v.is_active
       )
       if (firstAvailable) {
-        onSizeChange(firstAvailable.size)
-        onVariantChange(firstAvailable)
-      } else {
+        if (selectedSize !== firstAvailable.size) {
+          onSizeChange(firstAvailable.size)
+        }
+        if (selectedVariant?.id !== firstAvailable.id) {
+          onVariantChange(firstAvailable)
+        }
+      } else if (selectedVariant !== null) {
         onVariantChange(null)
       }
     }
   }, [
     selectedColor,
     selectedSize,
+    selectedVariant,
     variants,
     colors,
     onColorChange,
@@ -147,11 +161,11 @@ export default function VariantSelector({
                     "px-4 py-2 rounded-full text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer",
                     isSelected
                       ? "border-brand-black bg-brand-black text-white shadow-xs"
-                      : "border-border bg-card text-foreground hover:border-brand-gold hover:bg-muted/40",
+                      : "border-border bg-card text-foreground hover:border-brand-black hover:bg-muted/40",
                     !hasStock && "opacity-40 line-through cursor-not-allowed"
                   )}
                 >
-                  {isSelected && <Check className="h-3.5 w-3.5 text-brand-gold" />}
+                  {isSelected && <Check className="h-3.5 w-3.5 text-white" />}
                   <span>{color}</span>
                   {!hasStock && (
                     <span className="text-[10px] text-muted-foreground font-normal">
@@ -184,20 +198,20 @@ export default function VariantSelector({
             <DialogTrigger asChild>
               <button
                 type="button"
-                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-brand-gold font-semibold transition-colors cursor-pointer"
+                className="group inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground font-semibold transition-colors cursor-pointer py-1 px-2 rounded-lg hover:bg-muted/50"
               >
-                <Ruler className="h-3.5 w-3.5 text-brand-gold" />
+                <Ruler className="h-3.5 w-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
                 <span>Guide des tailles</span>
               </button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
+            <DialogContent className="sm:max-w-md max-h-[min(82vh,calc(100dvh-3.5rem))] flex flex-col p-5 sm:p-6 rounded-2xl overflow-hidden">
+              <DialogHeader className="shrink-0 pb-1">
                 <DialogTitle className="text-lg font-bold">
                   Guide des Tailles Officiel
                 </DialogTitle>
               </DialogHeader>
-              <div className="py-3 space-y-4 text-xs">
-                <p className="text-muted-foreground">
+              <div className="overflow-y-auto overscroll-contain pr-1 py-1 space-y-4 text-xs font-sans flex-1">
+                <p className="text-muted-foreground leading-relaxed">
                   Nos coupes sont ajustées et conformes aux standards marocains et européens. En cas de doute, privilégiez votre taille habituelle.
                 </p>
                 <div className="rounded-xl border overflow-hidden">
@@ -272,13 +286,24 @@ export default function VariantSelector({
                     </Table>
                   </div>
                 </div>
+
+                {/* Bouton de fermeture d'accès rapide */}
+                <div className="pt-3 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setIsSizeGuideOpen(false)}
+                    className="px-4 py-2 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 transition-colors cursor-pointer"
+                  >
+                    Fermer le guide
+                  </button>
+                </div>
               </div>
             </DialogContent>
           </Dialog>
         </div>
 
-        {/* Boutons pilules de taille façon streetwear (S, M, L, XL, XXL) */}
-        <div className="flex flex-wrap gap-2.5">
+        {/* Boutons pilules de taille façon streetwear (S, M, L, XL, XXL) — Taille compacte et épurée sans hover gold */}
+        <div className="flex flex-wrap gap-2">
           {sizesForColor.map(({ size, variant, isAvailable }) => {
             const isSelected = selectedSize === size
 
@@ -294,9 +319,9 @@ export default function VariantSelector({
                   }
                 }}
                 className={cn(
-                  "h-12 min-w-[56px] px-4 rounded-xl border text-sm font-extrabold transition-all duration-200 flex items-center justify-center cursor-pointer",
+                  "h-9 min-w-[42px] px-3 rounded-xl border text-xs font-bold transition-all duration-150 flex items-center justify-center cursor-pointer",
                   isSelected
-                    ? "border-brand-black bg-brand-black text-white shadow-md ring-2 ring-brand-gold/40 scale-102"
+                    ? "border-brand-black bg-brand-black text-white shadow-xs"
                     : isAvailable
                     ? "border-border/80 bg-card text-foreground hover:border-brand-black hover:bg-muted/40"
                     : "border-border/30 bg-muted/20 text-muted-foreground/30 cursor-not-allowed line-through"

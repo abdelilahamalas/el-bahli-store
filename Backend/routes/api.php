@@ -29,9 +29,13 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::get('/categories', [PublicCategoryController::class, 'index'])->name('categories.index');
-    Route::get('/categories/{slug}/products', [PublicCategoryController::class, 'products'])->name('categories.products');
+    Route::get('/categories/{slug}/products', [PublicCategoryController::class, 'products'])
+        ->middleware('throttle:public-catalog')
+        ->name('categories.products');
 
-    Route::get('/products', [PublicProductController::class, 'index'])->name('products.index');
+    Route::get('/products', [PublicProductController::class, 'index'])
+        ->middleware('throttle:public-catalog')
+        ->name('products.index');
     Route::get('/products/{slug}', [PublicProductController::class, 'show'])->name('products.show');
 
     Route::post('/cart/estimate', [PublicCartController::class, 'estimate'])
@@ -43,7 +47,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         ->name('orders.store');
 
     Route::get('/orders/confirmation/{token}', [PublicOrderController::class, 'confirmation'])
-        ->middleware('signed')
+        ->middleware(['signed', 'throttle:order-confirmation'])
         ->name('orders.confirmation');
 
     /*

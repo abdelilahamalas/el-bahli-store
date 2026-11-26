@@ -53,7 +53,8 @@ export function resolveBackendImageUrl(urlOrPath: string): string {
     return trimmed
   }
 
-  const apiBase = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api/v1"
+  const apiBase =
+    import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api/v1"
   const backendOrigin = apiBase.replace(/\/api\/v1\/?$/, "")
 
   // Nettoyage des préfixes relatifs

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useNavigate, Link } from "react-router-dom"
 import {
   ShieldCheck,
@@ -22,7 +22,17 @@ import { Textarea } from "@/components/ui/textarea"
 
 export default function CheckoutPage() {
   const navigate = useNavigate()
-  const { items, totalCount, subtotal, deliveryFee, total, clearCart } = useCart()
+  const { items, totalCount, subtotal, deliveryFee, total, clearCart, closeCart } = useCart()
+
+  // Fermer le tiroir panier une seule fois au montage initial si nécessaire,
+  // sans jamais empêcher l'utilisateur de le rouvrir manuellement sur la page
+  const hasClosedOnMountRef = useRef(false)
+  useEffect(() => {
+    if (!hasClosedOnMountRef.current) {
+      hasClosedOnMountRef.current = true
+      closeCart()
+    }
+  }, [closeCart])
 
   // Formulaire client
   const [formData, setFormData] = useState({
@@ -72,6 +82,8 @@ export default function CheckoutPage() {
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (isSubmitting) return
+    closeCart()
     setGeneralError(null)
 
     if (items.length === 0) {

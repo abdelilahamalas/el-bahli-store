@@ -2,7 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Enums\OrderStatus;
+use App\Enums\PaymentStatus;
 use App\Models\Category;
+use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductSize;
 use App\Models\StockMovement;
@@ -402,9 +406,11 @@ class AdministrationProduitsEtStockTest extends TestCase
     }
 
     /**
-     * 14. Conservation de l'historique : désactivation plutôt que suppression si historique.
+     * 14. Suppression définitive d'un produit avec historique de commande :
+     * Le produit et ses variantes sont supprimés physiquement, mais l'intégralité
+     * des données de la commande (snapshots, montants, mouvements) est préservée.
      */
-    public function test_desactivation_plutot_que_suppression_si_historique(): void
+    public function test_suppression_definitive_produit_avec_historique_commande_et_preservation_donnees(): void
     {
         $product = Product::create([
             'category_id' => $this->category->id,
@@ -415,25 +421,130 @@ class AdministrationProduitsEtStockTest extends TestCase
         ]);
         $variant = ProductSize::create(['product_id' => $product->id, 'size' => 'M', 'color' => 'Standard', 'stock' => 5]);
 
-        // Création d'un mouvement de stock pour cette variante
-        StockMovement::create([
-            'product_size_id' => $variant->id,
-            'type' => StockMovement::TYPE_INITIAL_STOCK,
-            'quantity_before' => 0,
-            'quantity_delta' => 5,
-            'quantity_after' => 5,
-            'reason' => 'Initial',
+        $order = Order::create([
+            'reference' => 'CMD-HISTO-001',
+            'customer_name' => 'Client Test',
+            'customer_phone' => '0612345678',
+            'city' => 'Casablanca',
+            'address' => 'Boulevard Anfa',
+            'subtotal' => 300.00,
+            'delivery_fee' => 0.00,
+            'total' => 300.00,
+            'status' => OrderStatus::DELIVERED,
+            'payment_status' => PaymentStatus::PAID,
+            'payment_method' => 'cod',
         ]);
 
-        // Tentative de suppression du produit
+        $orderItem = OrderItem::create([
+            'order_id' => $order->id,
+            'product_id' => $product->id,
+            'product_name' => $product->name,
+            'size' => 'M',
+            'unit_price' => 300.00,
+            'quantity' => 1,
+            'line_total' => 300.00,
+        ]);
+
+        // Mouvement de stock lié à la commande
+        $movement = StockMovement::create([
+            'product_size_id' => $variant->id,
+            'order_id' => $order->id,
+            'type' => StockMovement::TYPE_ORDER_CONFIRMATION,
+            'quantity_before' => 5,
+            'quantity_delta' => -1,
+            'quantity_after' => 4,
+            'reason' => 'Commande CMD-HISTO-001',
+        ]);
+
+        // Suppression définitive du produit
         $response = $this->actingAs($this->admin, 'sanctum')
             ->deleteJson(route('api.v1.admin.products.destroy', $product->id));
 
         $response->assertOk();
-        // Le produit ne doit PAS être supprimé, mais désactivé (is_active = false)
-        $this->assertDatabaseHas('products', [
+        $response->assertJson([
+            'success' => true,
+            'data' => [
+                'deleted' => true,
+                'id' => $product->id,
+            ],
+        ]);
+
+        // 1. Le produit est supprimé physiquement de la base
+        $this->assertDatabaseMissing('products', [
             'id' => $product->id,
-            'is_active' => false,
+        ]);
+
+        // 2. Les variantes du produit sont supprimées physiquement
+        $this->assertDatabaseMissing('product_sizes', [
+            'id' => $variant->id,
+        ]);
+
+        // 3. Les lignes de commande sont conservées avec snapshots intacts et product_id = null
+        $this->assertDatabaseHas('order_items', [
+            'id' => $orderItem->id,
+            'order_id' => $order->id,
+            'product_id' => null,
+            'product_name' => 'Jean Historique',
+            'size' => 'M',
+            'unit_price' => 300.00,
+            'quantity' => 1,
+            'line_total' => 300.00,
+        ]);
+
+        // 4. Les mouvements de stock sont conservés avec libellé instantané et product_size_id = null
+        $this->assertDatabaseHas('stock_movements', [
+            'id' => $movement->id,
+            'order_id' => $order->id,
+            'product_size_id' => null,
+            'type' => StockMovement::TYPE_ORDER_CONFIRMATION,
+        ]);
+
+        $this->assertNotNull(StockMovement::find($movement->id)->variant_label);
+    }
+
+    /**
+     * 14b. Suppression définitive réussie si aucun historique de commande.
+     */
+    public function test_suppression_definitive_produit_sans_commande(): void
+    {
+        $product = Product::create([
+            'category_id' => $this->category->id,
+            'name' => 'Produit Sans Commande',
+            'slug' => 'produit-sans-commande',
+            'price' => 250.00,
+            'is_active' => true,
+        ]);
+        $variant = ProductSize::create(['product_id' => $product->id, 'size' => 'L', 'color' => 'Noir', 'stock' => 10]);
+
+        // Mouvement de stock initial uniquement (pas de commande)
+        StockMovement::create([
+            'product_size_id' => $variant->id,
+            'type' => StockMovement::TYPE_INITIAL_STOCK,
+            'quantity_before' => 0,
+            'quantity_delta' => 10,
+            'quantity_after' => 10,
+            'reason' => 'Initial',
+        ]);
+
+        $response = $this->actingAs($this->admin, 'sanctum')
+            ->deleteJson(route('api.v1.admin.products.destroy', $product->id));
+
+        $response->assertOk();
+        $response->assertJson([
+            'success' => true,
+            'data' => [
+                'deleted' => true,
+                'id' => $product->id,
+            ],
+        ]);
+
+        // Le produit doit être supprimé de la base
+        $this->assertDatabaseMissing('products', [
+            'id' => $product->id,
+        ]);
+        // Les variantes associées doivent être supprimées
+        $this->assertDatabaseMissing('product_sizes', [
+            'id' => $variant->id,
         ]);
     }
 

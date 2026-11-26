@@ -1,0 +1,67 @@
+# ==============================================================================
+# EL BAHLI STORE — APACHE .HTACCESS (HOSTINGER MUTUALISÉ / CPANEL / HPANEL)
+# ==============================================================================
+# À placer dans le répertoire racine du domaine (ex: public_html/)
+# ==============================================================================
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # 1. Forcer la connexion sécurisée HTTPS
+    RewriteCond %{HTTPS} !=on
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # 2. Interdire l'accès direct aux fichiers sensibles et dossiers racine
+    RewriteRule ^(\.git|\.env|Backend/(app|bootstrap|config|database|resources|routes|storage|tests)|composer\.(json|lock)|package(-lock)?\.json) - [F,L,NC]
+
+    # 3. Routage des requêtes API vers Laravel Backend/public/index.php
+    RewriteRule ^api/(.*)$ Backend/public/index.php [QSA,L]
+    RewriteRule ^sanctum/(.*)$ Backend/public/index.php [QSA,L]
+
+    # 4. Accès aux fichiers publics uploadés Laravel (storage)
+    RewriteRule ^storage/(.*)$ Backend/storage/app/public/$1 [L]
+
+    # 5. Routage du Frontend React SPA (si fichiers compilés déposés dans public_html/)
+    # Si le fichier ou le dossier existe réellement, le servir directement
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Sinon, rediriger toutes les routes SPA vers index.html
+    RewriteRule ^ index.html [L]
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# EN-TÊTES DE SÉCURITÉ
+# ------------------------------------------------------------------------------
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# COMPRESSION MOD_DEFLATE GZIP
+# ------------------------------------------------------------------------------
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain text/html text/xml text/css application/xml application/xhtml+xml application/rss+xml application/javascript application/x-javascript application/json image/svg+xml
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# EXPIRATION DU CACHE NAVIGATEUR
+# ------------------------------------------------------------------------------
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
+</IfModule>
+
+# Interdire le listage des dossiers
+Options -Indexes

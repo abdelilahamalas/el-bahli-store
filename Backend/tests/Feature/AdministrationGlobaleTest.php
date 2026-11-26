@@ -231,7 +231,7 @@ class AdministrationGlobaleTest extends TestCase
         $updateRes->assertOk()
             ->assertJsonPath('data.name', 'Veste Cuir Bomber Édition Limitée');
 
-        // 4. Suppression sécurisée : si des commandes existent, désactivation automatique
+        // 4. Suppression définitive : le produit est physiquement supprimé, l'historique de commande est préservé avec product_id = null
         $product = Product::find($productId);
         $order = Order::create([
             'reference' => 'EB-TESTHIST01',
@@ -244,7 +244,7 @@ class AdministrationGlobaleTest extends TestCase
             'delivery_fee' => '0.00',
             'total' => '480.00',
         ]);
-        OrderItem::create([
+        $orderItem = OrderItem::create([
             'order_id' => $order->id,
             'product_id' => $product->id,
             'product_name' => $product->name,
@@ -257,8 +257,16 @@ class AdministrationGlobaleTest extends TestCase
 
         $destroyRes = $this->deleteJson(route('api.v1.admin.products.destroy', $productId));
         $destroyRes->assertOk();
-        // Le produit n'est pas effacé de la base, mais son statut passe à is_active = false
-        $this->assertDatabaseHas('products', ['id' => $productId, 'is_active' => false]);
+        // Le produit est supprimé physiquement de la base
+        $this->assertDatabaseMissing('products', ['id' => $productId]);
+        // La ligne de commande reste intacte avec son snapshot et product_id = null
+        $this->assertDatabaseHas('order_items', [
+            'id' => $orderItem->id,
+            'order_id' => $order->id,
+            'product_id' => null,
+            'product_name' => 'Veste Cuir Bomber Édition Limitée',
+            'line_total' => '480.00',
+        ]);
     }
 
     // =========================================================================

@@ -44,19 +44,19 @@ class ProductController extends ApiController
             });
         }
 
-        // Price range
+        // Price range (prend en compte le prix promo si actif)
         if ($request->filled('min_price')) {
-            $query->where('price', '>=', (float) $request->input('min_price'));
+            $query->whereRaw('COALESCE(promotional_price, price) >= ?', [(float) $request->input('min_price')]);
         }
         if ($request->filled('max_price')) {
-            $query->where('price', '<=', (float) $request->input('max_price'));
+            $query->whereRaw('COALESCE(promotional_price, price) <= ?', [(float) $request->input('max_price')]);
         }
 
         // Sorting
         $sort = $request->input('sort', 'latest');
         match ($sort) {
-            'price_asc' => $query->orderBy('price', 'asc'),
-            'price_desc' => $query->orderBy('price', 'desc'),
+            'price_asc' => $query->orderByRaw('COALESCE(promotional_price, price) asc'),
+            'price_desc' => $query->orderByRaw('COALESCE(promotional_price, price) desc'),
             'name_asc' => $query->orderBy('name', 'asc'),
             default => $query->latest(),
         };

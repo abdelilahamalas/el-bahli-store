@@ -291,7 +291,7 @@ export default function Navbar({ categories, isLoading }: NavbarProps) {
                     El Bahli <span className="text-brand-gold">Store</span>
                   </span>
                   <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mt-0.5">
-                    Maroc
+
                   </span>
                 </div>
               </Link>
@@ -318,7 +318,6 @@ export default function Navbar({ categories, isLoading }: NavbarProps) {
               <button
                 type="button"
                 data-cart-trigger="true"
-                data-sheet-trigger="true"
                 onClick={toggleCart}
                 aria-label={`Accéder au panier (${totalCount} articles)`}
                 className="relative p-2 sm:p-2.5 text-foreground/85 hover:text-brand-gold hover:bg-muted/60 rounded-full transition-colors cursor-pointer flex items-center justify-center"
@@ -410,21 +409,19 @@ export default function Navbar({ categories, isLoading }: NavbarProps) {
               </div>
             )}
 
-            <div className="flex justify-end gap-2 pt-2 border-t">
+            <div className="flex justify-end gap-2.5 pt-3 border-t">
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
                 onClick={() => setIsSearchOpen(false)}
-                className="rounded-full"
+                className="h-10 sm:h-11 px-4 sm:px-5 text-xs sm:text-sm font-semibold rounded-xl cursor-pointer"
               >
                 Annuler
               </Button>
               <Button
                 type="submit"
                 variant="gold"
-                size="sm"
-                className="font-semibold rounded-full"
+                className="h-10 sm:h-11 px-5 sm:px-6 text-xs sm:text-sm font-bold rounded-xl shadow-xs cursor-pointer"
               >
                 Rechercher
               </Button>

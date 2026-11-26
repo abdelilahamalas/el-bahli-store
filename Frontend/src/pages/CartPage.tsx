@@ -19,6 +19,7 @@ export default function CartPage() {
     updateQuantity,
     removeItem,
     clearCart,
+    closeCart,
   } = useCart()
 
   return (
@@ -127,7 +128,10 @@ export default function CartPage() {
                 <Button
                   variant="gold"
                   size="lg"
-                  onClick={() => navigate("/checkout")}
+                  onClick={() => {
+                    closeCart()
+                    navigate("/checkout")
+                  }}
                   className="w-full h-12 text-sm font-bold gap-2 shadow-md"
                 >
                   <span>Valider ma commande</span>

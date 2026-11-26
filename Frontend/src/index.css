@@ -48,6 +48,17 @@
     --sidebar-ring: 220 13% 75%;
   }
 
+  /* Désactiver complètement les flèches haut/bas (spinners) dans tous les inputs numériques */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield !important;
+    appearance: textfield !important;
+  }
+
   .dark {
     --background: 0 0% 6.7%;
     --foreground: 0 0% 98%;
@@ -89,13 +100,27 @@
 }
 
 @layer base {
-  * {
+  *, ::before, ::after {
     @apply border-border;
   }
-  body {
+  html, body {
     @apply bg-background text-foreground font-sans;
+    font-family: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+  button, input, optgroup, select, textarea {
+    font-family: inherit;
+  }
+}
+
+/* Police officielle Plus Jakarta Sans appliquée rigoureusement aux alertes, dialogues, et notifications */
+[role="dialog"],
+[role="alertdialog"],
+[role="alert"],
+[data-radix-portal],
+[data-sonner-toaster],
+[data-sonner-toast] {
+  font-family: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
 }
 
 /* ==========================================================================

@@ -149,10 +149,14 @@ export default function AdminProductsPage() {
     if (!productToDelete) return
     try {
       setIsDeleting(true)
-      await adminService.deleteProduct(productToDelete.id)
+      const res = await adminService.deleteProduct(productToDelete.id)
+
       toast.success("Produit supprimé", {
-        description: `Le produit « ${productToDelete.name} » a été supprimé de la boutique.`,
+        description:
+          res.message ||
+          `Le produit « ${productToDelete.name} » a été supprimé définitivement du catalogue et de la base de données.`,
       })
+
       setProductToDelete(null)
       fetchProducts()
     } catch (err: unknown) {
@@ -226,7 +230,7 @@ export default function AdminProductsPage() {
 
           {/* White button standard : Ajouter un produit */}
           <Button
-            onClick={() => navigate("/admin/products/new")}
+            onClick={() => navigate("/zakaria/admin/products/new")}
             className="h-9 px-4 rounded-lg bg-white hover:bg-slate-50 text-slate-900 border border-slate-200 text-xs font-semibold shadow-2xs inline-flex items-center gap-1.5 cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5 text-slate-700" />
@@ -363,7 +367,7 @@ export default function AdminProductsPage() {
                           </div>
                           <div className="flex flex-col min-w-0">
                             <Link
-                              to={`/admin/products/${product.id}/edit`}
+                              to={`/zakaria/admin/products/${product.id}/edit`}
                               className="font-bold text-slate-900 hover:text-slate-600 transition-colors truncate max-w-xs text-xs"
                             >
                               {product.name}
@@ -423,7 +427,7 @@ export default function AdminProductsPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => navigate(`/admin/products/${product.id}/edit`)}
+                            onClick={() => navigate(`/zakaria/admin/products/${product.id}/edit`)}
                             className="h-7 px-2.5 rounded-md text-xs font-medium bg-white border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer shadow-2xs"
                             title="Modifier ce produit"
                           >

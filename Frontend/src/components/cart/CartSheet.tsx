@@ -78,12 +78,11 @@ export default function CartSheet() {
               </div>
               <Button
                 variant="gold"
-                size="sm"
                 onClick={() => {
                   closeCart()
                   navigate("/products")
                 }}
-                className="font-bold text-xs"
+                className="h-11 px-6 font-bold text-xs sm:text-sm rounded-xl shadow-xs cursor-pointer"
               >
                 Découvrir le catalogue
               </Button>

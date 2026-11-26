@@ -179,6 +179,92 @@ class InventoryService
     }
 
     /**
+     * Atomically restore stock upon order return (return confirmed / processed).
+     * Only restores if stock was previously decremented during confirmation!
+     * Idempotent: will not restore twice.
+     */
+    public function restoreReturnedOrderStock(Order $order, ?int $userId = null): void
+    {
+        // Only restore if confirmation movement exists or order was confirmed
+        $wasConfirmed = StockMovement::where('order_id', $order->id)
+            ->where('type', StockMovement::TYPE_ORDER_CONFIRMATION)
+            ->exists() || ($order->confirmed_at !== null);
+
+        if (! $wasConfirmed) {
+            // Order was never confirmed: stock was never decremented, nothing to restore!
+            return;
+        }
+
+        // Idempotency: verify if return restock or cancellation movement already exists
+        $alreadyRestored = StockMovement::where('order_id', $order->id)
+            ->whereIn('type', [
+                StockMovement::TYPE_RETURN_RESTOCK,
+                StockMovement::TYPE_ORDER_CANCELLATION,
+            ])
+            ->exists() || ($order->returned_at !== null);
+
+        if ($alreadyRestored) {
+            return;
+        }
+
+        $sortedItems = $order->items
+            ->sortBy(fn ($item) => "{$item->product_id}_{$item->size}_{$item->couleur_copie}")
+            ->values();
+
+        foreach ($sortedItems as $item) {
+            if (! $item->product_id) {
+                continue;
+            }
+
+            $color = $item->couleur_copie ?: 'Standard';
+
+            /** @var ProductSize|null $variant */
+            $variant = ProductSize::where('product_id', $item->product_id)
+                ->where('size', $item->size)
+                ->where('color', $color)
+                ->lockForUpdate()
+                ->first();
+
+            if ($variant) {
+                $before = $variant->stock;
+                $after = $before + (int) $item->quantity;
+
+                $variant->increment('stock', (int) $item->quantity);
+
+                StockMovement::create([
+                    'product_size_id' => $variant->id,
+                    'order_id' => $order->id,
+                    'user_id' => $userId,
+                    'type' => StockMovement::TYPE_RETURN_RESTOCK,
+                    'quantity_before' => $before,
+                    'quantity_delta' => +(int) $item->quantity,
+                    'quantity_after' => $after,
+                    'reason' => "Retour de la commande {$order->reference}",
+                ]);
+
+                // Create OrderReturn record if not already present
+                $alreadyHasReturn = OrderReturn::where('order_id', $order->id)
+                    ->where('order_item_id', $item->id)
+                    ->exists();
+
+                if (! $alreadyHasReturn) {
+                    OrderReturn::create([
+                        'order_id' => $order->id,
+                        'order_item_id' => $item->id,
+                        'product_size_id' => $variant->id,
+                        'user_id' => $userId,
+                        'quantity_returned' => (int) $item->quantity,
+                        'quantity_resellable' => (int) $item->quantity,
+                        'quantity_damaged' => 0,
+                        'restocked' => true,
+                        'reason' => "Commande {$order->reference} retournée en stock",
+                    ]);
+                }
+            }
+        }
+    }
+
+    /**
      * Atomically restore stock for returned items that are declared resellable.
      * Damaged items are recorded but NEVER restored to available stock.
      *

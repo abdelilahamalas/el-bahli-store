@@ -285,6 +285,51 @@ class ServicesMetierTest extends TestCase
         $this->assertCount(2, $estimate['items']);
     }
 
+    public function test_estimate_cart_and_create_order_uses_promotional_price_when_available(): void
+    {
+        // Produit avec prix normal 400 MAD et promo 250 MAD
+        $promoProduct = Product::create([
+            'category_id' => $this->category->id,
+            'name' => 'Produit En Promo',
+            'slug' => 'produit-en-promo',
+            'price' => 400.00,
+            'promotional_price' => 250.00,
+            'is_active' => true,
+        ]);
+
+        ProductSize::create([
+            'product_id' => $promoProduct->id,
+            'size' => 'M',
+            'color' => 'Noir',
+            'stock' => 5,
+        ]);
+
+        $cart = [
+            ['product_id' => $promoProduct->id, 'size' => 'M', 'color' => 'Noir', 'quantity' => 2],
+        ];
+
+        // 1. L'estimation du panier doit utiliser 250.00 MAD et non 400.00 MAD
+        $estimate = $this->orderService->estimateCart($cart);
+        $this->assertTrue($estimate['is_valid']);
+        $this->assertSame('250.00', $estimate['items'][0]['unit_price']);
+        $this->assertSame('500.00', $estimate['items'][0]['line_total']);
+        $this->assertSame('500.00', $estimate['subtotal']);
+        $this->assertSame('500.00', $estimate['total']);
+
+        // 2. La création de commande doit utiliser 250.00 MAD
+        $order = $this->orderService->createOrder([
+            'customer_name' => 'Client Promo',
+            'customer_phone' => '0611223344',
+            'city' => 'Casablanca',
+            'address' => 'Boulevard d\'Anfa',
+        ], $cart, '127.0.0.1');
+
+        $this->assertSame('500.00', $order->subtotal);
+        $this->assertSame('500.00', $order->total);
+        $this->assertSame('250.00', $order->items->first()->unit_price);
+        $this->assertSame('500.00', $order->items->first()->line_total);
+    }
+
     public function test_estimate_cart_flags_invalid_when_stock_is_insufficient(): void
     {
         ProductSize::create([

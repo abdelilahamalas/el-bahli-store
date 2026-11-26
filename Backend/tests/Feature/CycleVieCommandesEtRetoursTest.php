@@ -394,6 +394,68 @@ class CycleVieCommandesEtRetoursTest extends TestCase
         $this->assertGreaterThanOrEqual(6, OrderStatusHistory::where('order_id', $order->id)->count());
     }
 
+    public function test_marking_order_as_returned_automatically_restores_variant_stock(): void
+    {
+        Sanctum::actingAs($this->adminUser);
+
+        $variant = ProductSize::create([
+            'product_id' => $this->product->id,
+            'size' => 'XL',
+            'color' => 'Standard',
+            'stock' => 10,
+        ]);
+
+        $orderService = app(OrderService::class);
+
+        // 1. Order placed: 4 units requested
+        $order = $orderService->createOrder(
+            [
+                'customer_name' => 'Tariq Alami',
+                'customer_phone' => '0661998877',
+                'city' => 'Rabat',
+                'address' => 'Agdal',
+            ],
+            [
+                ['product_id' => $this->product->id, 'size' => 'XL', 'color' => 'Standard', 'quantity' => 4],
+            ]
+        );
+
+        $this->assertEquals(10, $variant->fresh()->stock);
+
+        // 2. Admin confirms order -> stock decrements from 10 to 6
+        $order = $orderService->transitionStatus($order, OrderStatus::CONFIRMED, $this->adminUser->id);
+        $this->assertEquals(6, $variant->fresh()->stock);
+
+        // 3. Admin ships the order
+        $order = $orderService->transitionStatus($order, OrderStatus::SHIPPED, $this->adminUser->id);
+        $this->assertEquals(6, $variant->fresh()->stock);
+
+        // 4. Admin marks order as RETURNED via API
+        $response = $this->patchJson(route('api.v1.admin.orders.status', $order->id), [
+            'status' => 'returned',
+            'reason' => 'Client absent à la livraison, colis retourné à la boutique',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('success', true);
+
+        // 5. Stock MUST be automatically restored back to 10 (6 + 4 = 10)
+        $this->assertEquals(10, $variant->fresh()->stock);
+        $this->assertEquals(OrderStatus::RETURNED, $order->fresh()->status);
+        $this->assertNotNull($order->fresh()->returned_at);
+
+        // 6. Verify StockMovement and OrderReturn recorded
+        $movement = \App\Models\StockMovement::where('order_id', $order->id)
+            ->where('type', \App\Models\StockMovement::TYPE_RETURN_RESTOCK)
+            ->first();
+        $this->assertNotNull($movement);
+        $this->assertEquals(4, $movement->quantity_delta);
+
+        $orderReturn = OrderReturn::where('order_id', $order->id)->first();
+        $this->assertNotNull($orderReturn);
+        $this->assertEquals(4, $orderReturn->quantity_returned);
+    }
+
     public function test_admin_can_update_order_internal_notes(): void
     {
         Sanctum::actingAs($this->adminUser);

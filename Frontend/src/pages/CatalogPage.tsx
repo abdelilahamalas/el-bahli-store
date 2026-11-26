@@ -75,6 +75,8 @@ export default function CatalogPage() {
   // Chargement des produits selon les paramètres d'URL
   useEffect(() => {
     let isMounted = true
+    const controller = new AbortController()
+
     const currentFilters: ProductFilterParams = {
       page: searchParams.get("page") ? Number(searchParams.get("page")) : 1,
       category_slug: searchParams.get("category") || undefined,
@@ -85,7 +87,7 @@ export default function CatalogPage() {
     }
 
     productService
-      .getProducts(currentFilters)
+      .getProducts(currentFilters, controller.signal)
       .then((res) => {
         if (isMounted) {
           setProducts(res.products)
@@ -94,7 +96,7 @@ export default function CatalogPage() {
         }
       })
       .catch((err: unknown) => {
-        if (isMounted) {
+        if (isMounted && !(err && typeof err === "object" && "name" in err && (err as { name: string }).name === "CanceledError")) {
           const msg =
             err instanceof Error
               ? err.message
@@ -106,6 +108,7 @@ export default function CatalogPage() {
 
     return () => {
       isMounted = false
+      controller.abort()
     }
   }, [searchParams])
 

@@ -66,8 +66,8 @@ export default function CartItemRow({
             <button
               type="button"
               onClick={() => onUpdateQuantity(item.quantity + 1)}
-              disabled={item.quantity >= 10 || (item.maxStock !== undefined && item.quantity >= item.maxStock)}
-              className="h-6 w-6 flex items-center justify-center text-xs font-bold hover:bg-muted disabled:opacity-40"
+              disabled={item.maxStock !== undefined ? item.quantity >= item.maxStock : item.quantity >= 10}
+              className="h-6 w-6 flex items-center justify-center text-xs font-bold hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed disabled:pointer-events-none transition-colors"
               aria-label="Augmenter la quantité"
             >
               +

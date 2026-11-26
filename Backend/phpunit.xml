@@ -32,5 +32,7 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <env name="ADMIN_EMAIL" value="admin@elbahlistore.com"/>
+        <env name="ADMIN_PASSWORD" value="SecretAdminPassword2026!"/>
     </php>
 </phpunit>

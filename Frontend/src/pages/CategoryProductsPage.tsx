@@ -86,12 +86,16 @@ export default function CategoryProductsPage() {
   useEffect(() => {
     if (!slug) return
     let isMounted = true
+    const controller = new AbortController()
 
     productService
-      .getProducts({
-        ...filters,
-        category_slug: slug,
-      })
+      .getProducts(
+        {
+          ...filters,
+          category_slug: slug,
+        },
+        controller.signal
+      )
       .then((res) => {
         if (isMounted) {
           setProducts(res.products)
@@ -100,7 +104,7 @@ export default function CategoryProductsPage() {
         }
       })
       .catch((err: unknown) => {
-        if (isMounted) {
+        if (isMounted && !(err && typeof err === "object" && "name" in err && (err as { name: string }).name === "CanceledError")) {
           const msg =
             err instanceof Error
               ? err.message
@@ -112,6 +116,7 @@ export default function CategoryProductsPage() {
 
     return () => {
       isMounted = false
+      controller.abort()
     }
   }, [slug, filters])
 

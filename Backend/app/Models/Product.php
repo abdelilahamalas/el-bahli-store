@@ -40,6 +40,18 @@ class Product extends Model
     }
 
     /**
+     * Obtenir le prix effectif de vente (prix promotionnel si défini et valide, sinon prix régulier).
+     */
+    public function getEffectivePrice(): float
+    {
+        if ($this->promotional_price !== null && (float) $this->promotional_price > 0 && (float) $this->promotional_price < (float) $this->price) {
+            return (float) $this->promotional_price;
+        }
+
+        return (float) $this->price;
+    }
+
+    /**
      * @return BelongsTo<Category, $this>
      */
     public function category(): BelongsTo
@@ -56,15 +68,15 @@ class Product extends Model
     }
 
     /**
-     * @return HasMany<VarianteProduit, $this>
+     * @return HasMany<ProductSize, $this>
      */
     public function variants(): HasMany
     {
-        return $this->hasMany(VarianteProduit::class, 'product_id');
+        return $this->hasMany(ProductSize::class, 'product_id');
     }
 
     /**
-     * @return HasMany<VarianteProduit, $this>
+     * @return HasMany<ProductSize, $this>
      */
     public function variantes(): HasMany
     {

@@ -73,11 +73,69 @@ class AppServiceProvider extends ServiceProvider
             });
         });
 
+        RateLimiter::for('public-search', function (Request $request) {
+            return Limit::perMinute(60)->by($request->ip() ?: '127.0.0.1')->response(function () {
+                return response()->json([
+                    'success' => false,
+                    'code' => 'TOO_MANY_REQUESTS',
+                    'message' => 'Trop de requêtes de recherche. Veuillez patienter quelques instants.',
+                ], 429);
+            });
+        });
+
+        RateLimiter::for('public-catalog', function (Request $request) {
+            return Limit::perMinute(120)->by($request->ip() ?: '127.0.0.1')->response(function () {
+                return response()->json([
+                    'success' => false,
+                    'code' => 'TOO_MANY_REQUESTS',
+                    'message' => 'Trop de requêtes catalogue. Veuillez patienter quelques instants.',
+                ], 429);
+            });
+        });
+
+        RateLimiter::for('order-confirmation', function (Request $request) {
+            return Limit::perMinute(30)->by($request->ip() ?: '127.0.0.1')->response(function () {
+                return response()->json([
+                    'success' => false,
+                    'code' => 'TOO_MANY_REQUESTS',
+                    'message' => 'Trop de consultations de confirmation. Veuillez patienter.',
+                ], 429);
+            });
+        });
+
+        RateLimiter::for('admin-upload', function (Request $request) {
+            $key = $request->user()?->id ?: ($request->ip() ?: '127.0.0.1');
+
+            return Limit::perMinute(30)->by($key)->response(function () {
+                return response()->json([
+                    'success' => false,
+                    'code' => 'TOO_MANY_REQUESTS',
+                    'message' => 'Trop d\'envois d\'images simultanés. Veuillez patienter une minute.',
+                ], 429);
+            });
+        });
+
+        RateLimiter::for('admin-import', function (Request $request) {
+            $key = $request->user()?->id ?: ($request->ip() ?: '127.0.0.1');
+
+            return Limit::perMinute(10)->by($key)->response(function () {
+                return response()->json([
+                    'success' => false,
+                    'code' => 'TOO_MANY_REQUESTS',
+                    'message' => 'Trop d\'opérations d\'import CSV. Veuillez patienter quelques instants.',
+                ], 429);
+            });
+        });
+
         RateLimiter::for('admin', function (Request $request) {
             $key = $request->user()?->id ?: $request->ip();
 
             return Limit::perMinute(120)->by($key)->response(function () {
-                return response()->json(['message' => 'Trop de requêtes administratives. Veuillez patienter un instant.'], 429);
+                return response()->json([
+                    'success' => false,
+                    'code' => 'TOO_MANY_REQUESTS',
+                    'message' => 'Trop de requêtes administratives. Veuillez patienter un instant.',
+                ], 429);
             });
         });
     }

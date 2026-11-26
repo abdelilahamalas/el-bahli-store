@@ -80,8 +80,9 @@ export const adminService = {
     return response.data.data
   },
 
-  async deleteProduct(id: number | string): Promise<void> {
-    await api.delete(`/admin/products/${id}`)
+  async deleteProduct(id: number | string): Promise<{ success: boolean; message?: string; data?: any }> {
+    const response = await api.delete<ApiResponse<any>>(`/admin/products/${id}`)
+    return response.data
   },
 
   async toggleProduct(id: number | string): Promise<{ is_active: boolean }> {

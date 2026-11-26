@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AssignRequestId;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Auth\AuthenticationException;
@@ -20,9 +21,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->append(AssignRequestId::class);
         $middleware->append(SecurityHeaders::class);
 
-        $middleware->statefulApi();
+        $middleware->redirectGuestsTo(fn (Request $request) => null);
+
+        $middleware->validateCsrfTokens(except: [
+            'api/*',
+        ]);
 
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
@@ -75,11 +81,43 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (ThrottleRequestsException $e, Request $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
+                $requestId = $request->header('X-Request-ID');
+
                 return response()->json([
                     'success' => false,
+                    'code' => 'TOO_MANY_REQUESTS',
                     'message' => 'Trop de requêtes. Veuillez patienter avant de réessayer.',
                     'errors' => null,
+                    'request_id' => $requestId,
                 ], 429);
+            }
+        });
+
+        $exceptions->render(function (\Throwable $e, Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                if ($e instanceof \Illuminate\Http\Exceptions\HttpResponseException) {
+                    return $e->getResponse();
+                }
+
+                if ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) {
+                    return null;
+                }
+
+                $requestId = $request->header('X-Request-ID') ?: (string) \Illuminate\Support\Str::uuid();
+
+                \Illuminate\Support\Facades\Log::error("[API 500 Error] RequestID: {$requestId} | Route: {$request->path()} | Method: {$request->method()}", [
+                    'request_id' => $requestId,
+                    'error' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'code' => 'INTERNAL_SERVER_ERROR',
+                    'message' => 'Une erreur interne est survenue sur le serveur. Veuillez réessayer plus tard.',
+                    'request_id' => $requestId,
+                ], 500);
             }
         });
     })->create();

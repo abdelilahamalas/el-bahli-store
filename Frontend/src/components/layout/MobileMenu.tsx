@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { Link } from "react-router-dom"
+import { useState, useRef, useEffect } from "react"
+import { Link, useLocation } from "react-router-dom"
 import { Menu, Truck, ChevronRight, Phone } from "lucide-react"
 import type { Category } from "@/types/category"
 import { storeLogo, getCategoryImage } from "@/utils/categoryImages"
@@ -10,8 +10,6 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
-  SheetClose,
 } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -23,25 +21,47 @@ interface MobileMenuProps {
 
 export default function MobileMenu({ categories, isLoading }: MobileMenuProps) {
   const [open, setOpen] = useState(false)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const lastClosedAtRef = useRef<number>(0)
+  const location = useLocation()
+
+  const handleClose = () => {
+    lastClosedAtRef.current = Date.now()
+    setOpen(false)
+  }
+
+  const handleToggle = () => {
+    if (Date.now() - lastClosedAtRef.current < 450) {
+      return
+    }
+    setOpen((prev) => !prev)
+  }
+
+  // Fermeture automatique lors d'un changement de route
+  useEffect(() => {
+    handleClose()
+  }, [location.pathname])
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          data-sheet-trigger="true"
-          aria-label="Ouvrir le menu de navigation"
-          className="lg:hidden h-10 w-10 text-foreground hover:text-brand-gold hover:bg-muted cursor-pointer"
-        >
-          <Menu className="h-6 w-6" />
-        </Button>
-      </SheetTrigger>
-      <SheetContent
-        side="left"
-        onCloseAutoFocus={(e) => e.preventDefault()}
-        className="w-[85vw] sm:w-[380px] p-0 flex flex-col bg-background border-r"
+    <>
+      <Button
+        ref={triggerRef}
+        type="button"
+        variant="ghost"
+        size="icon"
+        onClick={handleToggle}
+        aria-expanded={open}
+        aria-label="Ouvrir le menu de navigation"
+        className="lg:hidden h-10 w-10 text-foreground hover:text-brand-gold hover:bg-muted cursor-pointer"
       >
+        <Menu className="h-6 w-6" />
+      </Button>
+
+      <Sheet open={open} onOpenChange={(next) => { if (!next) { handleClose() } else { setOpen(true) } }}>
+        <SheetContent
+          side="left"
+          className="w-[85vw] sm:w-[380px] p-0 flex flex-col bg-background border-r"
+        >
         {/* Header du menu */}
         <SheetHeader className="p-5 border-b bg-brand-lightGray/30 text-left">
           <div className="flex items-center gap-3">
@@ -75,15 +95,14 @@ export default function MobileMenu({ categories, isLoading }: MobileMenuProps) {
             Navigation
           </div>
 
-          <SheetClose asChild>
-            <Link
-              to="/products"
-              className="flex items-center justify-between p-2.5 rounded-lg text-sm font-bold text-foreground bg-brand-lightGray/70 hover:bg-brand-black hover:text-white transition-colors mb-2"
-            >
-              <span>Tous les vêtements (Catalogue)</span>
-              <ChevronRight className="h-4 w-4" />
-            </Link>
-          </SheetClose>
+          <Link
+            to="/products"
+            onClick={handleClose}
+            className="flex items-center justify-between p-2.5 rounded-lg text-sm font-bold text-foreground bg-brand-lightGray/70 hover:bg-brand-black hover:text-white transition-colors mb-2"
+          >
+            <span>Tous les vêtements (Catalogue)</span>
+            <ChevronRight className="h-4 w-4" />
+          </Link>
 
           <div className="px-2 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             Collections par Catégorie
@@ -102,28 +121,28 @@ export default function MobileMenu({ categories, isLoading }: MobileMenuProps) {
             categories.map((category) => {
               const image = getCategoryImage(category.slug, category.image_url || category.image)
               return (
-                <SheetClose asChild key={category.id}>
-                  <Link
-                    to={`/categories/${category.slug}`}
-                    className="flex items-center justify-between p-2 rounded-lg text-sm font-medium text-foreground hover:bg-brand-lightGray hover:text-brand-gold transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      {image ? (
-                        <img
-                          src={image}
-                          alt={category.name}
-                          className="h-8 w-8 rounded-md object-cover border border-border"
-                        />
-                      ) : (
-                        <div className="h-8 w-8 rounded-md bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground">
-                          {category.name.charAt(0)}
-                        </div>
-                      )}
-                      <span>{category.name}</span>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                  </Link>
-                </SheetClose>
+                <Link
+                  key={category.id}
+                  to={`/categories/${category.slug}`}
+                  onClick={handleClose}
+                  className="flex items-center justify-between p-2 rounded-lg text-sm font-medium text-foreground hover:bg-brand-lightGray hover:text-brand-gold transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    {image ? (
+                      <img
+                        src={image}
+                        alt={category.name}
+                        className="h-8 w-8 rounded-md object-cover border border-border"
+                      />
+                    ) : (
+                      <div className="h-8 w-8 rounded-md bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground">
+                        {category.name.charAt(0)}
+                      </div>
+                    )}
+                    <span>{category.name}</span>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                </Link>
               )
             })
           )}
@@ -150,5 +169,6 @@ export default function MobileMenu({ categories, isLoading }: MobileMenuProps) {
         </div>
       </SheetContent>
     </Sheet>
+    </>
   )
 }

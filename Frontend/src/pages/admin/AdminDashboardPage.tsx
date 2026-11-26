@@ -153,7 +153,7 @@ export default function AdminDashboardPage() {
 
         {/* Bouton standard blanc : + Ajouter un produit */}
         <Button
-          onClick={() => navigate("/admin/products/new")}
+          onClick={() => navigate("/zakaria/admin/products/new")}
           className="h-9 px-4 rounded-lg bg-white hover:bg-slate-50 text-slate-900 border border-slate-200 text-xs font-semibold shadow-2xs inline-flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
         >
           <Plus className="w-3.5 h-3.5 text-slate-700" />
@@ -237,11 +237,10 @@ export default function AdminDashboardPage() {
               <button
                 type="button"
                 onClick={() => setChartOrientation("horizontal")}
-                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
-                  chartOrientation === "horizontal"
-                    ? "bg-white text-slate-900 shadow-2xs"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer ${chartOrientation === "horizontal"
+                  ? "bg-white text-slate-900 shadow-2xs"
+                  : "text-slate-600 hover:text-slate-900"
+                  }`}
                 title="Affichage barres horizontales (recommandé pour 12 catégories)"
               >
                 Horizontal
@@ -249,11 +248,10 @@ export default function AdminDashboardPage() {
               <button
                 type="button"
                 onClick={() => setChartOrientation("vertical")}
-                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
-                  chartOrientation === "vertical"
-                    ? "bg-white text-slate-900 shadow-2xs"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer ${chartOrientation === "vertical"
+                  ? "bg-white text-slate-900 shadow-2xs"
+                  : "text-slate-600 hover:text-slate-900"
+                  }`}
                 title="Affichage barres verticales"
               >
                 Vertical
@@ -274,11 +272,10 @@ export default function AdminDashboardPage() {
                     type="button"
                     onClick={() => handlePeriodChange(tab.id)}
                     disabled={loading || isPending}
-                    className={`px-2.5 py-1 rounded-md text-xs font-semibold cursor-pointer transition-colors ${
-                      isActive
-                        ? "bg-white text-slate-900 shadow-2xs"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
+                    className={`px-2.5 py-1 rounded-md text-xs font-semibold cursor-pointer transition-colors ${isActive
+                      ? "bg-white text-slate-900 shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900"
+                      }`}
                   >
                     {tab.label}
                   </button>
@@ -294,11 +291,10 @@ export default function AdminDashboardPage() {
           <button
             type="button"
             onClick={() => setActiveMetric("units_sold")}
-            className={`p-4 text-left border-r border-slate-100 transition-colors cursor-pointer ${
-              activeMetric === "units_sold"
-                ? "bg-white border-b-2 border-b-blue-600 shadow-2xs"
-                : "hover:bg-slate-100/60"
-            }`}
+            className={`p-4 text-left border-r border-slate-100 transition-colors cursor-pointer ${activeMetric === "units_sold"
+              ? "bg-white border-b-2 border-b-blue-600 shadow-2xs"
+              : "hover:bg-slate-100/60"
+              }`}
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-500">
@@ -318,11 +314,10 @@ export default function AdminDashboardPage() {
           <button
             type="button"
             onClick={() => setActiveMetric("revenue")}
-            className={`p-4 text-left transition-colors cursor-pointer ${
-              activeMetric === "revenue"
-                ? "bg-white border-b-2 border-b-blue-600 shadow-2xs"
-                : "hover:bg-slate-100/60"
-            }`}
+            className={`p-4 text-left transition-colors cursor-pointer ${activeMetric === "revenue"
+              ? "bg-white border-b-2 border-b-blue-600 shadow-2xs"
+              : "hover:bg-slate-100/60"
+              }`}
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-500">

@@ -119,7 +119,6 @@ export default function ProductFilters({
               <Button
                 variant="outline"
                 size="sm"
-                data-sheet-trigger="true"
                 className="h-10 px-3.5 gap-2 text-xs font-semibold rounded-xl relative cursor-pointer"
               >
                 <SlidersHorizontal className="h-4 w-4" />
@@ -131,7 +130,10 @@ export default function ProductFilters({
                 )}
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[85vw] sm:w-[380px] p-6 space-y-6">
+            <SheetContent
+              side="right"
+              className="w-[85vw] sm:w-[380px] p-6 space-y-6"
+            >
               <SheetHeader className="text-left pb-4 border-b">
                 <SheetTitle className="text-base font-bold">
                   Filtrer les Produits

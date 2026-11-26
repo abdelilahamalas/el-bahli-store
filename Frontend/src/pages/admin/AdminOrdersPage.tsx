@@ -192,11 +192,10 @@ export default function AdminOrdersPage() {
                   setCurrentPage(1)
                 })
               }}
-              className={`h-8 px-3.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors duration-150 whitespace-nowrap ${
-                isActive
-                  ? "bg-slate-900 text-white shadow-2xs"
-                  : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 shadow-2xs"
-              }`}
+              className={`h-8 px-3.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors duration-150 whitespace-nowrap ${isActive
+                ? "bg-slate-900 text-white shadow-2xs"
+                : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 shadow-2xs"
+                }`}
             >
               {tab.label}
             </button>
@@ -333,7 +332,7 @@ export default function AdminOrdersPage() {
                     {/* Action : White button Détails → */}
                     <TableCell className="py-3 px-4 text-right whitespace-nowrap">
                       <Link
-                        to={`/admin/orders/${order.id}`}
+                        to={`/zakaria/admin/orders/${order.id}`}
                         className="h-7.5 px-3 rounded-lg text-xs font-semibold bg-white text-slate-800 border border-slate-200 hover:bg-slate-50 inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
                       >
                         <span>Détails</span>

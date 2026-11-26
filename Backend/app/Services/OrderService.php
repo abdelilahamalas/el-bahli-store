@@ -90,8 +90,8 @@ class OrderService
                 // Règle métier : Le stock n'est pas décrémenté à la création en attente (PENDING).
                 // La décrémentation intervient exclusivement lors de la confirmation par l'administrateur.
 
-                // Calculate amounts in integer centimes
-                $unitPriceCents = (int) round(((float) $product->price) * 100);
+                // Calculate amounts in integer centimes (utilise le prix promo si défini, sinon prix normal)
+                $unitPriceCents = (int) round($product->getEffectivePrice() * 100);
                 $lineTotalCents = $unitPriceCents * $item['quantity'];
                 $subtotalCents += $lineTotalCents;
 
@@ -184,6 +184,8 @@ class OrderService
             } elseif ($newStatus === OrderStatus::RETURN_RECEIVED) {
                 $lockedOrder->return_received_at = now();
             } elseif ($newStatus === OrderStatus::RETURNED) {
+                // Restore stock back to inventory if order was confirmed and not already restocked
+                $this->inventoryService->restoreReturnedOrderStock($lockedOrder, $userId);
                 $lockedOrder->returned_at = now();
             }
 
@@ -329,7 +331,7 @@ class OrderService
                 $errorMessage = "Stock insuffisant pour cette variante. Quantité disponible : {$stockAvailable}.";
             }
 
-            $unitPriceCents = $product ? (int) round(((float) $product->price) * 100) : 0;
+            $unitPriceCents = $product ? (int) round($product->getEffectivePrice() * 100) : 0;
             $lineTotalCents = $unitPriceCents * $item['quantity'];
 
             if ($isAvailable) {
