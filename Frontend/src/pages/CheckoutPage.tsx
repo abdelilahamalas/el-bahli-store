@@ -19,8 +19,15 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { usePageMeta } from "@/hooks/usePageMeta"
 
 export default function CheckoutPage() {
+  usePageMeta({
+    title: "Finaliser ma commande — El Bahli Store",
+    canonical: "https://elbahlistore.com/checkout",
+    noindex: true,
+  })
+
   const navigate = useNavigate()
   const { items, totalCount, subtotal, deliveryFee, total, clearCart, closeCart } = useCart()
 

@@ -1,8 +1,14 @@
 import { Outlet } from "react-router-dom"
+import { usePageMeta } from "@/hooks/usePageMeta"
 import AdminSidebar from "./AdminSidebar"
 import AdminHeader from "./AdminHeader"
 
 export default function AdminLayout() {
+  usePageMeta({
+    title: "Administration — El Bahli Store",
+    noindex: true,
+  })
+
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[#F8F9FA] text-[#111111]">
       {/* Desktop Fixed Sidebar */}

@@ -7,8 +7,15 @@ import AnnouncementBar from "@/components/layout/AnnouncementBar"
 import Navbar from "@/components/layout/Navbar"
 import Footer from "@/components/layout/Footer"
 import { Button } from "@/components/ui/button"
+import { usePageMeta } from "@/hooks/usePageMeta"
 
 export default function OrderSuccessPage() {
+  usePageMeta({
+    title: "Commande Confirmée — El Bahli Store",
+    canonical: "https://elbahlistore.com/order-success",
+    noindex: true,
+  })
+
   const [searchParams] = useSearchParams()
   const referenceFromUrl = searchParams.get("ref")
 

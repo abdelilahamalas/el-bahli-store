@@ -19,7 +19,19 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => array_values(array_filter(array_map('trim', explode(',', env('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173'))))),
+    'allowed_origins' => (function () {
+        $configured = env('CORS_ALLOWED_ORIGINS');
+        if ($configured !== null && $configured !== '') {
+            return array_values(array_filter(array_map('trim', explode(',', (string) $configured))));
+        }
+
+        // En production, AUCUN fallback vers localhost pour empêcher toute fuite CORS
+        if (env('APP_ENV') === 'production') {
+            return [];
+        }
+
+        return ['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:5173'];
+    })(),
 
     'allowed_origins_patterns' => [],
 

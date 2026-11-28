@@ -62,10 +62,12 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             ->middleware('throttle:5,1')
             ->name('login');
 
+        Route::post('/logout', [AdminAuthController::class, 'logout'])
+            ->name('logout');
+
         // Endpoints protégés (auth:sanctum + is_admin)
         Route::middleware(['auth:sanctum', 'admin', 'throttle:admin'])->group(function () {
 
-            Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
             Route::get('/me', [AdminAuthController::class, 'me'])->name('me');
 
             // Dashboard
@@ -104,6 +106,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
             // Inventaire et ajustement de stock
             Route::get('/inventory', [AdminInventoryController::class, 'index'])->name('inventory.index');
+            Route::get('/stock', [AdminInventoryController::class, 'index'])->name('stock.index');
             Route::get('/inventory/movements', [AdminInventoryController::class, 'movements'])->name('inventory.movements');
             Route::patch('/inventory/variants/{variant}', [AdminInventoryController::class, 'adjust'])->name('inventory.variants.adjust');
             Route::post('/inventory/variants/{variant}/adjust', [AdminInventoryController::class, 'adjust'])->name('inventory.adjust');

@@ -19,6 +19,7 @@ const AdminDashboardPage = lazy(() => import("@/pages/admin/AdminDashboardPage")
 const AdminProductsPage = lazy(() => import("@/pages/admin/AdminProductsPage"))
 const AdminProductFormPage = lazy(() => import("@/pages/admin/AdminProductFormPage"))
 const AdminOrdersPage = lazy(() => import("@/pages/admin/AdminOrdersPage"))
+const AdminStockPage = lazy(() => import("@/pages/admin/AdminStockPage"))
 const AdminOrderDetailPage = lazy(() => import("@/pages/admin/AdminOrderDetailPage"))
 const AdminCategoriesPage = lazy(() => import("@/pages/admin/AdminCategoriesPage"))
 const DevCheckPage = lazy(() => import("@/pages/DevCheckPage"))
@@ -115,6 +116,14 @@ export default function AppRoutes() {
             element={
               <Suspense fallback={<PageLoadingFallback />}>
                 <AdminOrdersPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/zakaria/admin/stock"
+            element={
+              <Suspense fallback={<PageLoadingFallback />}>
+                <AdminStockPage />
               </Suspense>
             }
           />

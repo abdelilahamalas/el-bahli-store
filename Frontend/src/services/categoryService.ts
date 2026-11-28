@@ -1,3 +1,4 @@
+import axios from "axios"
 import api from "@/services/api"
 import type { Category, CategoriesApiResponse } from "@/types/category"
 import { siteConfig } from "@/config/site"
@@ -28,6 +29,9 @@ export const categoryService = {
         return orderA - orderB
       })
     } catch (error) {
+      if (axios.isCancel(error) || (error && typeof error === "object" && "name" in error && (error as { name: string }).name === "CanceledError")) {
+        throw error
+      }
       console.error("Erreur lors de la récupération des catégories :", error)
       throw error
     }
@@ -43,6 +47,9 @@ export const categoryService = {
       )
       return response.data?.data || null
     } catch (error) {
+      if (axios.isCancel(error) || (error && typeof error === "object" && "name" in error && (error as { name: string }).name === "CanceledError")) {
+        return null
+      }
       console.error(`Erreur lors de la récupération de la catégorie ${slug} :`, error)
       return null
     }

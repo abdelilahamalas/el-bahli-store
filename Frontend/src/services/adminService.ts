@@ -227,8 +227,29 @@ export const adminService = {
   },
 
   // --------------------------------------------------------------------------
-  // Inventaire
+  // Inventaire & Stock
   // --------------------------------------------------------------------------
+  async getStock(params?: {
+    category_id?: number | string
+    stock_status?: string
+    search?: string
+    per_page?: number
+    page?: number
+  }): Promise<{
+    inventory: { data: InventoryItem[]; pagination: PaginationMeta }
+    stats: InventoryStats
+    categories: AdminCategory[]
+  }> {
+    const response = await api.get<
+      ApiResponse<{
+        inventory: { data: InventoryItem[]; pagination: PaginationMeta }
+        stats: InventoryStats
+        categories: AdminCategory[]
+      }>
+    >("/admin/stock", { params })
+    return response.data.data
+  },
+
   async getInventory(params?: {
     category_id?: number | string
     stock_status?: string

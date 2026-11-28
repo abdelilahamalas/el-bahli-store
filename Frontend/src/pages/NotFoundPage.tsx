@@ -1,8 +1,14 @@
 import { Link } from "react-router-dom"
 import { ArrowLeft, Home } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { usePageMeta } from "@/hooks/usePageMeta"
 
 export default function NotFoundPage() {
+  usePageMeta({
+    title: "Page introuvable — El Bahli Store",
+    noindex: true,
+  })
+
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center font-sans">
       <div className="max-w-md w-full space-y-6">

@@ -84,7 +84,7 @@ class AuthController extends ApiController
      */
     public function logout(Request $request): JsonResponse
     {
-        $user = $request->user();
+        $user = $request->user('sanctum') ?? $request->user();
 
         if ($user) {
             // Revoke current token if using Sanctum personal access token

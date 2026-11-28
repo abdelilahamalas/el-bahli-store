@@ -1,0 +1,22 @@
+# ==============================================================================
+# EL BAHLI STORE — SÉCURITÉ DE LA RACINE BACKEND (DEFENSE IN DEPTH)
+# ==============================================================================
+# Empêche tout accès direct aux fichiers sensibles (.env, composer, logs, tests)
+# Si le DocumentRoot pointe par erreur sur Backend/ au lieu de Backend/public/,
+# les requêtes publiques sont redirigées proprement vers public/.
+# ==============================================================================
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^$ public/ [L]
+    RewriteRule ((?!\.well-known).*) public/$1 [L]
+</IfModule>
+
+# Bloquer l'accès à tous les fichiers cachés (.env, .git, etc.)
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Bloquer le listing des dossiers
+Options -Indexes

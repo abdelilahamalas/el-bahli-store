@@ -66,6 +66,11 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError<{ message?: string; errors?: Record<string, string[]>; code?: string; request_id?: string }>) => {
+    // Si la requête a été volontairement annulée (ex. navigation, changement de filtre, React StrictMode), ne pas la traiter comme une erreur réseau
+    if (axios.isCancel(error) || error.name === "CanceledError" || error.code === "ERR_CANCELED") {
+      return Promise.reject(error)
+    }
+
     const status = error.response?.status
     const data = error.response?.data
 

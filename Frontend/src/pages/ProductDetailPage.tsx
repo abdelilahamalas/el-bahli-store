@@ -16,6 +16,7 @@ import type { Category } from "@/types/category"
 import productService from "@/services/productService"
 import categoryService from "@/services/categoryService"
 import { siteConfig } from "@/config/site"
+import { usePageMeta } from "@/hooks/usePageMeta"
 import AnnouncementBar from "@/components/layout/AnnouncementBar"
 import Navbar from "@/components/layout/Navbar"
 import Footer from "@/components/layout/Footer"
@@ -31,6 +32,14 @@ export default function ProductDetailPage() {
 
   const [categories, setCategories] = useState<Category[]>([])
   const [product, setProduct] = useState<Product | null>(null)
+
+  usePageMeta({
+    title: product ? `${product.name} — El Bahli Store` : "Détail produit — El Bahli Store",
+    description: product
+      ? `Achetez ${product.name} au meilleur prix chez El Bahli Store. Vêtements homme de qualité supérieure au Maroc, livraison offerte et paiement à la réception.`
+      : "Découvrez nos vêtements pour homme chez El Bahli Store. Livraison gratuite partout au Maroc.",
+    canonical: `https://elbahlistore.com/products/${slug || ""}`,
+  })
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 

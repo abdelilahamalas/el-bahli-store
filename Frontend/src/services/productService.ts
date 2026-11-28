@@ -1,3 +1,4 @@
+import axios from "axios"
 import api from "@/services/api"
 import type {
   Product,
@@ -43,6 +44,9 @@ export const productService = {
         },
       }
     } catch (error) {
+      if (axios.isCancel(error) || (error && typeof error === "object" && "name" in error && (error as { name: string }).name === "CanceledError")) {
+        throw error
+      }
       console.error("Erreur lors de la récupération des produits :", error)
       throw error
     }
@@ -59,6 +63,9 @@ export const productService = {
       }
       return response.data.data
     } catch (error) {
+      if (axios.isCancel(error) || (error && typeof error === "object" && "name" in error && (error as { name: string }).name === "CanceledError")) {
+        throw error
+      }
       console.error(`Erreur lors de la récupération du produit ${slug} :`, error)
       throw error
     }
@@ -98,6 +105,9 @@ export const productService = {
         },
       }
     } catch (error) {
+      if (axios.isCancel(error) || (error && typeof error === "object" && "name" in error && (error as { name: string }).name === "CanceledError")) {
+        throw error
+      }
       console.error(
         `Erreur lors de la récupération des produits de la catégorie ${categorySlug} :`,
         error

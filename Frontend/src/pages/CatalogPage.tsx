@@ -5,6 +5,7 @@ import type { Product, ProductFilterParams, PaginationMeta } from "@/types/produ
 import type { Category } from "@/types/category"
 import productService from "@/services/productService"
 import categoryService from "@/services/categoryService"
+import { usePageMeta } from "@/hooks/usePageMeta"
 import AnnouncementBar from "@/components/layout/AnnouncementBar"
 import Navbar from "@/components/layout/Navbar"
 import Footer from "@/components/layout/Footer"
@@ -13,6 +14,12 @@ import ProductGrid from "@/components/products/ProductGrid"
 import { Button } from "@/components/ui/button"
 
 export default function CatalogPage() {
+  usePageMeta({
+    title: "Tous nos vêtements — El Bahli Store",
+    description: "Explorez l'ensemble du catalogue de prêt-à-porter masculin El Bahli Store au Maroc. Mode homme moderne, livraison gratuite partout au Maroc et paiement à la réception.",
+    canonical: "https://elbahlistore.com/products",
+  })
+
   const [searchParams, setSearchParams] = useSearchParams()
 
   const [categories, setCategories] = useState<Category[]>([])
@@ -63,12 +70,14 @@ export default function CatalogPage() {
         setIsLoading(false)
       })
       .catch((err: unknown) => {
-        const msg =
-          err instanceof Error
-            ? err.message
-            : "Impossible de charger les produits du catalogue."
-        setError(msg)
-        setIsLoading(false)
+        if (!(err && typeof err === "object" && "name" in err && (err as { name: string }).name === "CanceledError")) {
+          const msg =
+            err instanceof Error
+              ? err.message
+              : "Impossible de charger les produits du catalogue."
+          setError(msg)
+          setIsLoading(false)
+        }
       })
   }
 

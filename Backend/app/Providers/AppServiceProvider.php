@@ -46,6 +46,14 @@ class AppServiceProvider extends ServiceProvider
             $ip = $request->ip() ?: '127.0.0.1';
             $phone = OrderService::normalizeMoroccanPhone((string) $request->input('customer_phone', '')) ?: 'unknown';
 
+            // En environnement local (développement), quotas assouplis pour permettre les tests continus
+            if (app()->isLocal()) {
+                return [
+                    Limit::perMinute(60)->by($ip),
+                    Limit::perHour(200)->by($phone),
+                ];
+            }
+
             return [
                 Limit::perMinute(5)->by($ip)->response(function () {
                     return response()->json(['message' => 'Trop de tentatives de commande. Veuillez patienter une minute.'], 429);
@@ -53,7 +61,7 @@ class AppServiceProvider extends ServiceProvider
                 Limit::perHour(20)->by($ip)->response(function () {
                     return response()->json(['message' => 'Trop de commandes passées depuis cette adresse IP. Veuillez réessayer plus tard.'], 429);
                 }),
-                Limit::perHour(3)->by($phone)->response(function () {
+                Limit::perHour(5)->by($phone)->response(function () {
                     return response()->json(['message' => 'Trop de commandes passées pour ce numéro de téléphone dans l\'heure.'], 429);
                 }),
             ];

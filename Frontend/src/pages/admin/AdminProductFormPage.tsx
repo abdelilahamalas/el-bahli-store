@@ -63,8 +63,9 @@ export default function AdminProductFormPage() {
 
   // Variants list
   const [variants, setVariants] = useState<VariantRow[]>([
-    { size: "M", color: "Standard", stock: 10, is_active: true },
+    { size: "", color: "Standard", stock: 0, is_active: true },
   ])
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false)
 
   // Images state
   const [existingImages, setExistingImages] = useState<AdminProductImage[]>([])
@@ -237,7 +238,7 @@ export default function AdminProductFormPage() {
   const handleAddVariant = () => {
     setVariants((prev) => [
       ...prev,
-      { size: "L", color: "Standard", stock: 10, is_active: true },
+      { size: "", color: "Standard", stock: 0, is_active: true },
     ])
   }
 
@@ -279,7 +280,7 @@ export default function AdminProductFormPage() {
     const newVariants: VariantRow[] = sizes.map((sz) => ({
       size: sz,
       color: "Standard",
-      stock: 10,
+      stock: 0,
       is_active: true,
     }))
     setVariants(newVariants)
@@ -332,6 +333,15 @@ export default function AdminProductFormPage() {
     if (variants.length === 0) {
       toast.warning("Tailles requises", {
         description: "Veuillez configurer au moins une variante ou taille.",
+      })
+      return
+    }
+
+    setHasAttemptedSubmit(true)
+
+    if (variants.some((v) => !v.size.trim())) {
+      toast.warning("Taille manquante", {
+        description: "Veuillez choisir une taille pour chaque ligne.",
       })
       return
     }
@@ -680,7 +690,7 @@ export default function AdminProductFormPage() {
                         } else {
                           setVariants((prev) => [
                             ...prev,
-                            { size: sz, color: "Standard", stock: 10, is_active: true },
+                            { size: sz, color: "Standard", stock: 0, is_active: true },
                           ])
                         }
                       }}
@@ -711,14 +721,24 @@ export default function AdminProductFormPage() {
                     {variants.map((v, idx) => (
                       <TableRow key={idx} className="hover:bg-muted/20">
                         {/* Size */}
-                        <TableCell className="py-2 px-3">
-                          <Input
-                            value={v.size}
-                            onChange={(e) => handleUpdateVariant(idx, "size", e.target.value)}
-                            placeholder="Ex. M"
-                            className="h-8 text-xs w-24"
-                            required
-                          />
+                        <TableCell className="py-2 px-3 align-top">
+                          <div className="flex flex-col">
+                            <Input
+                              value={v.size}
+                              onChange={(e) => handleUpdateVariant(idx, "size", e.target.value)}
+                              placeholder="Choisir une taille"
+                              className={`h-8 text-xs w-36 ${
+                                hasAttemptedSubmit && !v.size.trim()
+                                  ? "border-rose-500 focus-visible:ring-rose-500"
+                                  : ""
+                              }`}
+                            />
+                            {hasAttemptedSubmit && !v.size.trim() && (
+                              <p className="text-[11px] text-rose-500 font-medium mt-1">
+                                Veuillez choisir une taille
+                              </p>
+                            )}
+                          </div>
                         </TableCell>
 
                         {/* Color */}

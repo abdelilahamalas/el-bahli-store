@@ -86,6 +86,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Trusted Proxies
+    |--------------------------------------------------------------------------
+    |
+    | Définir les adresses IP ou blocs CIDR des proxies de confiance (ex. Cloudflare).
+    | Laisser vide si l'application est directement exposée sans reverse proxy
+    | afin que Laravel utilise exclusivement REMOTE_ADDR et protège le rate limiting.
+    | Exemple si Cloudflare est activé : '173.245.48.0/20,103.21.244.0/22,...'
+    |
+    */
+    'trusted_proxies' => array_values(array_filter(array_map('trim', explode(',', (string) env('TRUSTED_PROXIES', ''))))),
+
+    /*
+    |--------------------------------------------------------------------------
     | Encryption Key
     |--------------------------------------------------------------------------
     |

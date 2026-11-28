@@ -5,6 +5,7 @@ import type { Category } from "@/types/category"
 import categoryService from "@/services/categoryService"
 import { siteConfig } from "@/config/site"
 import { storeLogo } from "@/utils/categoryImages"
+import { usePageMeta } from "@/hooks/usePageMeta"
 import AnnouncementBar from "@/components/layout/AnnouncementBar"
 import Navbar from "@/components/layout/Navbar"
 import Footer from "@/components/layout/Footer"
@@ -12,6 +13,12 @@ import CategoryGrid from "@/components/categories/CategoryGrid"
 import { Button } from "@/components/ui/button"
 
 export default function HomePage() {
+  usePageMeta({
+    title: "El Bahli Store — Vêtements homme au Maroc",
+    description: "Boutique de vêtements pour homme au Maroc. Mode masculine moderne et élégante. Livraison gratuite partout au Maroc et paiement à la réception.",
+    canonical: "https://elbahlistore.com/",
+  })
+
   const [categories, setCategories] = useState<Category[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -125,10 +132,13 @@ export default function HomePage() {
                   — LIVRAISON GRATUITE DANS TOUT LE MAROC
                 </div>
 
-                {/* Titre percutant, grand et épuré comme le modèle "Prends ta place." */}
-                <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.08]">
+                {/* H1 SEO unique avec le texte exact "El Bahli Store" */}
+                <h1 className="sr-only">El Bahli Store</h1>
+
+                {/* Titre percutant, grand et épuré (style visuel identique conservé) */}
+                <div className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.08]">
                   Prends ton <span className="text-brand-gold">style.</span>
-                </h1>
+                </div>
 
                 <p className="text-brand-gray text-sm sm:text-base max-w-xl mx-auto lg:mx-0 leading-relaxed font-normal">
                   Vestiaire masculin haut de gamme alliant authenticité, coupes soignées

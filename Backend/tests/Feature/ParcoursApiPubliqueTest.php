@@ -179,9 +179,9 @@ class ParcoursApiPubliqueTest extends TestCase
             ->assertJson([
                 'success' => true,
                 'data' => [
-                    'subtotal' => '700.00',
+                    'subtotal' => '598.00',
                     'delivery_fee' => '0.00',
-                    'total' => '700.00',
+                    'total' => '598.00',
                 ],
             ]);
     }

@@ -11,7 +11,7 @@ interface AuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
   login: (token: string, user: AdminUser, remember?: boolean) => void
-  logout: () => void
+  logout: () => Promise<void>
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -72,13 +72,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const logout = () => {
-    adminService.logout().catch(() => {})
-    removeAuthToken()
-    localStorage.removeItem(USER_STORAGE_KEY)
-    sessionStorage.removeItem(USER_STORAGE_KEY)
-    setTokenState(null)
-    setUser(null)
+  const logout = async () => {
+    try {
+      await adminService.logout()
+    } catch {
+      // Ignorer silencieusement si la session était déjà terminée ou le jeton expiré
+    } finally {
+      removeAuthToken()
+      localStorage.removeItem(USER_STORAGE_KEY)
+      sessionStorage.removeItem(USER_STORAGE_KEY)
+      setTokenState(null)
+      setUser(null)
+    }
   }
 
   return (

@@ -1,0 +1,23 @@
+# ==============================================================================
+# BLOCAGE DE L'EXÉCUTION DE SCRIPTS DANS LE RÉPERTOIRE D'UPLOAD PUBLIC
+# ==============================================================================
+# Interdire strictement l'exécution de tout script (PHP, CGI, scripts shell, etc.)
+# Les images (.webp, .jpg, .png, etc.) restent parfaitement accessibles en lecture
+# ==============================================================================
+
+<FilesMatch "(?i)\.(php|phtml|php3|php4|php5|php7|php8|phps|phar|inc|cgi|pl|py|sh)$">
+    Order Deny,Allow
+    Deny from all
+</FilesMatch>
+
+Options -ExecCGI -Indexes
+
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag engine off
+</IfModule>

@@ -7,8 +7,15 @@ import Footer from "@/components/layout/Footer"
 import CartItemRow from "@/components/cart/CartItemRow"
 import CartSummary from "@/components/cart/CartSummary"
 import { Button } from "@/components/ui/button"
+import { usePageMeta } from "@/hooks/usePageMeta"
 
 export default function CartPage() {
+  usePageMeta({
+    title: "Mon Panier — El Bahli Store",
+    canonical: "https://elbahlistore.com/cart",
+    noindex: true,
+  })
+
   const navigate = useNavigate()
   const {
     items,

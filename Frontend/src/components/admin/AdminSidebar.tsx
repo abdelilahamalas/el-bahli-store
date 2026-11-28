@@ -4,6 +4,7 @@ import {
   Package,
   Layers,
   ShoppingBag,
+  Boxes,
   LogOut,
 } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
@@ -47,6 +48,12 @@ export default function AdminSidebar({ onNavClick }: AdminSidebarProps) {
       label: "Commandes",
       to: "/zakaria/admin/orders",
       icon: ShoppingBag,
+      end: false,
+    },
+    {
+      label: "Gestion de stock",
+      to: "/zakaria/admin/stock",
+      icon: Boxes,
       end: false,
     },
   ]

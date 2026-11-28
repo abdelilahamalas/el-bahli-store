@@ -7,6 +7,7 @@ import productService from "@/services/productService"
 import categoryService from "@/services/categoryService"
 import { getCategoryImage } from "@/utils/categoryImages"
 import { siteConfig } from "@/config/site"
+import { usePageMeta } from "@/hooks/usePageMeta"
 import AnnouncementBar from "@/components/layout/AnnouncementBar"
 import Navbar from "@/components/layout/Navbar"
 import Footer from "@/components/layout/Footer"
@@ -20,6 +21,20 @@ export default function CategoryProductsPage() {
 
   const [categories, setCategories] = useState<Category[]>([])
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null)
+
+  const categoryTitle = currentCategory?.name
+    ? `${currentCategory.name} — El Bahli Store`
+    : "Collection — El Bahli Store"
+
+  const categoryDescription = currentCategory?.name
+    ? `Découvrez notre collection ${currentCategory.name} pour homme chez El Bahli Store. Qualité premium, livraison gratuite partout au Maroc et paiement à la réception.`
+    : "Découvrez notre collection de vêtements pour homme chez El Bahli Store. Livraison gratuite partout au Maroc et paiement à la réception."
+
+  usePageMeta({
+    title: categoryTitle,
+    description: categoryDescription,
+    canonical: `https://elbahlistore.com/categories/${slug || ""}`,
+  })
   const [products, setProducts] = useState<Product[]>([])
   const [pagination, setPagination] = useState<PaginationMeta>({
     current_page: 1,
@@ -74,12 +89,14 @@ export default function CategoryProductsPage() {
         setIsLoading(false)
       })
       .catch((err: unknown) => {
-        const msg =
-          err instanceof Error
-            ? err.message
-            : "Impossible de charger les produits de cette catégorie."
-        setError(msg)
-        setIsLoading(false)
+        if (!(err && typeof err === "object" && "name" in err && (err as { name: string }).name === "CanceledError")) {
+          const msg =
+            err instanceof Error
+              ? err.message
+              : "Impossible de charger les produits de cette catégorie."
+          setError(msg)
+          setIsLoading(false)
+        }
       })
   }
 

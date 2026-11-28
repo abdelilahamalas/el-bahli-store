@@ -10,9 +10,15 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
+import { usePageMeta } from "@/hooks/usePageMeta"
 import logoImg from "@/images/logo store.jpeg"
 
 export default function AdminLoginPage() {
+  usePageMeta({
+    title: "Administration — Connexion",
+    noindex: true,
+  })
+
   const { isAuthenticated, login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
